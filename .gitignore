@@ -1,0 +1,8 @@
+# Project exclude paths
+/clientside/barebone/socketio-small-client/node_modules/
+/clientside/maxwhere/military-arbiter/dist/
+/clientside/maxwhere/military-arbiter/node_modules/
+/framework/cognitive/agent/blocks/target/
+/framework/cognitive/channels/intercognitive/target/
+/framework/cognitive/format/hypergraph/target/
+/framework/cognitive/speclanguage/target/

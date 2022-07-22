@@ -1,0 +1,290 @@
+@startuml graph_metalang
+'https://plantuml.com/class-diagram
+skinparam linetype ortho
+skinparam groupInheritance 2
+skinparam nodesep 4
+
+mainframe **bdd** Basic hypergraph elements for semantics
+
+namespace basicelements {
+
+!startsub basicelements
+interface ITreeObject implements basicelements.concepts.IUniqueIdentifiable
+{
+    +getParentId(): byte[]
+    +setParentObj()
+    +setParentId(o: Object)
+    +expand(): Collection<ITreeObject>
+    +propose(command: IObjectCommand<?>)
+}
+
+interface IObjectCommand <T>
+{
+    +execute(): T
+    +setTarget(tree: ITreeObject)
+}
+IObjectCommand ..> ITreeObject
+
+interface IGraphFilter <T> implements IObjectCommand
+{
+    +assignSubjectTree(subject: ITreeObject)
+}
+
+interface IGraphTransformation<T> implements IObjectCommand
+{
+    +addFilter(filter: IGraphFilter)
+}
+IGraphTransformation ..> IGraphFilter
+
+interface IGraphExpression<T> implements ITreeObject
+{
+}
+
+interface IGraphMachine<T1, T2>
+{
+    +assignTask(graphobject: ITreeObject, command: IObjectCommand)
+}
+IGraphMachine ..> IObjectCommand
+IGraphMachine ..> ITreeObject
+ITreeObject ..> IObjectCommand
+
+namespace concepts {
+
+interface IRegisterable
+{
+    +getUuid(): byte[]
+    +getTimestamp(): Long
+}
+
+interface IIdentifiable
+{
+    +getName(): String
+    +getQualifiedName(): String
+}
+
+interface IUniqueIdentifiable
+{
+    +getUid(): byte[]
+}
+
+
+abstract class UniqueIdentifiableItem implements IUniqueIdentifiable
+{
+    -uid: byte[]
+    #generateUid(): byte[]
+}
+
+
+abstract class IdentifiableItem extends UniqueIdentifiableItem implements IIdentifiable
+{
+    -name: String
+    #qualifiedName: String
+}
+
+interface IClassifiable
+{
+    +getClusterName(): String
+    +getClusterId(): byter[]
+}
+
+}
+
+namespace taxonomy {
+
+interface ICognitiveFragment implements basicelements.ITreeObject, basicelements.concepts.IIdentifiable
+{
+    +getSid(): byte[]
+    +generateSid()
+    +getProgenitorId(): byte[]
+}
+
+interface ICognitiveTrait implements ICognitiveFragment
+{
+    +getFragmentChain(): Collection<ICognitiveFragment>
+}
+
+abstract class MetadataItem extends basicelements.concepts.IdentifiableItem implements basicelements.concepts.IRegisterable, basicelements.ITreeObject, basicelements.concepts.IClassifiable
+{
+    -uuid: byte[]
+    -timestamp: long
+    -version: byte[]
+    +getVersion(): byte[]
+    +getVersionText(): String
+    +getClusterId(): byte[]
+    +getClusterName(): String
+}
+
+MetadataItem "clusters" o-- basicelements.concepts.IClassifiable
+
+interface ITaxon implements ICognitiveTrait
+{
+    +getPhyloName(): String
+    +getPhyloId(): byte[]
+    +getOrganizationName(): String
+    +getOrganizationId(): byte[]
+}
+
+note right of MetadataItem
+Inspired by IEEE/IEC 11179
+end note
+
+abstract class CognitiveNotion extends basicelements.concepts.UniqueIdentifiableItem implements basicelements.taxonomy.ITaxon
+{
+    -name: String
+    -phyloName: String
+    -phyloId: byte[]
+    -organizationName: String
+    -organizationId: byte[]
+}
+CognitiveNotion "0..1" --> "progenitor" basicelements.taxonomy.ICognitiveTrait
+
+namespace entitystructure {
+
+interface IEntity {
+    +getEntityName(): String
+    +getEntityId(): byte[]
+}
+
+class EntityMetadata extends basicelements.taxonomy.MetadataItem implements basicelements.taxonomy.entitystructure.IEntity
+{
+    ' Fields
+    -entityName: String
+    -entityId: byte[]
+   ' Methods
+}
+
+}
+
+}
+
+namespace graphelements {
+
+
+class GraphObjectMetadata extends basicelements.taxonomy.MetadataItem
+{
+    ' Fields
+    ' Methods
+}
+GraphObjectMetadata "0..1" --> basicelements.taxonomy.ITaxon: taxon
+GraphObjectMetadata "0..1" --> basicelements.taxonomy.entitystructure.IEntity: entity
+
+note left of basicelements.graphelements.GraphObjectMetadata::uid
+    Very unique identifier with SHA3 digest
+    to avoid collision
+end note
+
+note left of basicelements.graphelements.GraphObjectMetadata::sid
+    Semantic identifier useful
+    for semantic operations
+    using Locality Sensitive Hash (e.g., TLSH)
+end note
+
+note left of basicelements.graphelements.GraphObjectMetadata::uuid
+    RFC 4122 (128-bit), 32 digits
+end note
+
+
+abstract class GraphObject extends basicelements.concepts.UniqueIdentifiableItem implements basicelements.ITreeObject, basicelements.concepts.IRegisterable
+{
+    -parentid: byte[]
+    -uuid: byte[]
+    -timestamp: Long
+}
+GraphObject "metadata" *-- GraphObjectMetadata
+
+abstract class MultiSet extends GraphObject
+{
+
+    addRelation(r: Relation)
+    getRelation(): Relation
+}
+MultiSet "subelements 0..*" *-- basicelements.ITreeObject
+MultiSet ..> Relation
+
+abstract class Node extends MultiSet implements basicelements.concepts.IClassifiable
+{
+    -clusterName: String
+    -clusterId: byte[]
+    +getDegree(): Int
+    ' Node is more a functional
+}
+
+
+abstract class Relation extends GraphObject
+{
+    -direction: RelationDirection
+    +getDirection(): RelationDirection
+}
+
+enum RelationDirection
+{
+Out
+In
+Bidir
+Undefined
+}
+
+namespace operatorrelations {
+abstract class StructuralOperator extends basicelements.graphelements.Relation
+{
+    +getAssociatedElement(): GraphObject
+}
+
+class EdgeAssignment extends StructuralOperator
+{
+
+}
+EdgeAssignment "element" *-- basicelements.graphelements.GraphObject
+class EdgeReference extends StructuralOperator
+{
+
+}
+EdgeReference "reference" --> basicelements.graphelements.GraphObject
+}
+namespace parameters {
+
+ class Parameter <T> extends basicelements.graphelements.Node
+ {
+     -value: T
+     +set(v: T)
+     +get(T): T
+ }
+}
+
+
+}
+!endsub
+
+namespace graphcommands {
+
+
+interface ITreeStructureCommand implements basicelements.IObjectCommand
+{
+}
+
+class AddTreeObject implements ITreeStructureCommand
+{
+
+}
+
+class RemoveTreeObject implements ITreeStructureCommand
+{
+}
+
+class UpdateTreeObject implements ITreeStructureCommand
+{
+}
+
+class QueryTreeObject implements ITreeStructureCommand
+{
+}
+
+
+
+
+
+}
+
+
+
+@enduml

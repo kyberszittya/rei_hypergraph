@@ -1,0 +1,39 @@
+// sys 2-factor graph
+digraph {
+	compund=true
+	node [color=black fillcolor=white style=filled]
+	node [shape=ellipse]
+	"sys/kinematic_loop_entity/basic_structure/world" [label=world]
+	node [color=black fillcolor=white style=filled]
+	node [shape=ellipse]
+	"sys/kinematic_loop_entity/basic_structure/link_01" [label=link_01]
+	node [color=black fillcolor=white style=filled]
+	node [shape=ellipse]
+	"sys/kinematic_loop_entity/basic_structure/link_02" [label=link_02]
+	node [color=black fillcolor=white style=filled]
+	node [shape=ellipse]
+	"sys/kinematic_loop_entity/basic_structure/link_03" [label=link_03]
+	node [color=black fillcolor=white style=filled]
+	node [shape=ellipse]
+	"sys/kinematic_loop_entity/basic_structure/link_04" [label=link_04]
+	node [shape=box]
+	"sys/kinematic_loop_entity/basic_structure/connect_12" [label=connect_12]
+	edge [style=solid]
+	"sys/kinematic_loop_entity/basic_structure/link_01" -> "sys/kinematic_loop_entity/basic_structure/connect_12"
+	"sys/kinematic_loop_entity/basic_structure/connect_12" -> "sys/kinematic_loop_entity/basic_structure/link_02"
+	node [shape=box]
+	"sys/kinematic_loop_entity/basic_structure/connect_23" [label=connect_23]
+	edge [style=solid]
+	"sys/kinematic_loop_entity/basic_structure/link_02" -> "sys/kinematic_loop_entity/basic_structure/connect_23"
+	"sys/kinematic_loop_entity/basic_structure/connect_23" -> "sys/kinematic_loop_entity/basic_structure/link_03"
+	node [shape=box]
+	"sys/kinematic_loop_entity/basic_structure/connect_34" [label=connect_34]
+	edge [style=solid]
+	"sys/kinematic_loop_entity/basic_structure/link_03" -> "sys/kinematic_loop_entity/basic_structure/connect_34"
+	"sys/kinematic_loop_entity/basic_structure/connect_34" -> "sys/kinematic_loop_entity/basic_structure/link_04"
+	node [shape=box]
+	"sys/kinematic_loop_entity/basic_structure/connect_41" [label=connect_41]
+	edge [style=solid]
+	"sys/kinematic_loop_entity/basic_structure/link_04" -> "sys/kinematic_loop_entity/basic_structure/connect_41"
+	"sys/kinematic_loop_entity/basic_structure/connect_41" -> "sys/kinematic_loop_entity/basic_structure/link_01"
+}

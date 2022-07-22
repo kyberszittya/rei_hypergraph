@@ -1,0 +1,38 @@
+@startuml
+'https://plantuml.com/class-diagram
+
+!includesub hypergraph_basic_elements.puml!hypergraph_el
+
+' Nodes
+
+class KinematicLink extends hypergraphelements.HypergraphNode
+{
+}
+
+class KinematicGraph extends hypergraphelements.HypergraphNode
+{
+}
+
+class Geometry extends hypergraphelements.HypergraphNode
+{
+}
+
+' Edges
+
+class ConstructionConstraint extends hypergraphelements.HyperEdge
+{
+}
+
+class GeometryRelation extends hypergraphelements.HyperEdge
+{
+
+}
+
+class KinematicJoint extends HypergraphRelation
+{
+
+}
+
+
+
+@enduml

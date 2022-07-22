@@ -1,0 +1,8 @@
+@startuml
+'https://plantuml.com/component-diagram
+
+component InterCognitiveBridge{
+
+}
+
+@enduml

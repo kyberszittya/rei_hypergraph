@@ -1,0 +1,53 @@
+// sys 2-factor graph
+digraph {
+	compund=true
+	node [color=black fillcolor=white style=filled]
+	node [shape=ellipse]
+	"sys/simplebot/basic_structure/world" [label=world]
+	node [color=black fillcolor=white style=filled]
+	node [shape=ellipse]
+	graph [fillcolor=deepskyblue2 style=filled]
+	subgraph "clustersys/simplebot/basic_structure/wheel" {
+		node [color=black fillcolor=white style=filled]
+		node [shape=ellipse]
+		"sys/simplebot/basic_structure/wheel/world" [label=world]
+		node [color=black fillcolor=white style=filled]
+		node [shape=ellipse]
+		"sys/simplebot/basic_structure/wheel/wheel_base" [label=wheel_base]
+		node [color=black fillcolor=white style=filled]
+		node [shape=ellipse]
+		"sys/simplebot/basic_structure/wheel/tire" [label=tire]
+		node [shape=box]
+		"sys/simplebot/basic_structure/wheel/wheel_joint" [label=wheel_joint]
+		edge [style=solid]
+		"sys/simplebot/basic_structure/wheel/wheel_base" -> "sys/simplebot/basic_structure/wheel/wheel_joint"
+		"sys/simplebot/basic_structure/wheel/wheel_joint" -> "sys/simplebot/basic_structure/wheel/tire"
+	}
+	node [color=black fillcolor=white style=filled]
+	node [shape=ellipse]
+	"sys/simplebot/basic_structure/base_link" [label=base_link]
+	node [shape=box]
+	"sys/simplebot/basic_structure/wheel_left_front" [label=wheel_left_front]
+	edge [style=solid]
+	"sys/simplebot/basic_structure/base_link" -> "sys/simplebot/basic_structure/wheel_left_front"
+	edge [style=dashed]
+	"sys/simplebot/basic_structure/wheel_left_front" -> "sys/simplebot/basic_structure/wheel/wheel_base" [lhead="clustersys/simplebot/basic_structure/wheel"]
+	node [shape=box]
+	"sys/simplebot/basic_structure/wheel_right_front" [label=wheel_right_front]
+	edge [style=solid]
+	"sys/simplebot/basic_structure/base_link" -> "sys/simplebot/basic_structure/wheel_right_front"
+	edge [style=dashed]
+	"sys/simplebot/basic_structure/wheel_right_front" -> "sys/simplebot/basic_structure/wheel/wheel_base" [lhead="clustersys/simplebot/basic_structure/wheel"]
+	node [shape=box]
+	"sys/simplebot/basic_structure/wheel_right_rear" [label=wheel_right_rear]
+	edge [style=solid]
+	"sys/simplebot/basic_structure/base_link" -> "sys/simplebot/basic_structure/wheel_right_rear"
+	edge [style=dashed]
+	"sys/simplebot/basic_structure/wheel_right_rear" -> "sys/simplebot/basic_structure/wheel/wheel_base" [lhead="clustersys/simplebot/basic_structure/wheel"]
+	node [shape=box]
+	"sys/simplebot/basic_structure/wheel_left_rear" [label=wheel_left_rear]
+	edge [style=solid]
+	"sys/simplebot/basic_structure/base_link" -> "sys/simplebot/basic_structure/wheel_left_rear"
+	edge [style=dashed]
+	"sys/simplebot/basic_structure/wheel_left_rear" -> "sys/simplebot/basic_structure/wheel/wheel_base" [lhead="clustersys/simplebot/basic_structure/wheel"]
+}

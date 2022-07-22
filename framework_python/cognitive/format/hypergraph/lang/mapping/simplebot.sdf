@@ -1,0 +1,363 @@
+<sdf version="1.7">
+  <model name="simplebot">
+    <link name="base_link">
+      <inertia>
+        <ixx>0.020833333333333336</ixx>
+        <iyy>0.041666666666666664</iyy>
+        <izz>0.05416666666666666</izz>
+        <ixy>0.0</ixy>
+        <ixz>0.0</ixz>
+        <iyz>0.0</iyz>
+      </inertia>
+      <pose>0.0 0.0 0.1 0.0 0.0 0.0</pose>
+      <visual name="base_link_viz">
+        <geometry>
+          <box>
+            <size>0.3 0.2 0.1</size>
+          </box>
+        </geometry>
+        <material>
+          <script>
+            <uri>file://media/materials/scripts/gazebo.material</uri>
+            <name>Gazebo/White</name>
+          </script>
+        </material>
+      </visual>
+      <collision name="coll_base_link">
+        <geometry>
+          <box>
+            <size>0.3 0.2 0.1</size>
+          </box>
+        </geometry>
+      </collision>
+    </link>
+    <link name="wheel_left_front/wheel_base">
+      <inertia>
+        <ixx>0.00030833333333333337</ixx>
+        <iyy>0.00030833333333333337</iyy>
+        <izz>0.0002</izz>
+        <ixy>0.0</ixy>
+        <ixz>0.0</ixz>
+        <iyz>0.0</iyz>
+      </inertia>
+      <pose relative_to="wheel_left_front/wheel">0.0 0.0 0.0 0.0 0.0 0.0</pose>
+      <visual name="wheel_base_viz">
+        <geometry>
+          <cylinder>
+            <radius>0.02</radius>
+            <length>0.05</length>
+          </cylinder>
+        </geometry>
+        <material>
+          <script>
+            <uri>file://media/materials/scripts/gazebo.material</uri>
+            <name>Gazebo/Red</name>
+          </script>
+        </material>
+      </visual>
+      <collision name="coll_wheel_base">
+        <geometry>
+          <cylinder>
+            <radius>0.02</radius>
+            <length>0.05</length>
+          </cylinder>
+        </geometry>
+      </collision>
+    </link>
+    <link name="wheel_left_front/tire">
+      <inertia>
+        <ixx>0.004703125000000001</ixx>
+        <iyy>0.004703125000000001</iyy>
+        <izz>0.009031250000000001</izz>
+        <ixy>0.0</ixy>
+        <ixz>0.0</ixz>
+        <iyz>0.0</iyz>
+      </inertia>
+      <pose relative_to="wheel_left_front/wheel_joint/tire">0.0 0.0 0.02 0.0 0.0 0.0</pose>
+      <visual name="wheel_viz">
+        <geometry>
+          <cylinder>
+            <radius>0.085</radius>
+            <length>0.03</length>
+          </cylinder>
+        </geometry>
+        <material>
+          <script>
+            <uri>file://media/materials/scripts/gazebo.material</uri>
+            <name>Gazebo/Black</name>
+          </script>
+        </material>
+      </visual>
+      <collision name="coll_tire">
+        <geometry>
+          <cylinder>
+            <radius>0.085</radius>
+            <length>0.03</length>
+          </cylinder>
+        </geometry>
+      </collision>
+    </link>
+    <joint name="wheel_left_front/wheel_joint/tire" type="revolute">
+      <pose relative_to="wheel_left_front/wheel_base">0.0 0.0 0.0 0.0 0.0 0.0</pose>
+      <parent>wheel_left_front/wheel_base</parent>
+      <child>wheel_left_front/tire</child>
+      <axis>
+        <xyz>0.0 0.0 1.0</xyz>
+      </axis>
+    </joint>
+    <joint name="wheel_left_front/wheel" type="fixed">
+      <pose relative_to="base_link">0.1 0.12 0.0 -1.5707963267948966 0.0 0.0</pose>
+      <parent>base_link</parent>
+      <child>wheel_left_front/wheel_base</child>
+      <axis>
+        <xyz>0.0 0.0 1.0</xyz>
+      </axis>
+    </joint>
+    <link name="wheel_right_front/wheel_base">
+      <inertia>
+        <ixx>0.00030833333333333337</ixx>
+        <iyy>0.00030833333333333337</iyy>
+        <izz>0.0002</izz>
+        <ixy>0.0</ixy>
+        <ixz>0.0</ixz>
+        <iyz>0.0</iyz>
+      </inertia>
+      <pose relative_to="wheel_right_front/wheel">0.0 0.0 0.0 0.0 0.0 0.0</pose>
+      <visual name="wheel_base_viz">
+        <geometry>
+          <cylinder>
+            <radius>0.02</radius>
+            <length>0.05</length>
+          </cylinder>
+        </geometry>
+        <material>
+          <script>
+            <uri>file://media/materials/scripts/gazebo.material</uri>
+            <name>Gazebo/Red</name>
+          </script>
+        </material>
+      </visual>
+      <collision name="coll_wheel_base">
+        <geometry>
+          <cylinder>
+            <radius>0.02</radius>
+            <length>0.05</length>
+          </cylinder>
+        </geometry>
+      </collision>
+    </link>
+    <link name="wheel_right_front/tire">
+      <inertia>
+        <ixx>0.004703125000000001</ixx>
+        <iyy>0.004703125000000001</iyy>
+        <izz>0.009031250000000001</izz>
+        <ixy>0.0</ixy>
+        <ixz>0.0</ixz>
+        <iyz>0.0</iyz>
+      </inertia>
+      <pose relative_to="wheel_right_front/wheel_joint/tire">0.0 0.0 0.02 0.0 0.0 0.0</pose>
+      <visual name="wheel_viz">
+        <geometry>
+          <cylinder>
+            <radius>0.085</radius>
+            <length>0.03</length>
+          </cylinder>
+        </geometry>
+        <material>
+          <script>
+            <uri>file://media/materials/scripts/gazebo.material</uri>
+            <name>Gazebo/Black</name>
+          </script>
+        </material>
+      </visual>
+      <collision name="coll_tire">
+        <geometry>
+          <cylinder>
+            <radius>0.085</radius>
+            <length>0.03</length>
+          </cylinder>
+        </geometry>
+      </collision>
+    </link>
+    <joint name="wheel_right_front/wheel_joint/tire" type="revolute">
+      <pose relative_to="wheel_right_front/wheel_base">0.0 0.0 0.0 0.0 0.0 0.0</pose>
+      <parent>wheel_right_front/wheel_base</parent>
+      <child>wheel_right_front/tire</child>
+      <axis>
+        <xyz>0.0 0.0 1.0</xyz>
+      </axis>
+    </joint>
+    <joint name="wheel_right_front/wheel" type="fixed">
+      <pose relative_to="base_link">0.1 -0.12 0.0 1.5707963267948966 0.0 0.0</pose>
+      <parent>base_link</parent>
+      <child>wheel_right_front/wheel_base</child>
+      <axis>
+        <xyz>0.0 0.0 -1.0</xyz>
+      </axis>
+    </joint>
+    <link name="wheel_right_rear/wheel_base">
+      <inertia>
+        <ixx>0.00030833333333333337</ixx>
+        <iyy>0.00030833333333333337</iyy>
+        <izz>0.0002</izz>
+        <ixy>0.0</ixy>
+        <ixz>0.0</ixz>
+        <iyz>0.0</iyz>
+      </inertia>
+      <pose relative_to="wheel_right_rear/wheel">0.0 0.0 0.0 0.0 0.0 0.0</pose>
+      <visual name="wheel_base_viz">
+        <geometry>
+          <cylinder>
+            <radius>0.02</radius>
+            <length>0.05</length>
+          </cylinder>
+        </geometry>
+        <material>
+          <script>
+            <uri>file://media/materials/scripts/gazebo.material</uri>
+            <name>Gazebo/Red</name>
+          </script>
+        </material>
+      </visual>
+      <collision name="coll_wheel_base">
+        <geometry>
+          <cylinder>
+            <radius>0.02</radius>
+            <length>0.05</length>
+          </cylinder>
+        </geometry>
+      </collision>
+    </link>
+    <link name="wheel_right_rear/tire">
+      <inertia>
+        <ixx>0.004703125000000001</ixx>
+        <iyy>0.004703125000000001</iyy>
+        <izz>0.009031250000000001</izz>
+        <ixy>0.0</ixy>
+        <ixz>0.0</ixz>
+        <iyz>0.0</iyz>
+      </inertia>
+      <pose relative_to="wheel_right_rear/wheel_joint/tire">0.0 0.0 0.02 0.0 0.0 0.0</pose>
+      <visual name="wheel_viz">
+        <geometry>
+          <cylinder>
+            <radius>0.085</radius>
+            <length>0.03</length>
+          </cylinder>
+        </geometry>
+        <material>
+          <script>
+            <uri>file://media/materials/scripts/gazebo.material</uri>
+            <name>Gazebo/Black</name>
+          </script>
+        </material>
+      </visual>
+      <collision name="coll_tire">
+        <geometry>
+          <cylinder>
+            <radius>0.085</radius>
+            <length>0.03</length>
+          </cylinder>
+        </geometry>
+      </collision>
+    </link>
+    <joint name="wheel_right_rear/wheel_joint/tire" type="revolute">
+      <pose relative_to="wheel_right_rear/wheel_base">0.0 0.0 0.0 0.0 0.0 0.0</pose>
+      <parent>wheel_right_rear/wheel_base</parent>
+      <child>wheel_right_rear/tire</child>
+      <axis>
+        <xyz>0.0 0.0 1.0</xyz>
+      </axis>
+    </joint>
+    <joint name="wheel_right_rear/wheel" type="fixed">
+      <pose relative_to="base_link">-0.1 -0.12 0.0 1.5707963267948966 0.0 0.0</pose>
+      <parent>base_link</parent>
+      <child>wheel_right_rear/wheel_base</child>
+      <axis>
+        <xyz>0.0 0.0 -1.0</xyz>
+      </axis>
+    </joint>
+    <link name="wheel_left_rear/wheel_base">
+      <inertia>
+        <ixx>0.00030833333333333337</ixx>
+        <iyy>0.00030833333333333337</iyy>
+        <izz>0.0002</izz>
+        <ixy>0.0</ixy>
+        <ixz>0.0</ixz>
+        <iyz>0.0</iyz>
+      </inertia>
+      <pose relative_to="wheel_left_rear/wheel">0.0 0.0 0.0 0.0 0.0 0.0</pose>
+      <visual name="wheel_base_viz">
+        <geometry>
+          <cylinder>
+            <radius>0.02</radius>
+            <length>0.05</length>
+          </cylinder>
+        </geometry>
+        <material>
+          <script>
+            <uri>file://media/materials/scripts/gazebo.material</uri>
+            <name>Gazebo/Red</name>
+          </script>
+        </material>
+      </visual>
+      <collision name="coll_wheel_base">
+        <geometry>
+          <cylinder>
+            <radius>0.02</radius>
+            <length>0.05</length>
+          </cylinder>
+        </geometry>
+      </collision>
+    </link>
+    <link name="wheel_left_rear/tire">
+      <inertia>
+        <ixx>0.004703125000000001</ixx>
+        <iyy>0.004703125000000001</iyy>
+        <izz>0.009031250000000001</izz>
+        <ixy>0.0</ixy>
+        <ixz>0.0</ixz>
+        <iyz>0.0</iyz>
+      </inertia>
+      <pose relative_to="wheel_left_rear/wheel_joint/tire">0.0 0.0 0.02 0.0 0.0 0.0</pose>
+      <visual name="wheel_viz">
+        <geometry>
+          <cylinder>
+            <radius>0.085</radius>
+            <length>0.03</length>
+          </cylinder>
+        </geometry>
+        <material>
+          <script>
+            <uri>file://media/materials/scripts/gazebo.material</uri>
+            <name>Gazebo/Black</name>
+          </script>
+        </material>
+      </visual>
+      <collision name="coll_tire">
+        <geometry>
+          <cylinder>
+            <radius>0.085</radius>
+            <length>0.03</length>
+          </cylinder>
+        </geometry>
+      </collision>
+    </link>
+    <joint name="wheel_left_rear/wheel_joint/tire" type="revolute">
+      <pose relative_to="wheel_left_rear/wheel_base">0.0 0.0 0.0 0.0 0.0 0.0</pose>
+      <parent>wheel_left_rear/wheel_base</parent>
+      <child>wheel_left_rear/tire</child>
+      <axis>
+        <xyz>0.0 0.0 1.0</xyz>
+      </axis>
+    </joint>
+    <joint name="wheel_left_rear/wheel" type="fixed">
+      <pose relative_to="base_link">-0.1 0.12 0.0 -1.5707963267948966 0.0 0.0</pose>
+      <parent>base_link</parent>
+      <child>wheel_left_rear/wheel_base</child>
+      <axis>
+        <xyz>0.0 0.0 1.0</xyz>
+      </axis>
+    </joint>
+  </model>
+</sdf>

@@ -1,0 +1,9 @@
+@startuml
+SemanticProcessor++
+SemanticProcessor -> CharStream++: read()
+return tree
+SemanticProcessor -> Generator++: generate(tree: ParseTree)
+
+
+
+@enduml

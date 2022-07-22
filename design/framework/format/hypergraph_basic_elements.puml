@@ -1,0 +1,21 @@
+@startuml hypergraph_basic_elements
+'https://plantuml.com/class-diagram
+!include graph_metalang.puml
+skinparam linetype ortho
+!startsub hypergraph_el
+namespace hypergraphelements {
+
+class HyperEdge extends basicelements.graphelements.Relation {
+}
+class HyperNode extends basicelements.graphelements.Node {
+}
+abstract class HypergraphSubRelation extends basicelements.graphelements.Relation {
+}
+
+
+HyperEdge *-- HypergraphSubRelation: subrelations
+
+}
+!endsub
+
+@enduml
