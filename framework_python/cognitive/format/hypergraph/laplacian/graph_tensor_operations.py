@@ -31,14 +31,17 @@ def graph_bound_entropy(A):
 
 
 def laplacian_calc_vector(M, ax=2):
-    D_m = np.apply_along_axis(np.sum, ax, M, 0)
-    d = np.apply_along_axis(np.diag, 1, D_m)
+    #D_m = np.apply_along_axis(np.sum, ax, M, 0)
+    D_m = np.abs(np.apply_along_axis(np.sum, ax, M, 0))
+    #d = np.apply_along_axis(np.diag, 1, D_m)
+    d = np.abs(np.apply_along_axis(np.diag, 1, D_m))
     L_m = d - M
     deg = np.sum(D_m)
     return D_m, L_m, deg
 
 
 def graph_upper_bound_entropy_vector(M):
+    # TODO: This is actually very interesting. Try to find some method to handle negative adjacency matrices
     D, L, deg = laplacian_calc_vector(M, 2)
     tr = np.trace(L, axis1=1, axis2=2)/deg
     return -np.sum(tr*np.log2(tr))

@@ -79,23 +79,28 @@ class TensorChannelDendrite(CognitiveChannelDendrite):
         self.homomorphism_edge_inv = {}
         self.cnt_edges = 0
         # Result tensor
-        self.nodes = queue.LifoQueue()
-        self.edges = queue.LifoQueue()
-        self.tensor = None
+        self.node_fringe = queue.LifoQueue()
+        self.edge_fringe = queue.LifoQueue()
+        self.intermediate_tensor = None
 
     def _collect_tensor_elements(self, cursor: HypergraphNode):
+        """
+
+        :param cursor:
+        :return:
+        """
         for c in cursor.subset_elements:
             match c:
                 case HypergraphNode():
-                    self._collect_tensor_elements(c)
                     self.homomorphism_node[c.uid] = self.cnt_node
                     self.homomorphism_node_inv[self.cnt_node] = c.uid
-                    self.nodes.put(c)
+                    self.node_fringe.put(c)
                     self.cnt_node += 1
+                    self._collect_tensor_elements(c)
                 case HypergraphEdge():
                     self.homomorphism_edge[c.uid] = self.cnt_edges
                     self.homomorphism_edge_inv[self.cnt_edges] = c.uid
-                    self.edges.put(c)
+                    self.edge_fringe.put(c)
                     self.cnt_edges += 1
 
 
@@ -105,8 +110,8 @@ class HypergraphTensorTransformation(TensorChannelDendrite):
     """
 
     def encode(self, arg: list[HypergraphNode]):
-        self.nodes = queue.LifoQueue()
-        self.edges = queue.LifoQueue()
+        self.node_fringe = queue.LifoQueue()
+        self.edge_fringe = queue.LifoQueue()
         self.cnt_node = 0
         self.cnt_edges = 0
         self.homomorphism_edge = {}
@@ -116,13 +121,14 @@ class HypergraphTensorTransformation(TensorChannelDendrite):
         #
         for c in arg:
             self._collect_tensor_elements(c)
-        self.tensor = np.zeros((self.cnt_edges, self.cnt_node, self.cnt_node))
+        self.intermediate_tensor = np.zeros((self.cnt_edges, self.cnt_node, self.cnt_node))
         # Traverse
         indices = queue.LifoQueue()
-        while not self.edges.empty():
-            e: HypergraphEdge = self.edges.get()
+        while not self.edge_fringe.empty():
+            e: HypergraphEdge = self.edge_fringe.get()
             ind_e = self.homomorphism_edge[e.uid]
             # TODO: finish this mess
+            """
             for rel1 in e.subset_elements:
                 ind_n = self.homomorphism_node[rel1.endpoint.uid]
                 for rel0 in e.subset_elements:
@@ -131,11 +137,41 @@ class HypergraphTensorTransformation(TensorChannelDendrite):
                             indices.put((ind_n, self.homomorphism_node[rel0.endpoint.uid], ind_e, rel0.value))
                         else:
                             indices.put((ind_n, self.homomorphism_node[rel0.endpoint.uid], ind_e, -rel0.value))
+            """
+            visited_pairs = set()
+            # TODO: this is a naive implementation it can be done faster!
+            for relation in e.subset_elements:
+                ind_n = self.homomorphism_node[relation.endpoint.uid]
+                for other in e.subset_elements:
+                    _pair = (ind_n, self.homomorphism_node[other.endpoint.uid])
+                    if _pair not in visited_pairs:
+                        visited_pairs.add(_pair)
+                        if other is not relation:
+                            match relation.direction:
+                                case EnumRelationDirection.UNDIRECTED:
+                                    indices.put((_pair[0], _pair[1], ind_e, relation.value))
+                                    indices.put((_pair[1], _pair[0], ind_e, relation.value))
+                                case EnumRelationDirection.INWARDS:
+                                    indices.put((_pair[0], _pair[1], ind_e, -relation.value))
+                                    indices.put((_pair[1], _pair[0], ind_e,  relation.value))
+                                case EnumRelationDirection.OUTWARDS:
+                                    indices.put((_pair[1], _pair[0], ind_e, -relation.value))
+                                    indices.put((_pair[0], _pair[1], ind_e,  relation.value))
+
+
+
+            #for rel0 in e.subset_elements:
+                #    if rel0 is not relation:
+                #        if rel0.direction is EnumRelationDirection.OUTWARDS or rel0.direction is EnumRelationDirection.UNDIRECTED:
+                #            indices.put((ind_n, self.homomorphism_node[rel0.endpoint.uid], ind_e, rel0.value))
+                #        else:
+                #            indices.put((ind_n, self.homomorphism_node[rel0.endpoint.uid], ind_e, -rel0.value))
+
         while not indices.empty():
             x, y, z, v = indices.get()
-            self.tensor[z, y, x] = v
-        return self.tensor
+            self.intermediate_tensor[z, y, x] = v
+        return self.intermediate_tensor
 
     def decode(self, arg):
-        if self.tensor is None:
+        if self.intermediate_tensor is None:
             return None

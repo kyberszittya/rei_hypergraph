@@ -170,6 +170,14 @@ def create_hypergraphelement_reference(ref_name, root: HypergraphNode, reference
         res[0].add_connection(ref_conn, 0, referenced, EnumRelationDirection.OUTWARDS)
 
 
+def create_dir_edge(sys: HypergraphNode, qualified_name: str, root_node: list[str], nodes: list[str]):
+    e = create_hyperedge("e"+''.join(nodes), 0, sys, [(qualified_name+x, EnumRelationDirection.OUTWARDS) for x in nodes])
+    for r in root_node:
+        x = list(retrieve_part_hypergraph_node(sys, qualified_name+r))
+        e.connect(x[0], 1.0, 0, EnumRelationDirection.INWARDS)
+    sys.add_subset(e, 0)
+
+
 def hypergraphedge_2factorization_tree(edge: HypergraphEdge):
     incoming_edges = []
     outgoing_edges = []

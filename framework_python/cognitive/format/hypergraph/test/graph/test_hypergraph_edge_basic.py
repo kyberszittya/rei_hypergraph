@@ -73,7 +73,7 @@ def test_create_edge_with_query():
     query.add_endpoint_node("network_node/sys/node2")
     query.add_endpoint_node("network_node/sys/node1", EnumRelationDirection.INWARDS)
     edge = query.execute()
-    assert len(edge._subsets.values())==2
+    assert len(edge.subset_elements) == 2
     # Tests
     query = HypergraphCompartmentQuery(test_system, "node_search", 0)
     query.set_lookup_name("network_node/sys/node1")
@@ -86,8 +86,8 @@ def test_create_edge_with_query_functor():
     # Add edge
     edge = create_hyperedge("concept_edge", 0, test_system,
                             [("network_node/sys/node1", EnumRelationDirection.INWARDS),
-                             ("network_node/sys/node2", EnumRelationDirection.OUTWARDS),])
-    assert len(edge._subsets.values())==2
+                             ("network_node/sys/node2", EnumRelationDirection.OUTWARDS)])
+    assert len(edge.subset_elements) == 2
     # Tests
     query = HypergraphCompartmentQuery(test_system, "node_search", 0)
     query.set_lookup_name("network_node/sys/node1")
