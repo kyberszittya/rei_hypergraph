@@ -482,11 +482,4 @@ def load_from_description(filename: str):
     return sys, channel
 
 
-def main():
-    # TODO: ambient description (very-very important, by this point it would be awesome)
-    sys, channel = load_from_description("D:\\Haizu\\robotics_ws\\cogni_ws\\rei_ws\\rei\\framework_python\\cognitive\\format\\hypergraph\\lang\\examples\\example_robotcar.cogni")
-    create_graph_view(sys)
 
-
-if __name__ == "__main__":
-    main()

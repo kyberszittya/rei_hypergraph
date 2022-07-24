@@ -178,6 +178,12 @@ def create_dir_edge(sys: HypergraphNode, qualified_name: str, root_node: list[st
     sys.add_subset(e, 0)
 
 
+
+def create_dir_simple_edge(sys: HypergraphNode, qualified_name: str, nodes: list[str]):
+    e = create_hyperedge("e"+''.join(nodes), 0, sys, [(qualified_name+x, EnumRelationDirection.OUTWARDS) for x in nodes])
+    sys.add_subset(e, 0)
+
+
 def hypergraphedge_2factorization_tree(edge: HypergraphEdge):
     incoming_edges = []
     outgoing_edges = []

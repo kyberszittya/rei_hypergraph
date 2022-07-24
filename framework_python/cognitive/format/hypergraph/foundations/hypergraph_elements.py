@@ -5,8 +5,6 @@ from cognitive.format.basicelements.concepts.registry.registration_methods impor
 from cognitive.format.basicelements.concepts.network.base_definitions import NetworkNode, \
     NetworkRelation, EnumRelationDirection, NetworkElement
 
-import lxml
-
 
 class HypergraphNode(NetworkNode):
     """
@@ -15,7 +13,6 @@ class HypergraphNode(NetworkNode):
 
     A hypergraph consists hypergraph nodes as subset elements
     """
-
 
     def __init__(self, name: str, timestamp: int,
                  subsets: dict[bytes, NetworkElement] = None, parent: NetworkNode = None,
@@ -54,8 +51,6 @@ class HypergraphNode(NetworkNode):
         return self
 
 
-
-
 class HyperEdgeConnection(NetworkRelation):
     """
     Associated relation with the network node
@@ -63,7 +58,7 @@ class HyperEdgeConnection(NetworkRelation):
 
     def __init__(self, name: str, timestamp: int, domain: MetaRegistry = None,
                  parent: NetworkRelation = None,
-                 endpoint: HypergraphNode = None, value = None,
+                 endpoint: HypergraphNode = None, value=None,
                  identitygen: InterfaceIdentifierGenerator = None,
                  direction: EnumRelationDirection = EnumRelationDirection.UNDIRECTED):
         super().__init__(name, timestamp, domain, identitygen, parent, direction)
@@ -83,7 +78,6 @@ class HyperEdgeConnection(NetworkRelation):
             self._direction = direction
         if endpoint is not None:
             self._endpoint = endpoint
-            #edge._subsets[endpoint.uid] = self
 
 
 class HypergraphEdge(NetworkRelation):
@@ -92,7 +86,7 @@ class HypergraphEdge(NetworkRelation):
     """
 
     def __init__(self, name: str, timestamp: int,
-                 parent: HypergraphNode, identitygen: InterfaceIdentifierGenerator=None):
+                 parent: HypergraphNode, identitygen: InterfaceIdentifierGenerator = None):
         super().__init__(name, timestamp, parent._taxonomy, identitygen, parent)
 
     def connect(self, node: HypergraphNode,
@@ -106,20 +100,10 @@ class HypergraphEdge(NetworkRelation):
         :param direction: top-level direction of the edge
         :return: nothing
         """
-        c1 = HyperEdgeConnection('/'.join([self.id_name,node.id_name]),
+        c1 = HyperEdgeConnection('/'.join([self.id_name, node.id_name]),
                                  timestamp, self.domain,
                                  self, node, value, self._identitygen, direction)
         self.add_connection(c1, timestamp)
-        #c1.parent = self
-        #self._subsets[node.uid] = c1
-
-        """
-        c1 = HyperEdgeConnection('/'.join([self.id_name,node.id_name]),
-                                 timestamp, self.domain,
-                                 self, node, value, self._identitygen, direction)
-        self.add_connection(c1, timestamp)
-        """
-
 
     def add_connection(self,
                        conn: HyperEdgeConnection,
@@ -139,16 +123,6 @@ class HypergraphEdge(NetworkRelation):
             self._subsets[node_endpoint.uid] = conn
         else:
             self._subsets[conn.endpoint.uid] = conn
-        """
-        if conn.domain is not self.domain:
-            conn.register(self.domain, timestamp)
-        conn.parent = self
-        if direction is not None:
-            conn._direction = direction
-        if node_endpoint is not None:
-            conn._endpoint = node_endpoint
-            self._subsets[node_endpoint.uid] = conn
-        """
 
     def print_elements(self):
         hierarchy = self.id_name+": "
@@ -163,9 +137,10 @@ class HypergraphEdge(NetworkRelation):
             hierarchy += s.endpoint.progenitor_registry.name + ', '
         print(hierarchy)
 
+
 def select_incoming_connections(e: HypergraphEdge):
     res = []
-    for _e in e._subsets.values():
+    for _e in e.subset_elements:
         if isinstance(_e, HyperEdgeConnection):
             if _e.direction == EnumRelationDirection.INWARDS:
                 res.append(_e)

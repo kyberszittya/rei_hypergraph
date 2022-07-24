@@ -2,6 +2,7 @@ from cognitive.format.hypergraph.channels.tensor_channel import CognitiveArbiter
     HypergraphTensorTransformation
 from cognitive.format.hypergraph.lang.mapping.cogni_lang_mapping import load_from_description
 from cognitive.format.hypergraph.lang.mapping.graphviz_mapping import create_graph_view
+from cognitive.format.hypergraph.laplacian.graph_tensor_operations import graph_upper_bound_entropy_vector
 
 
 def test_example_kinematic_loop():
@@ -27,11 +28,11 @@ def test_simplebot():
 def test_simplebot_entropy():
     sys, channel = load_from_description("../examples/example_robotcar.cogni")
     create_graph_view(sys)
-    sys = CognitiveArbiter(name="sys", timestamp=0)
-    channel = CognitiveChannel("channel_01", 0, sys)
+    arbiter = CognitiveArbiter(name="sys", timestamp=0)
+    channel = CognitiveChannel("channel_01", 0, arbiter)
     view_icon = TensorCognitiveIcon("out", 0)
-    ch = HypergraphTensorTransformation("dendrite1", 0, sys.domain, channel, view_icon)
+    ch = HypergraphTensorTransformation("dendrite1", 0, arbiter.domain, channel, view_icon)
     channel.add_connection(ch, 0, view_icon)
     tensor = ch.encode([sys])
-    print(tensor)
+    print(graph_upper_bound_entropy_vector(tensor))
 

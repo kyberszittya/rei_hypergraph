@@ -1,65 +1,43 @@
 from antlr4 import *
+from mpl_toolkits.axisartist.axes_grid import ImageGrid
 
 from cognilang.CogniLangParser import CogniLangParser
 from cognilang.CogniLangLexer import CogniLangLexer
 from cognilang.CogniLangListener import CogniLangListener
 from cognilang.CogniLangVisitor import CogniLangVisitor
+from cognitive.format.hypergraph.channels.tensor_channel import CognitiveArbiter, CognitiveChannel, TensorCognitiveIcon, \
+    HypergraphTensorTransformation
 
-import hashlib
+from cognitive.format.hypergraph.lang.mapping.cogni_lang_mapping import load_from_description
+from cognitive.format.hypergraph.lang.mapping.graphviz_mapping import create_graph_view
 
-class CognitiveEntity(object):
-    name: str
-    elements: dict
+from mpl_toolkits.mplot3d import Axes3D
+import matplotlib.pyplot as plt
 
-    def __init__(self, name):
-        self.name = name
-
-    def __str__(self):
-        return f"{self.name}: "
-
-
-class KinematicLink(object):
-    name: str
-
-
-
-class GeneratorCogniLangVisitor(CogniLangVisitor):
-    root_obj: CognitiveEntity
-
-    def visitRootnode(self, ctx: CogniLangParser.RootnodeContext):
-        if len(ctx.children) == 1:
-            selected_eleme = ctx.children[0]
-            if isinstance(selected_eleme, CogniLangParser.EntityContext):
-                self.root_obj = CognitiveEntity(
-                    selected_eleme.graphnode_signature().ID())
-        self.root = ctx.children
-        return self.visitChildren(ctx)
-
-    def visitLink(self, ctx: CogniLangParser.LinkContext):
-        s = hashlib.sha3_224()
-        s.update(str(ctx.graphnode_signature().ID()).encode('utf8'))
-        print(s.hexdigest())
-        return self.visitChildren(ctx)
-
-
-class CustomCogniListener(CogniLangListener):
-
-    def enterRootnode(self, ctx: CogniLangParser.RootnodeContext):
-        print(ctx.children)
-
-    def enterEntity(self, ctx:CogniLangParser.EntityContext):
-        print(ctx.graphnode_signature().ID())
+from cognitive.format.hypergraph.laplacian.graph_tensor_operations import graph_upper_bound_entropy_vector
 
 
 def main():
-    stream = FileStream("D:\\Haizu\\robotics_ws\\cogni_ws\\rei_ws\\rei\\framework_python\\cognitive\\format\\hypergraph\\lang\\examples\\example_kinematic_loop.cogni")
-    lexer = CogniLangLexer(stream)
-    stream = CommonTokenStream(lexer)
-    parser = CogniLangParser(stream)
-    tree = parser.rootnode()
-    visitor = GeneratorCogniLangVisitor()
-    visitor.visit(tree)
+    # TODO: ambient description (very-very important, by this point it would be awesome)
+    sys, channel = load_from_description("examples/example_robotcar.cogni")
+    create_graph_view(sys)
+    arbiter = CognitiveArbiter(name="sys", timestamp=0)
+    channel = CognitiveChannel("channel_01", 0, arbiter)
+    view_icon = TensorCognitiveIcon("out", 0)
+    ch = HypergraphTensorTransformation("dendrite1", 0, arbiter.domain, channel, view_icon)
+    channel.add_connection(ch, 0, view_icon)
+    tensor = ch.encode([sys])
+    print(sys.subset_elements)
+    print(graph_upper_bound_entropy_vector(tensor))
+
+    fig = plt.figure()
+    #ax = Axes3D(fig)
+    #img = ax.scatter(tensor[:], tensor[:])
+    grid = ImageGrid(fig, 111, nrows_ncols=(3,3))
+    for ax, im in zip(grid, tensor):
+        ax.imshow(im)
+    plt.show()
 
 
-if __name__=="__main__":
+if __name__ == "__main__":
     main()

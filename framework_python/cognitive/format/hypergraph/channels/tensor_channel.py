@@ -109,7 +109,41 @@ class HypergraphTensorTransformation(TensorChannelDendrite):
 
     """
 
-    def encode(self, arg: list[HypergraphNode]):
+    # TODO: think about generalization
+    @staticmethod
+    def _setup_value(arg):
+        if arg is None:
+            return 1.0
+        return arg
+
+    def _setup_tensor_eslice(self, indices: queue.Queue, e: HypergraphEdge):
+        # TODO: this is a naive implementation it can be done faster!
+        ind_e = self.homomorphism_edge[e.uid]
+        visited_pairs = set()
+        for relation in e.subset_elements:
+            ind_n = self.homomorphism_node[relation.endpoint.uid]
+            for other in e.subset_elements:
+                if other is not relation:
+                    # Sanitize values
+                    value = HypergraphTensorTransformation._setup_value(relation.value)
+                    # Get pair
+                    _pair = (ind_n, self.homomorphism_node[other.endpoint.uid])
+                    print(_pair not in visited_pairs in visited_pairs)
+                    if _pair not in visited_pairs:
+                        visited_pairs.add(_pair)
+                        match relation.direction:
+                            case EnumRelationDirection.UNDIRECTED:
+                                indices.put((_pair[0], _pair[1], ind_e, value))
+                                indices.put((_pair[1], _pair[0], ind_e, value))
+                                visited_pairs.add((_pair[1], _pair[0]))
+                            case EnumRelationDirection.INWARDS:
+                                #indices.put((_pair[0], _pair[1], ind_e, -value))
+                                indices.put((_pair[1], _pair[0], ind_e,  value))
+                            case EnumRelationDirection.OUTWARDS:
+                                indices.put((_pair[1], _pair[0], ind_e, -value))
+                                #indices.put((_pair[0], _pair[1], ind_e,  value))
+
+    def _reset_homomorphism(self):
         self.node_fringe = queue.LifoQueue()
         self.edge_fringe = queue.LifoQueue()
         self.cnt_node = 0
@@ -118,6 +152,9 @@ class HypergraphTensorTransformation(TensorChannelDendrite):
         self.homomorphism_edge_inv = {}
         self.homomorphism_node = {}
         self.homomorphism_node_inv = {}
+
+    def encode(self, arg: list[HypergraphNode]):
+        self._reset_homomorphism()
         #
         for c in arg:
             self._collect_tensor_elements(c)
@@ -126,47 +163,7 @@ class HypergraphTensorTransformation(TensorChannelDendrite):
         indices = queue.LifoQueue()
         while not self.edge_fringe.empty():
             e: HypergraphEdge = self.edge_fringe.get()
-            ind_e = self.homomorphism_edge[e.uid]
-            # TODO: finish this mess
-            """
-            for rel1 in e.subset_elements:
-                ind_n = self.homomorphism_node[rel1.endpoint.uid]
-                for rel0 in e.subset_elements:
-                    if rel0 is not rel1:
-                        if rel0.direction is EnumRelationDirection.OUTWARDS or rel0.direction is EnumRelationDirection.UNDIRECTED:
-                            indices.put((ind_n, self.homomorphism_node[rel0.endpoint.uid], ind_e, rel0.value))
-                        else:
-                            indices.put((ind_n, self.homomorphism_node[rel0.endpoint.uid], ind_e, -rel0.value))
-            """
-            visited_pairs = set()
-            # TODO: this is a naive implementation it can be done faster!
-            for relation in e.subset_elements:
-                ind_n = self.homomorphism_node[relation.endpoint.uid]
-                for other in e.subset_elements:
-                    _pair = (ind_n, self.homomorphism_node[other.endpoint.uid])
-                    if _pair not in visited_pairs:
-                        visited_pairs.add(_pair)
-                        if other is not relation:
-                            match relation.direction:
-                                case EnumRelationDirection.UNDIRECTED:
-                                    indices.put((_pair[0], _pair[1], ind_e, relation.value))
-                                    indices.put((_pair[1], _pair[0], ind_e, relation.value))
-                                case EnumRelationDirection.INWARDS:
-                                    indices.put((_pair[0], _pair[1], ind_e, -relation.value))
-                                    indices.put((_pair[1], _pair[0], ind_e,  relation.value))
-                                case EnumRelationDirection.OUTWARDS:
-                                    indices.put((_pair[1], _pair[0], ind_e, -relation.value))
-                                    indices.put((_pair[0], _pair[1], ind_e,  relation.value))
-
-
-
-            #for rel0 in e.subset_elements:
-                #    if rel0 is not relation:
-                #        if rel0.direction is EnumRelationDirection.OUTWARDS or rel0.direction is EnumRelationDirection.UNDIRECTED:
-                #            indices.put((ind_n, self.homomorphism_node[rel0.endpoint.uid], ind_e, rel0.value))
-                #        else:
-                #            indices.put((ind_n, self.homomorphism_node[rel0.endpoint.uid], ind_e, -rel0.value))
-
+            self._setup_tensor_eslice(indices, e)
         while not indices.empty():
             x, y, z, v = indices.get()
             self.intermediate_tensor[z, y, x] = v
