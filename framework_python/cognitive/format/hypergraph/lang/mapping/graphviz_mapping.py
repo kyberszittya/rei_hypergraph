@@ -14,10 +14,8 @@ def graph_viz_kinematicgraph(kg: KinematicGraph, dot):
             dot.attr('node', shape='ellipse')
             if isinstance(v, KinematicGraph):
                 dot.attr('graph', fillcolor='deepskyblue2', style='filled')
-                #c = graph.subgraph(name=v.progenitor_registry.qualified_name)
                 with graph.subgraph(name=f"cluster{v.progenitor_registry.qualified_name}") as c:
                     graph_viz_kinematicgraph(v, c)
-                #graph_viz_kinematicgraph(v, dot, c)
             else:
                 graph.node(v.progenitor_registry.qualified_name, label=v.id_name)
         if isinstance(v, KinematicJoint):

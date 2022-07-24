@@ -2,15 +2,16 @@ import abc
 
 from cognitive.format.basicelements.concepts.network.base_definitions import NetworkRelation, NetworkNode, \
     NetworkElement, EnumRelationDirection
-from cognitive.format.basicelements.concepts.network.taxonomy import NetworkTaxonomy
 from cognitive.format.basicelements.concepts.registry.base_definitions import MetaRegistry
 from cognitive.format.basicelements.concepts.registry.registration_methods import InterfaceIdentifierGenerator
-from cognitive.format.hypergraph.foundations.hypergraph_elements import HypergraphNode, HypergraphEdge, HyperEdgeConnection
+from cognitive.format.hypergraph.foundations.hypergraph_elements import HypergraphNode, \
+    HypergraphEdge, HyperEdgeConnection
 
 import numpy as np
 
 
 import queue
+
 
 class CognitiveArbiter(HypergraphNode):
     """
@@ -61,7 +62,6 @@ class CognitiveChannel(HypergraphEdge):
     """
 
 
-
 class TensorChannelDendrite(CognitiveChannelDendrite):
     """
 
@@ -84,18 +84,19 @@ class TensorChannelDendrite(CognitiveChannelDendrite):
         self.tensor = None
 
     def _collect_tensor_elements(self, cursor: HypergraphNode):
-        for c in cursor._subsets.values():
-            if isinstance(c, HypergraphNode):
-                self._collect_tensor_elements(c)
-                self.homomorphism_node[c.uid] = self.cnt_node
-                self.homomorphism_node_inv[self.cnt_node] = c.uid
-                self.nodes.put(c)
-                self.cnt_node += 1
-            elif isinstance(c, HypergraphEdge):
-                self.homomorphism_edge[c.uid] = self.cnt_edges
-                self.homomorphism_edge_inv[self.cnt_edges] = c.uid
-                self.edges.put(c)
-                self.cnt_edges += 1
+        for c in cursor.subset_elements:
+            match c:
+                case HypergraphNode():
+                    self._collect_tensor_elements(c)
+                    self.homomorphism_node[c.uid] = self.cnt_node
+                    self.homomorphism_node_inv[self.cnt_node] = c.uid
+                    self.nodes.put(c)
+                    self.cnt_node += 1
+                case HypergraphEdge():
+                    self.homomorphism_edge[c.uid] = self.cnt_edges
+                    self.homomorphism_edge_inv[self.cnt_edges] = c.uid
+                    self.edges.put(c)
+                    self.cnt_edges += 1
 
 
 class HypergraphTensorTransformation(TensorChannelDendrite):
@@ -121,20 +122,20 @@ class HypergraphTensorTransformation(TensorChannelDendrite):
         while not self.edges.empty():
             e: HypergraphEdge = self.edges.get()
             ind_e = self.homomorphism_edge[e.uid]
-            for rel1 in e._subsets.values():
+            # TODO: finish this mess
+            for rel1 in e.subset_elements:
                 ind_n = self.homomorphism_node[rel1.endpoint.uid]
-                for rel0 in e._subsets.values():
+                for rel0 in e.subset_elements:
                     if rel0 is not rel1:
-                        indices.put((ind_n, self.homomorphism_node[rel0.endpoint.uid], ind_e, rel0.value))
+                        if rel0.direction is EnumRelationDirection.OUTWARDS or rel0.direction is EnumRelationDirection.UNDIRECTED:
+                            indices.put((ind_n, self.homomorphism_node[rel0.endpoint.uid], ind_e, rel0.value))
+                        else:
+                            indices.put((ind_n, self.homomorphism_node[rel0.endpoint.uid], ind_e, -rel0.value))
         while not indices.empty():
-            x,y,z,v = indices.get()
-            self.tensor[z,y,x] = v
+            x, y, z, v = indices.get()
+            self.tensor[z, y, x] = v
         return self.tensor
-
 
     def decode(self, arg):
         if self.tensor is None:
             return None
-
-
-

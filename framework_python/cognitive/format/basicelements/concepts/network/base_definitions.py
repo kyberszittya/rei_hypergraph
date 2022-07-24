@@ -77,7 +77,9 @@ class NetworkElement(MetaIdentifiable):
             return None
         return self.registrables[0]
 
-
+    @property
+    def subset_elements(self):
+        return self._subsets.values()
 
 
 

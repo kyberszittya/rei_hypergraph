@@ -6,7 +6,7 @@ from cognitive.format.hypergraph.channels.tensor_channel import CognitiveChannel
     CognitiveChannelDendrite
 from cognitive.format.hypergraph.foundations.common_mappings import map_graph_direction
 from cognitive.format.hypergraph.foundations.hypergraph_elements import HypergraphReferenceConnection, \
-    HypergraphNode, select_incoming_connections, HypergraphEdge
+    HypergraphNode, select_incoming_connections
 from cognitive.format.hypergraph.foundations.hypergraph_operators import create_hypergraphelement_reference, \
     hypergraphedge_2factorization_tree
 from cognitive.format.hypergraph.lang.cognilang.CogniLangLexer import CogniLangLexer
@@ -17,7 +17,8 @@ from cognitive.format.hypergraph.lang.mapping.material_map import GAZEBO_MATERIA
 from cognitive.physics.geometry.basic_geometry import CylinderGeometry, PolyhedronGeometry, EllipsoidGeometry, \
     PrimitiveGeometry
 from cognitive.physics.kinematics.kinematic_link import KinematicLink, KinematicJoint, VisionGeometry, \
-    CollisionGeometry, KinematicJointType, connect_joint_to_node, GeometryNode, WorldLink, KinematicGraph
+    CollisionGeometry, KinematicJointType, connect_joint_to_node, GeometryNode, WorldLink, KinematicGraph, \
+    get_joint_type_from_antlr_relation
 from lxml import etree
 
 
@@ -30,7 +31,7 @@ class EntityGraphMapper(CogniLangVisitor):
         super().__init__()
         self.arbiter = arbiter
         self.channel = channel
-        self.rootentity: [CognitiveEntity|None] = None
+        self.rootentity: [CognitiveEntity | None] = None
         self.kinematic_graph_cache = {}
 
     def visitEntity(self, ctx: CogniLangParser.EntityContext):
@@ -41,7 +42,7 @@ class EntityGraphMapper(CogniLangVisitor):
         return self.visitChildren(ctx)
 
     @staticmethod
-    def float_vector_to_numpy(root: CognitiveEntity, vector: CogniLangParser.Field_float_vectorContext):
+    def _float_vector_to_numpy(root: CognitiveEntity, vector: CogniLangParser.Field_float_vectorContext):
         values = []
         for a in vector.float_vector().value():
             if a.FLOAT() is not None:
@@ -54,22 +55,21 @@ class EntityGraphMapper(CogniLangVisitor):
         # Check if the geometries are reference to other elements
         if v.geometry_body().geometries().ref_() is not None:
             geom_ref_name = f"{v.geometry_body().geometries().ref_().ID()}"
-            # create_hypergraphelement_reference(geom_ref_name, context, geom)
             create_hypergraphelement_reference(geom_ref_name, context, geom)
         else:
             _geom = None
             if v.geometry_body().geometries().cylinder_geometry() is not None:
-                _geom = CylinderGeometry(f"geom_{name}", 0, EntityGraphMapper.float_vector_to_numpy(
+                _geom = CylinderGeometry(f"geom_{name}", 0, EntityGraphMapper._float_vector_to_numpy(
                     self.rootentity,
                     v.geometry_body().geometries().cylinder_geometry().field_float_vector()
                 ))
             elif v.geometry_body().geometries().polyhedron_geometry() is not None:
-                _geom = PolyhedronGeometry(f"geom_{name}", 0, EntityGraphMapper.float_vector_to_numpy(
+                _geom = PolyhedronGeometry(f"geom_{name}", 0, EntityGraphMapper._float_vector_to_numpy(
                     self.rootentity,
                     v.geometry_body().geometries().polyhedron_geometry().field_float_vector()
                 ))
             elif v.geometry_body().geometries().ellipsoid_geometry() is not None:
-                _geom = EllipsoidGeometry(f"geom_{name}", 0, EntityGraphMapper.float_vector_to_numpy(
+                _geom = EllipsoidGeometry(f"geom_{name}", 0, EntityGraphMapper._float_vector_to_numpy(
                     self.rootentity,
                     v.geometry_body().geometries().ellipsoid_geometry().field_float_vector()
                 ))
@@ -128,7 +128,7 @@ class EntityGraphMapper(CogniLangVisitor):
         body: CogniLangParser.Linknode_bodyContext = ctx.linknode_body()
         pose = None
         if ctx.pose is not None:
-            pose = EntityGraphMapper.float_vector_to_numpy(self.rootentity, ctx.pose)
+            pose = EntityGraphMapper._float_vector_to_numpy(self.rootentity, ctx.pose)
         mass = float(body.inertia_body().mass.text)
         link = KinematicLink(name, 0, mass=mass, pose=pose)
         context.add_subset(link, 0)
@@ -138,18 +138,17 @@ class EntityGraphMapper(CogniLangVisitor):
         self._coll_geom_setup(name, link, context, 'coll', body.collision_node())
         # Setup inertia
         if body.inertia_body().inertia_vector() is not None:
-            EntityGraphMapper.float_vector_to_numpy(body.inertia_body().inertia_vector().inertia_vector_)
+            EntityGraphMapper._float_vector_to_numpy(context, body.inertia_body().inertia_vector().inertia_vector_)
         else:
             # If no inertia vector is defined, try to calculate it
-            for v in filter(lambda x: isinstance(x, CollisionGeometry),link._subsets.values()):
-                for g in v._subsets.values():
-                    for ref in filter(lambda x: isinstance(x, HypergraphReferenceConnection), g.parent._subsets.values()):
-                        if ref.direction==EnumRelationDirection.INWARDS:
+            for v in filter(lambda x: isinstance(x, CollisionGeometry), link.subset_elements):
+                for g in v.subset_elements:
+                    for ref in filter(lambda x: isinstance(x, HypergraphReferenceConnection), g.parent.subset_elements):
+                        if ref.direction == EnumRelationDirection.INWARDS:
                             # TODO: revise inertia calculation
-                            for inert in filter(lambda x: isinstance(x, PrimitiveGeometry), ref.endpoint._subsets.values()):
+                            for inert in filter(lambda x: isinstance(x, PrimitiveGeometry),
+                                                ref.endpoint.subset_elements):
                                 link.calc_explicit_primitive_inertia(inert)
-
-
         # Wrap-up
         return self.visitChildren(ctx)
 
@@ -186,14 +185,7 @@ class EntityGraphMapper(CogniLangVisitor):
         body: CogniLangParser.Joint_bodyContext = ctx.joint_body()
         for rel in body.joint_relation():
             target_name = str(rel.ref_().ID())
-            t: KinematicJointType = KinematicJointType.FIXED
-            match rel.joint_type().value_.text:
-                case 'fix':
-                    t = KinematicJointType.FIXED
-                case 'rev':
-                    t = KinematicJointType.REVOLUTE
-                case 'tr':
-                    t = KinematicJointType.PRISMATIC
+            t: KinematicJointType = get_joint_type_from_antlr_relation(rel)
             # Rigid transformation setup
             tr = None
             if rel.rigid_transformation() is not None:
@@ -214,7 +206,6 @@ class EntityGraphMapper(CogniLangVisitor):
         return self.visitChildren(ctx)
 
 
-# TODO: encapsulate as a dendrite object
 class SdfGenerator(CognitiveChannelDendrite):
 
     def __init__(self, name: str, timestamp: int, e_root=None, domain=None, channel=None, icon=None) -> None:
@@ -224,54 +215,94 @@ class SdfGenerator(CognitiveChannelDendrite):
         self.e_root = e_root
         self.ref_cognitive_entity = None
 
-    def setup_geometry(self, geom: GeometryNode, e_link: etree.Element, tag="visual"):
-        e_visual = etree.Element(tag)
-        e_visual.attrib["name"] = geom.id_name
-        e_geom = etree.Element("geometry")
-        for s in geom._subsets.values():
-            match s:
-                case PrimitiveGeometry():
-                    self.setup_geometry_element(s, e_geom)
-                case HypergraphReferenceConnection():
-                    if s.direction == EnumRelationDirection.OUTWARDS:
-                        if s.parent.progenitor_registry.qualified_name not in self.eval_cache:
-                            ref = select_incoming_connections(s.parent)[0]
-                            self.eval_cache[s.parent.progenitor_registry.qualified_name] = ref.endpoint
-                        ref = self.eval_cache[s.parent.progenitor_registry.qualified_name]
-                        for _ref_geom in ref._subsets.values():
-                            match _ref_geom:
-                                case PrimitiveGeometry():
-                                    self.setup_geometry_element(_ref_geom, e_geom)
-            e_visual.append(e_geom)
-        e_link.append(e_visual)
-        return e_visual
+    @staticmethod
+    def _setup_polyhedron_geometry_element(geom: PolyhedronGeometry):
+        e_geom = etree.Element("box")
+        e_size = etree.Element("size")
+        e_size.text = f"{geom.dimensions[0]} {geom.dimensions[1]} {geom.dimensions[2]}"
+        e_geom.append(e_size)
+        return e_geom
 
-    def setup_geometry_element(self, geom: PrimitiveGeometry, e_geomdef: etree.Element):
-        e_geom = None
-        match geom:
-            case PolyhedronGeometry():
-                e_geom = etree.Element("box")
-                e_size = etree.Element("size")
-                e_size.text = f"{geom.dimensions[0]} {geom.dimensions[1]} {geom.dimensions[2]}"
-                e_geom.append(e_size)
-            case EllipsoidGeometry():
-                e_geom = etree.Element("sphere")
-                e_radius = etree.Element("radius")
-                e_radius.text = f"{geom.dimensions[0]}"
-                e_geom.append(e_radius)
-            case CylinderGeometry():
-                e_geom = etree.Element("cylinder")
-                e_radius = etree.Element("radius")
-                e_radius.text = f"{geom.dimensions[0]}"
-                e_length = etree.Element("length")
-                e_length.text = f"{geom.dimensions[1]}"
-                e_geom.append(e_radius)
-                e_geom.append(e_length)
-        if e_geom is not None:
-            e_geomdef.append(e_geom)
+    @staticmethod
+    def _setup_ellipsoid_geometry_element(geom: EllipsoidGeometry):
+        e_geom = etree.Element("sphere")
+        e_radius = etree.Element("radius")
+        e_radius.text = f"{geom.dimensions[0]}"
+        e_geom.append(e_radius)
+        return e_geom
+
+    @staticmethod
+    def _setup_cylinder_geometry_element(geom: CylinderGeometry):
+        e_geom = etree.Element("cylinder")
+        e_radius = etree.Element("radius")
+        e_radius.text = f"{geom.dimensions[0]}"
+        e_length = etree.Element("length")
+        e_length.text = f"{geom.dimensions[1]}"
+        e_geom.append(e_radius)
+        e_geom.append(e_length)
+        return e_geom
+
+    @staticmethod
+    def _setup_axis_element(child, e_joint: etree.Element):
+        # Axis element
+        el_axis = etree.Element("axis")
+        el_axis_xyz = etree.Element("xyz")
+        el_axis_xyz.text = f"{child.axis[0]} {child.axis[1]} {child.axis[2]}"
+        el_axis.append(el_axis_xyz)
+        e_joint.append(el_axis)
+
+    @staticmethod
+    def _setup_inertia(el: KinematicLink, e_link: etree.Element):
+        # Inertia setup
+        e_inertial = etree.Element("inertial")
+        # Mass element
+        e_mass = etree.Element("mass")
+        e_mass.text = str(el.mass)
+        # Inertia element
+        e_inertia = etree.Element("inertia")
+        e_ixx = etree.Element("ixx")
+        e_ixx.text = str(el.inertia[0])
+        e_inertia.append(e_ixx)
+        e_iyy = etree.Element("iyy")
+        e_iyy.text = str(el.inertia[1])
+        e_inertia.append(e_iyy)
+        e_izz = etree.Element("izz")
+        e_izz.text = str(el.inertia[2])
+        e_inertia.append(e_izz)
+        e_ixy = etree.Element("ixy")
+        e_ixy.text = str(el.inertia[3])
+        e_inertia.append(e_ixy)
+        e_ixz = etree.Element("ixz")
+        e_ixz.text = str(el.inertia[4])
+        e_inertia.append(e_ixz)
+        e_iyz = etree.Element("iyz")
+        e_iyz.text = str(el.inertia[5])
+        e_inertia.append(e_iyz)
+        e_inertial.append(e_inertia)
+        # Add mass element
+        e_inertial.append(e_mass)
+        # Wrap up inertia
+        e_link.append(e_inertial)
+
+    @staticmethod
+    def _setup_material_element(g: VisionGeometry, e_viz: etree.Element):
+        if g.material_name is not None:
+            e_material = etree.Element("material")
+            # Gazebo specific
+            e_script = etree.Element("script")
+            e_source_uri = etree.Element("uri")
+            e_source_uri.text = "file://media/materials/scripts/gazebo.material"
+            e_script.append(e_source_uri)
+            e_material_name = etree.Element("name")
+            e_material_name.text = GAZEBO_MATERIALS_DICT[g.material_name]
+            e_script.append(e_material_name)
+            # Wrap up
+            e_material.append(e_script)
+            #
+            e_viz.append(e_material)
 
     def setup_link(self, el: KinematicLink, e_entity: etree.Element,
-                   template_name: str = "", evoker_name: str=""):
+                   template_name: str = "", evoker_name: str = ""):
         if not isinstance(el, WorldLink):
             e_link = etree.Element("link")
             # Handle template name
@@ -280,35 +311,8 @@ class SdfGenerator(CognitiveChannelDendrite):
                 link_name = template_name + "/" + link_name
             e_link.attrib["name"] = link_name
             e_entity.append(e_link)
-            # Inertia setup
-            e_inertial = etree.Element("inertial")
-            # Mass element
-            e_mass = etree.Element("mass")
-            e_mass.text = str(el.mass)
-            # Inertia element
-            e_inertia = etree.Element("inertia")
-            e_ixx = etree.Element("ixx")
-            e_ixx.text = str(el.inertia[0])
-            e_inertia.append(e_ixx)
-            e_iyy = etree.Element("iyy")
-            e_iyy.text = str(el.inertia[1])
-            e_inertia.append(e_iyy)
-            e_izz = etree.Element("izz")
-            e_izz.text = str(el.inertia[2])
-            e_inertia.append(e_izz)
-            e_ixy = etree.Element("ixy")
-            e_ixy.text = str(el.inertia[3])
-            e_inertia.append(e_ixy)
-            e_ixz = etree.Element("ixz")
-            e_ixz.text = str(el.inertia[4])
-            e_inertia.append(e_ixz)
-            e_iyz = etree.Element("iyz")
-            e_iyz.text = str(el.inertia[5])
-            e_inertia.append(e_iyz)
-            #
-            e_inertial.append(e_mass)
-            # Wrap up inertia
-            e_link.append(e_inertia)
+            # Setup inertia
+            SdfGenerator._setup_inertia(el, e_link)
             # Add link to cache
             self.link_element_cache[el.progenitor_registry.qualified_name] = e_link
             # Add link pose
@@ -316,29 +320,50 @@ class SdfGenerator(CognitiveChannelDendrite):
             e_pose.text = el.str_pose()
             e_link.append(e_pose)
             self.link_element_cache[el.progenitor_registry.qualified_name + "/pose"] = e_pose
-            if evoker_name!="":
+            if evoker_name != "":
                 e_pose.attrib["relative_to"] = evoker_name
             # Setup geometry
-            for g in el._subsets.values():
+            for g in el.subset_elements:
                 match g:
                     case VisionGeometry():
                         e_viz = self.setup_geometry(g, e_link)
-                        if g.material_name is not None:
-                            e_material = etree.Element("material")
-                            # Gazebo specific
-                            e_script = etree.Element("script")
-                            e_source_uri = etree.Element("uri")
-                            e_source_uri.text = "file://media/materials/scripts/gazebo.material"
-                            e_script.append(e_source_uri)
-                            e_material_name = etree.Element("name")
-                            e_material_name.text = GAZEBO_MATERIALS_DICT[g.material_name]
-                            e_script.append(e_material_name)
-                            # Wrap up
-                            e_material.append(e_script)
-                            #
-                            e_viz.append(e_material)
+                        SdfGenerator._setup_material_element(g, e_viz)
                     case CollisionGeometry():
                         self.setup_geometry(g, e_link, tag="collision")
+
+    def setup_geometry(self, geom: GeometryNode, e_link: etree.Element, tag="visual"):
+        e_visual = etree.Element(tag)
+        e_visual.attrib["name"] = geom.id_name
+        e_geom = etree.Element("geometry")
+        for s in geom.subset_elements:
+            match s:
+                case PrimitiveGeometry():
+                    SdfGenerator.setup_geometry_element(s, e_geom)
+                case HypergraphReferenceConnection():
+                    if s.direction == EnumRelationDirection.OUTWARDS:
+                        if s.parent.progenitor_registry.qualified_name not in self.eval_cache:
+                            ref = select_incoming_connections(s.parent)[0]
+                            self.eval_cache[s.parent.progenitor_registry.qualified_name] = ref.endpoint
+                        ref = self.eval_cache[s.parent.progenitor_registry.qualified_name]
+                        for _ref_geom in ref.subset_elements:
+                            match _ref_geom:
+                                case PrimitiveGeometry():
+                                    SdfGenerator.setup_geometry_element(_ref_geom, e_geom)
+            e_visual.append(e_geom)
+        e_link.append(e_visual)
+        return e_visual
+
+    @staticmethod
+    def setup_geometry_element(geom: PrimitiveGeometry, e_geomdef: etree.Element):
+        e_geom = None
+        match geom:
+            case PolyhedronGeometry():
+                e_geom = SdfGenerator._setup_polyhedron_geometry_element(geom)
+            case EllipsoidGeometry():
+                e_geom = SdfGenerator._setup_ellipsoid_geometry_element(geom)
+            case CylinderGeometry():
+                e_geom = SdfGenerator._setup_cylinder_geometry_element(geom)
+        e_geomdef.append(e_geom)
 
     def setup_joint(self, el: KinematicJoint, e_entity: etree.Element,
                     template_name: str = ""):
@@ -349,7 +374,6 @@ class SdfGenerator(CognitiveChannelDendrite):
             parent, child = tree_connections.get()
             e_joint = etree.Element("joint")
             # Handle template name
-            #joint_name = f"{el.id_name}/{parent.endpoint.id_name}/{child.endpoint.id_name}"
             joint_name = f"{el.id_name}/{child.endpoint.id_name}"
             jnt_parent_name = parent.endpoint.id_name
             jnt_child_name = child.endpoint.id_name
@@ -368,7 +392,9 @@ class SdfGenerator(CognitiveChannelDendrite):
                     e_joint.attrib["type"] = "prismatic"
             # Pose element
             el_pose = etree.Element("pose")
-            el_pose.text = f"{child.rigid_transformation[0][0]} {child.rigid_transformation[0][1]} {child.rigid_transformation[0][2]} {child.rigid_transformation[1][0]} {child.rigid_transformation[1][1]} {child.rigid_transformation[1][2]}"
+            el_pose.text = f"{child.rigid_transformation[0][0]} {child.rigid_transformation[0][1]} " \
+                           f"{child.rigid_transformation[0][2]} {child.rigid_transformation[1][0]} " \
+                           f"{child.rigid_transformation[1][1]} {child.rigid_transformation[1][2]}"
             # Set joint relative to parent joint
             if parent.endpoint.id_name != "world":
                 el_pose.attrib["relative_to"] = jnt_parent_name
@@ -391,17 +417,12 @@ class SdfGenerator(CognitiveChannelDendrite):
                 if parent.endpoint.id_name != "world":
                     self.link_element_cache[child.endpoint.progenitor_registry.qualified_name + "/pose"].attrib[
                         "relative_to"] = joint_name
-                # Axis element
-            el_axis = etree.Element("axis")
-            el_axis_xyz = etree.Element("xyz")
-            el_axis_xyz.text = f"{child.axis[0]} {child.axis[1]} {child.axis[2]}"
-            el_axis.append(el_axis_xyz)
-            e_joint.append(el_axis)
+            SdfGenerator._setup_axis_element(child, e_joint)
             e_entity.append(e_joint)
 
     def instantiate_kinematic_graph(self, _el: KinematicGraph, e_entity: etree.Element,
                                     template_name: str = "", evoker_name: str = ""):
-        for el in _el._subsets.values():
+        for el in _el.subset_elements:
             match el:
                 case KinematicLink():
                     self.setup_link(el, e_entity, template_name, evoker_name)
@@ -414,7 +435,7 @@ class SdfGenerator(CognitiveChannelDendrite):
         self.e_root.append(e_entity)
         self.ref_cognitive_entity = n
         #
-        for _el in filter(lambda x: isinstance(x, KinematicGraph), self.ref_cognitive_entity._subsets.values()):
+        for _el in filter(lambda x: isinstance(x, KinematicGraph), self.ref_cognitive_entity.subset_elements):
             # Go only one level down
             self.instantiate_kinematic_graph(_el, e_entity)
 
@@ -454,14 +475,11 @@ def load_from_description(filename: str):
     root.attrib["version"] = "1.7"
     # Class SDF generator
     sdf_gen = SdfGenerator("loader", 0, root, sys.domain, channel)
-    for n in sys._subsets.values():
+    for n in sys.subset_elements:
         if isinstance(n, CognitiveEntity):
             sdf_gen.setup_cognitive_entity(n)
     sdf_gen.write_to_file()
     return sys, channel
-
-
-
 
 
 def main():

@@ -138,6 +138,18 @@ def connect_joint_to_node(context: HypergraphNode,
         joint.add_connection(conn, 0, target_node, direction)
 
 
+
+def get_joint_type_from_antlr_relation(rel):
+    match rel.joint_type().value_.text:
+        case 'fix':
+            return KinematicJointType.FIXED
+        case 'rev':
+            return KinematicJointType.REVOLUTE
+        case 'tr':
+            return KinematicJointType.PRISMATIC
+    return KinematicJointType.FIXED
+
+
 class GeometryNode(HypergraphNode):
 
     def __init__(self, name: str, timestamp: int, subsets: dict[bytes, NetworkElement] = None,

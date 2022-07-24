@@ -54,6 +54,8 @@ class HypergraphNode(NetworkNode):
         return self
 
 
+
+
 class HyperEdgeConnection(NetworkRelation):
     """
     Associated relation with the network node
