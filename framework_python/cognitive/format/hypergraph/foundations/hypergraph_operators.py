@@ -147,6 +147,13 @@ def create_hyperedge(name: str, timestamp: int, parent: HypergraphNode,
 
 
 def create_hypergraphelement_reference(ref_name, root: HypergraphNode, referenced: HypergraphNode):
+    """
+
+    :param ref_name:
+    :param root:
+    :param referenced:
+    :return:
+    """
     ref_id = "ref_"+ref_name
     # Try to retrieve referenced item
     _lookup_name = '/'.join([root.progenitor_registry.qualified_name, ref_name])

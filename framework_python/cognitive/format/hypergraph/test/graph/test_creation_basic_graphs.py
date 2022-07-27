@@ -84,7 +84,8 @@ def test_basic_tensor_channel():
     ch = HypergraphTensorTransformation("dendrite1", 0, taxon, channel, view_icon)
     channel.add_connection(ch, 0, view_icon)
     print()
-    tensor = ch.encode([graph])
+    ch.encode([graph])
+    tensor = view_icon.view()[0]
     import numpy as np
     assert tensor.shape == (8,8,8)
     assert np.all(np.sum(tensor[:-1,:-1,:-1], axis=0) + np.eye(7)==1)
@@ -105,7 +106,8 @@ def test_basic_tensor_channel_2():
 
     channel.add_connection(ch, 0, view_icon)
     print()
-    tensor = ch.encode([graph])
+    ch.encode([graph])
+    tensor = view_icon.view()[0]
     import numpy as np
     assert tensor.shape == (8,8,8)
     assert np.all(np.sum(tensor[:-1,:-1,:-1], axis=0) + np.eye(7)==1)
@@ -127,7 +129,8 @@ def test_basic_tensor_channel_3():
 
     channel.add_connection(ch, 0, view_icon)
     print()
-    tensor = ch.encode([graph])
+    ch.encode([graph])
+    tensor = view_icon.view()[0]
     entropy = graph_upper_bound_entropy_vector(tensor)
     print(entropy[0])
 

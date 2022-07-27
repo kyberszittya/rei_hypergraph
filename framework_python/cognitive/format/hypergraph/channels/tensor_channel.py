@@ -12,6 +12,8 @@ import numpy as np
 
 import queue
 
+from cbor2 import dumps
+
 
 class CognitiveArbiter(HypergraphNode):
     """
@@ -23,8 +25,13 @@ class CognitiveIcon(HypergraphNode):
     """
     A cognitive icon of some sort (e.g. image (2D matrix), stimuli, tensor)
     """
+
     @abc.abstractmethod
     def view(self):
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def update(self, msg):
         raise NotImplementedError
 
 
@@ -37,10 +44,31 @@ class TensorCognitiveIcon(CognitiveIcon):
                  parent: NetworkNode = None, identitygen: InterfaceIdentifierGenerator = None,
                  domain: MetaRegistry = None):
         super().__init__(name, timestamp, subsets, parent, identitygen, domain)
-        self._icon = []
+        self._icon: np.ndarray | None = None
+
+    def update(self, msg: np.ndarray):
+        self._icon = msg
 
     def view(self):
         return self._icon
+
+
+class ByteBufferCognitiveIcon(CognitiveIcon):
+    """
+
+    """
+
+    def __init__(self, name: str, timestamp: int, subsets: dict[bytes, NetworkElement] = None,
+                 parent: NetworkNode = None, identitygen: InterfaceIdentifierGenerator = None,
+                 domain: MetaRegistry = None):
+        super().__init__(name, timestamp, subsets, parent, identitygen, domain)
+        self._icon: bytes | None = None
+
+    def view(self):
+        return self._icon
+
+    def update(self, msg: bytes):
+        self._icon = dumps(msg)
 
 
 class CognitiveChannelDendrite(HyperEdgeConnection):
@@ -48,7 +76,7 @@ class CognitiveChannelDendrite(HyperEdgeConnection):
 
     """
     @abc.abstractmethod
-    def encode(self, arg):
+    def encode(self, arg) -> []:
         raise NotImplementedError
 
     @abc.abstractmethod
@@ -112,6 +140,7 @@ class TensorChannelDendrite(CognitiveChannelDendrite):
         # Get parent relationship
         if e.parent.uid in self.homomorphism_node:
             indices.put((-1, self.homomorphism_node[e.parent.uid], ind_e, 1))
+            #self.cnt_elem += 1
         # Iterate through relations
         for relation in e.subset_elements:
             ind_n = self.homomorphism_node[relation.endpoint.uid]
@@ -131,16 +160,19 @@ class TensorChannelDendrite(CognitiveChannelDendrite):
                                 # Put incidence
                                 indices.put((_pair[0], -1, ind_e, 1))
                                 indices.put((_pair[1], -1, ind_e, 1))
+                                self.cnt_elem += 4
                             case EnumRelationDirection.INWARDS:
                                 indices.put((_pair[0], _pair[1], ind_e, -value))
                                 indices.put((_pair[1], _pair[0], ind_e,  value))
                                 indices.put((_pair[0], -1, ind_e, 1))
                                 indices.put((_pair[1], -1, ind_e, -1))
+                                self.cnt_elem += 4
                             case EnumRelationDirection.OUTWARDS:
                                 indices.put((_pair[1], _pair[0], ind_e, -value))
                                 indices.put((_pair[0], _pair[1], ind_e,  value))
                                 indices.put((_pair[0], -1, ind_e, -1))
                                 indices.put((_pair[1], -1, ind_e, 1))
+                                self.cnt_elem += 4
 
     def _setup_tensor_hierarchy(self, indices: queue.Queue, n: HypergraphNode):
         for v in n.subset_elements:
@@ -148,6 +180,7 @@ class TensorChannelDendrite(CognitiveChannelDendrite):
                 p = (self.homomorphism_node[n.uid], self.homomorphism_node[v.uid])
                 indices.put((p[1], p[0], -1,  1))
                 indices.put((p[0], p[1], -1, -1))
+                self.cnt_elem += 1
 
     def _reset_homomorphism(self):
         self.node_fringe = queue.LifoQueue()
@@ -169,6 +202,10 @@ class TensorChannelDendrite(CognitiveChannelDendrite):
     def _setup_intermediate_tensor(self):
         raise NotImplementedError
 
+    @abc.abstractmethod
+    def _get_msg_tensor(self):
+        raise NotImplementedError
+
     def encode(self, arg: list[HypergraphNode]):
         self._reset_homomorphism()
         #
@@ -187,7 +224,9 @@ class TensorChannelDendrite(CognitiveChannelDendrite):
             self.cnt_elem += 1
         self._setup_intermediate_tensor()
         self._setup_icon(indices)
-        return self.intermediate_tensor
+        if self.endpoint is not None:
+            if isinstance(self.endpoint, CognitiveIcon):
+                self.endpoint.update(self._get_msg_tensor())
 
 
 class HypergraphTensorTransformation(TensorChannelDendrite):
@@ -218,13 +257,15 @@ class HypergraphTensorTransformation(TensorChannelDendrite):
         # DIMS: [EDGES, NODES+INCIDENCE, NODES+EDGE_HIERARCHY]
         self.intermediate_tensor = np.zeros(shape=(self.cnt_edges + 1, self.cnt_node + 1, self.cnt_node + 1))
 
+    def _get_msg_tensor(self):
+        return [self.intermediate_tensor]
+
 
 class HypergraphCoordinateObject(TensorChannelDendrite):
     """
 
     """
 
-    # TODO: think about generalization
     @staticmethod
     def _setup_value(arg):
         if arg is None:
@@ -238,15 +279,23 @@ class HypergraphCoordinateObject(TensorChannelDendrite):
             self.intermediate_tensor[cnt, 0] = e[0]
             self.intermediate_tensor[cnt, 1] = e[1]
             self.intermediate_tensor[cnt, 2] = e[2]
-            self.intermediate_tensor[cnt, 3] = e[3]
+            self.value_tensor[cnt] = e[3]
             cnt += 1
-            #self.intermediate_tensor[z, y, x] = v
 
     def decode(self, arg):
         if self.intermediate_tensor is None:
             return None
 
+    def _get_msg_tensor(self):
+        return [self.cnt_node, self.cnt_edges, self.cnt_elem,
+                list(self.homomorphism_node.keys()),
+                list(self.homomorphism_edge.keys()),
+                self.intermediate_tensor.tolist(),
+                self.value_tensor.tolist()]
+
     def _setup_intermediate_tensor(self):
-        self.intermediate_tensor = np.zeros(shape=(400, 4))
+        self.intermediate_tensor = np.zeros(shape=(self.cnt_elem, 3), dtype=np.int)
+        self.value_tensor = np.zeros(shape=(self.cnt_elem, 1))
 
-
+    def set_icon(self, e: CognitiveIcon):
+        self._endpoint = e

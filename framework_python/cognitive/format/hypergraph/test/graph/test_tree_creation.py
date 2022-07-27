@@ -38,7 +38,8 @@ def test_tree_basic_3nodes():
     view_icon = TensorCognitiveIcon("out", 0)
     ch = HypergraphTensorTransformation("dendrite1", 0, sys.domain, channel, view_icon)
     channel.add_connection(ch, 0, view_icon)
-    tensor = ch.encode([graph])
+    ch.encode([graph])
+    tensor = view_icon.view()[0]
     # Check elements
     print(tensor)
     assert tensor[0, 1, 0] == -1
