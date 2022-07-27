@@ -1,10 +1,14 @@
 import numpy as np
 
+from cognitive.format.hypergraph.laplacian.graph_metrics import entropy_sum
+
+
 def laplacian_calc(M):
     D_m = np.sum(M, axis=0)
     L_m = np.diag(D_m) - M
     deg = np.sum(D_m)
     return D_m, L_m, deg
+
 
 def laplacian_calc_tensor(A):
     total_deg = 0
@@ -19,6 +23,7 @@ def laplacian_calc_tensor(A):
         total_deg += deg
     return np.array(Ds), np.array(Ls), total_deg
 
+
 # Entropy calculations
 def graph_bound_entropy(A):
     _, Ls, total_deg = laplacian_calc_tensor(A)
@@ -31,20 +36,17 @@ def graph_bound_entropy(A):
 
 
 def laplacian_calc_vector(M, ax=2):
-    #D_m = np.apply_along_axis(np.sum, ax, M, 0)
-    D_m = np.abs(np.apply_along_axis(np.sum, ax, M, 0))
-    #d = np.apply_along_axis(np.diag, 1, D_m)
-    d = np.abs(np.apply_along_axis(np.diag, 1, D_m))
-    L_m = d - M
-    deg = np.sum(D_m)
+    D_m = np.apply_along_axis(np.sum, ax, M[:, :-1, :-1], 0)
+    d = np.apply_along_axis(np.diag, 1, D_m)
+    L_m = np.abs(d) - M[:, :-1, :-1]
+    deg = np.sum(np.abs(D_m))
     return D_m, L_m, deg
 
 
 def graph_upper_bound_entropy_vector(M):
     # TODO: This is actually very interesting. Try to find some method to handle negative adjacency matrices
     D, L, deg = laplacian_calc_vector(M, 2)
-    tr = np.trace(L, axis1=1, axis2=2)/deg
-    return -np.sum(tr*np.log2(tr))
+    return entropy_sum(L, D)
 
 
 def graph_lower_bound_entropy_vector(M):
