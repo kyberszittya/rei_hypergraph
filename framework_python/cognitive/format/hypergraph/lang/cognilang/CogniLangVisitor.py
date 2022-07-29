@@ -159,6 +159,11 @@ class CogniLangVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
+    # Visit a parse tree produced by CogniLangParser#graphedge_relation_optype.
+    def visitGraphedge_relation_optype(self, ctx:CogniLangParser.Graphedge_relation_optypeContext):
+        return self.visitChildren(ctx)
+
+
     # Visit a parse tree produced by CogniLangParser#subset_elem.
     def visitSubset_elem(self, ctx:CogniLangParser.Subset_elemContext):
         return self.visitChildren(ctx)
@@ -349,6 +354,16 @@ class CogniLangVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
+    # Visit a parse tree produced by CogniLangParser#ambience_edge.
+    def visitAmbience_edge(self, ctx:CogniLangParser.Ambience_edgeContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by CogniLangParser#ambience_edge_body.
+    def visitAmbience_edge_body(self, ctx:CogniLangParser.Ambience_edge_bodyContext):
+        return self.visitChildren(ctx)
+
+
     # Visit a parse tree produced by CogniLangParser#sensor_basic_definition.
     def visitSensor_basic_definition(self, ctx:CogniLangParser.Sensor_basic_definitionContext):
         return self.visitChildren(ctx)
@@ -376,11 +391,6 @@ class CogniLangVisitor(ParseTreeVisitor):
 
     # Visit a parse tree produced by CogniLangParser#sensor_type.
     def visitSensor_type(self, ctx:CogniLangParser.Sensor_typeContext):
-        return self.visitChildren(ctx)
-
-
-    # Visit a parse tree produced by CogniLangParser#ambience_relation.
-    def visitAmbience_relation(self, ctx:CogniLangParser.Ambience_relationContext):
         return self.visitChildren(ctx)
 
 
@@ -414,8 +424,13 @@ class CogniLangVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by CogniLangParser#communication_elements.
-    def visitCommunication_elements(self, ctx:CogniLangParser.Communication_elementsContext):
+    # Visit a parse tree produced by CogniLangParser#matrix_sensor.
+    def visitMatrix_sensor(self, ctx:CogniLangParser.Matrix_sensorContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by CogniLangParser#communication_connections.
+    def visitCommunication_connections(self, ctx:CogniLangParser.Communication_connectionsContext):
         return self.visitChildren(ctx)
 
 
@@ -436,6 +451,16 @@ class CogniLangVisitor(ParseTreeVisitor):
 
     # Visit a parse tree produced by CogniLangParser#ambient_stream.
     def visitAmbient_stream(self, ctx:CogniLangParser.Ambient_streamContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by CogniLangParser#port_signature.
+    def visitPort_signature(self, ctx:CogniLangParser.Port_signatureContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by CogniLangParser#port.
+    def visitPort(self, ctx:CogniLangParser.PortContext):
         return self.visitChildren(ctx)
 
 

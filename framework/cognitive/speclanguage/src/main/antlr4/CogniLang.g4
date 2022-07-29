@@ -4,7 +4,7 @@ import HypergraphBasicElements, GeometryElements, HypergraphTemplates, AmbientGr
 
 rootnode: entity;
 
-entity_subset_elem: entity_edges | entity_nodes | common_subset_elem | template_instantiation;
+entity_subset_elem: entity_edges | entity_nodes | common_subset_elem | template_instantiation | graphnode | graphedge;
 
 entity_edges: joint;
 entity_nodes: ambient | kinematic | parametric;

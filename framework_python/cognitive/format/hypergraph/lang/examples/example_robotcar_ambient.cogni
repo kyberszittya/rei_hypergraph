@@ -38,9 +38,31 @@ entity simplebot_with_ambient
         joint wheel_left_rear: fix <- {base_link} fix -> {wheel} [[-0.1 0.12 0.0]d[-90.0 0.0 0.0]]| [0.0 0.0 1.0]
     }
     ambient simplebot_ambience {
-         actuator wheel_motor -> {wheel_left_rear/wheel_joint} {
-            stream encoder_feedback -> /encoder: sensor_msgs/JointMsg
+         actuator wheel_motor {
+            double power = 40.0
+            double max_torque = 1.5
+            double max_current = 1.2
          }
-         sensor camera_front ->
+         sensor camera_front visual  {
+            int width = 1960
+            int height = 1080
+            string format = "RGB8"
+         }
+         sensor gnss_coarse gnss {
+
+         }
+         port gnss_output : "/gnss" ("sensor_msgs/PoseStamped") {
+         }
+         port encoder_wheel : "/joint_state" ("sensor_msgs/JointState") {
+         }
+         port joint_cmd : "/joint_cmd" ("sensor_msgs/JointCmd") {
+         }
+         ambience wheel_connection:
+            at -> {basic_structure/wheel_left_front},
+            at -> {basic_structure/wheel_right_front},
+            at -> {basic_structure/wheel_right_rear},
+            at -> {basic_structure/wheel_left_rear},
+            comm -> stream {encoder_wheel},
+            comm <- stream {joint_cmd}
     }
 }

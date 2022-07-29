@@ -278,6 +278,15 @@ class CogniLangListener(ParseTreeListener):
         pass
 
 
+    # Enter a parse tree produced by CogniLangParser#graphedge_relation_optype.
+    def enterGraphedge_relation_optype(self, ctx:CogniLangParser.Graphedge_relation_optypeContext):
+        pass
+
+    # Exit a parse tree produced by CogniLangParser#graphedge_relation_optype.
+    def exitGraphedge_relation_optype(self, ctx:CogniLangParser.Graphedge_relation_optypeContext):
+        pass
+
+
     # Enter a parse tree produced by CogniLangParser#subset_elem.
     def enterSubset_elem(self, ctx:CogniLangParser.Subset_elemContext):
         pass
@@ -620,6 +629,24 @@ class CogniLangListener(ParseTreeListener):
         pass
 
 
+    # Enter a parse tree produced by CogniLangParser#ambience_edge.
+    def enterAmbience_edge(self, ctx:CogniLangParser.Ambience_edgeContext):
+        pass
+
+    # Exit a parse tree produced by CogniLangParser#ambience_edge.
+    def exitAmbience_edge(self, ctx:CogniLangParser.Ambience_edgeContext):
+        pass
+
+
+    # Enter a parse tree produced by CogniLangParser#ambience_edge_body.
+    def enterAmbience_edge_body(self, ctx:CogniLangParser.Ambience_edge_bodyContext):
+        pass
+
+    # Exit a parse tree produced by CogniLangParser#ambience_edge_body.
+    def exitAmbience_edge_body(self, ctx:CogniLangParser.Ambience_edge_bodyContext):
+        pass
+
+
     # Enter a parse tree produced by CogniLangParser#sensor_basic_definition.
     def enterSensor_basic_definition(self, ctx:CogniLangParser.Sensor_basic_definitionContext):
         pass
@@ -671,15 +698,6 @@ class CogniLangListener(ParseTreeListener):
 
     # Exit a parse tree produced by CogniLangParser#sensor_type.
     def exitSensor_type(self, ctx:CogniLangParser.Sensor_typeContext):
-        pass
-
-
-    # Enter a parse tree produced by CogniLangParser#ambience_relation.
-    def enterAmbience_relation(self, ctx:CogniLangParser.Ambience_relationContext):
-        pass
-
-    # Exit a parse tree produced by CogniLangParser#ambience_relation.
-    def exitAmbience_relation(self, ctx:CogniLangParser.Ambience_relationContext):
         pass
 
 
@@ -737,12 +755,21 @@ class CogniLangListener(ParseTreeListener):
         pass
 
 
-    # Enter a parse tree produced by CogniLangParser#communication_elements.
-    def enterCommunication_elements(self, ctx:CogniLangParser.Communication_elementsContext):
+    # Enter a parse tree produced by CogniLangParser#matrix_sensor.
+    def enterMatrix_sensor(self, ctx:CogniLangParser.Matrix_sensorContext):
         pass
 
-    # Exit a parse tree produced by CogniLangParser#communication_elements.
-    def exitCommunication_elements(self, ctx:CogniLangParser.Communication_elementsContext):
+    # Exit a parse tree produced by CogniLangParser#matrix_sensor.
+    def exitMatrix_sensor(self, ctx:CogniLangParser.Matrix_sensorContext):
+        pass
+
+
+    # Enter a parse tree produced by CogniLangParser#communication_connections.
+    def enterCommunication_connections(self, ctx:CogniLangParser.Communication_connectionsContext):
+        pass
+
+    # Exit a parse tree produced by CogniLangParser#communication_connections.
+    def exitCommunication_connections(self, ctx:CogniLangParser.Communication_connectionsContext):
         pass
 
 
@@ -779,6 +806,24 @@ class CogniLangListener(ParseTreeListener):
 
     # Exit a parse tree produced by CogniLangParser#ambient_stream.
     def exitAmbient_stream(self, ctx:CogniLangParser.Ambient_streamContext):
+        pass
+
+
+    # Enter a parse tree produced by CogniLangParser#port_signature.
+    def enterPort_signature(self, ctx:CogniLangParser.Port_signatureContext):
+        pass
+
+    # Exit a parse tree produced by CogniLangParser#port_signature.
+    def exitPort_signature(self, ctx:CogniLangParser.Port_signatureContext):
+        pass
+
+
+    # Enter a parse tree produced by CogniLangParser#port.
+    def enterPort(self, ctx:CogniLangParser.PortContext):
+        pass
+
+    # Exit a parse tree produced by CogniLangParser#port.
+    def exitPort(self, ctx:CogniLangParser.PortContext):
         pass
 
 

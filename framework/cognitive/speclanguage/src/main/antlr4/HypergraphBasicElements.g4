@@ -32,7 +32,8 @@ value: (ref_|FLOAT);
 graphedge: 'edge' graphedge_expr;
 graphedge_signature: ID ':';
 graphedge_expr: graphedge_signature '{' graphedge_relation (',' graphedge_relation)*'}';
-graphedge_relation: (dir ID);
+graphedge_relation: (dir ref_ (optype=graphedge_relation_optype)?);
+graphedge_relation_optype: (op='pairwise'|'single'|'full'|'union');
 
 // Graph node body
 subset_elem: graphnode | graphedge | common_subset_elem;
@@ -49,7 +50,7 @@ BI_DIR  : '--';
 
 DECIMALS: [0-9]+;
 ID      : [a-zA-Z_/]+DECIMALS*ID*;
-INT     : [-]?DECIMALS;
+INT     : [-]?DECIMALS+;
 FLOAT   : [-]?DECIMALS+('.'DECIMALS)+?;
 STRING  : '"'[a-zA-Z_/'-'0-9]*'"';
 
