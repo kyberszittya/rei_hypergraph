@@ -62,7 +62,7 @@ entity simplebot_with_ambient
             at -> {basic_structure/wheel_right_front},
             at -> {basic_structure/wheel_right_rear},
             at -> {basic_structure/wheel_left_rear},
-            comm -> stream {encoder_wheel},
-            comm <- stream {joint_cmd}
+            union comm -> stream {encoder_wheel},
+            union comm <- stream {joint_cmd}
     }
 }

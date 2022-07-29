@@ -1,14 +1,12 @@
+from cognitive.channels.cognitive_dendrite import HypergraphTensorTransformation
+from cognitive.channels.cognitive_icons import TensorCognitiveIcon
 from cognitive.format.basicelements.concepts.network.base_definitions import EnumRelationDirection
 from cognitive.format.basicelements.concepts.network.taxonomy import NetworkTaxonomy
-from cognitive.format.hypergraph.channels.tensor_channel import HypergraphTensorTransformation, CognitiveChannel, \
-    TensorCognitiveIcon, CognitiveArbiter
+from cognitive.channels.channel_base_definitions import CognitiveChannel, CognitiveArbiter
 from cognitive.format.hypergraph.foundations.hypergraph_elements import HypergraphNode, HypergraphEdge
 from cognitive.format.hypergraph.foundations.hypergraph_operators import \
-    HypergraphCompartmentQuery, HypergraphDepthBidirectionalCompartmentQuery, \
-    HypergraphBidirectionalCompartmentQuery, HypergraphEdgeDirectConnectNodes, \
-    create_hyperedge, retrieve_part_hypergraph_node, create_dir_edge
-from cognitive.format.hypergraph.laplacian.graph_tensor_operations import graph_lower_bound_entropy_vector, \
-    graph_upper_bound_entropy_vector, laplacian_calc_vector
+    create_hyperedge, create_dir_edge
+from cognitive.format.hypergraph.laplacian.graph_tensor_operations import graph_upper_bound_entropy_vector
 
 
 def create_fano_edge(sys: HypergraphNode, qualified_name: str, nodes: list[str]):
@@ -65,11 +63,11 @@ def test_fano_graph_basic():
     _, fano_graph = create_fano_graph()
     assert len(fano_graph._subsets) == 14
     print()
-    for set in fano_graph.subset_elements:
-        if isinstance(set, HypergraphNode):
-            assert int(set.progenitor_registry.name) in range(0, 7)
-        elif isinstance(set, HypergraphEdge):
-            set.print_elements()
+    for subset in fano_graph.subset_elements:
+        if isinstance(subset, HypergraphNode):
+            assert int(subset.progenitor_registry.name) in range(0, 7)
+        elif isinstance(subset, HypergraphEdge):
+            subset.print_elements()
 
 
 def test_basic_tensor_channel():
@@ -87,8 +85,8 @@ def test_basic_tensor_channel():
     ch.encode([graph])
     tensor = view_icon.view()[0]
     import numpy as np
-    assert tensor.shape == (8,8,8)
-    assert np.all(np.sum(tensor[:-1,:-1,:-1], axis=0) + np.eye(7)==1)
+    assert tensor.shape == (8, 8, 8)
+    assert np.all(np.sum(tensor[:-1, :-1, :-1], axis=0) + np.eye(7)==1)
     print(tensor[:-1, -1, :-1])
     #assert graph_upper_bound_entropy_vector(tensor) == 2.807354922057604
 
@@ -109,8 +107,8 @@ def test_basic_tensor_channel_2():
     ch.encode([graph])
     tensor = view_icon.view()[0]
     import numpy as np
-    assert tensor.shape == (8,8,8)
-    assert np.all(np.sum(tensor[:-1,:-1,:-1], axis=0) + np.eye(7)==1)
+    assert tensor.shape == (8, 8, 8)
+    assert np.all(np.sum(tensor[:-1, :-1, :-1], axis=0) + np.eye(7) == 1)
     entropy = graph_upper_bound_entropy_vector(tensor)
     print(entropy[0])
     #assert graph_upper_bound_entropy_vector(tensor) == 2.807354922057604

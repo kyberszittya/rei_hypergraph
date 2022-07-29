@@ -1,4 +1,4 @@
-from cognitive.format.hypergraph.channels.tensor_channel import HypergraphTensorTransformation
+from cognitive.channels.cognitive_dendrite import HypergraphTensorTransformation
 
 
 def test_basic_tensor_channel():

@@ -1,20 +1,21 @@
+from cognitive.channels.cognitive_dendrite import HypergraphTensorTransformation
+from cognitive.channels.cognitive_icons import TensorCognitiveIcon
 from cognitive.format.basicelements.concepts.network.taxonomy import NetworkTaxonomy
-from cognitive.format.hypergraph.channels.tensor_channel import CognitiveChannel, TensorCognitiveIcon, \
-    HypergraphTensorTransformation, CognitiveArbiter
+from cognitive.channels.channel_base_definitions import CognitiveChannel, CognitiveArbiter
 from cognitive.format.hypergraph.foundations.hypergraph_elements import HypergraphNode, HypergraphEdge
-from cognitive.format.hypergraph.foundations.hypergraph_operators import create_dir_edge, create_dir_simple_edge
-from cognitive.format.hypergraph.laplacian.graph_tensor_operations import graph_upper_bound_entropy_vector, \
-    laplacian_calc_vector
+from cognitive.format.hypergraph.foundations.hypergraph_operators import create_dir_edge
+from cognitive.format.hypergraph.laplacian.graph_tensor_operations import graph_upper_bound_entropy_vector
 
 
-def create_tree(taxon_name="test", tree_name="tree", nodes: list[str]=[]):
+def create_tree(taxon_name="test", tree_name="tree", nodes: list[str]|None = None):
     taxon = NetworkTaxonomy(taxon_name, 0)
     test_system = HypergraphNode(tree_name, 0, domain=taxon)
     # Create nodes
-    node_names = [x for x in nodes]
-    for n0 in node_names:
-        v0 = HypergraphNode(n0, 0)
-        test_system.add_subset(v0, 0)
+    if nodes is not None:
+        node_names = [x for x in nodes]
+        for n0 in node_names:
+            v0 = HypergraphNode(n0, 0)
+            test_system.add_subset(v0, 0)
     # Create edges
     return taxon, test_system
 
@@ -24,7 +25,7 @@ def test_tree_basic_3nodes():
     Test the creation of the Fano-graph
     :return:
     """
-    _, graph = create_tree(nodes=['A','B','C'])
+    _, graph = create_tree(nodes=['A', 'B', 'C'])
     tree_pr = "test/tree/"
     create_dir_edge(graph, tree_pr, ["A"], ["B"])
     create_dir_edge(graph, tree_pr, ["A"], ["C"])

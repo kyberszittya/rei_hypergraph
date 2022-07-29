@@ -1,13 +1,12 @@
-from cognitive.format.hypergraph.channels.tensor_channel import CognitiveArbiter, TensorCognitiveIcon, CognitiveChannel, \
-    HypergraphTensorTransformation, HypergraphCoordinateObject, ByteBufferCognitiveIcon
-from cognitive.format.hypergraph.lang.mapping.cogni_lang_mapping import load_from_description
-from cognitive.format.hypergraph.lang.mapping.graphviz_mapping import create_graph_view
-from cognitive.format.hypergraph.laplacian.graph_tensor_operations import graph_upper_bound_entropy_vector
+from cognitive.channels.channel_base_definitions import CognitiveArbiter, CognitiveChannel
+from cognitive.channels.cognitive_dendrite import HypergraphTensorTransformation, HypergraphCoordinateObject
+from cognitive.channels.cognitive_icons import TensorCognitiveIcon, ByteBufferCognitiveIcon
+from presentation.graphviz.graphviz_mapping import create_graph_view
+from simulation.sdf.sdf_generator import load_from_description
 
-from cbor2 import dumps, loads
 
 def test_simplebot_entropy_coo():
-    sys, channel = load_from_description("../examples/example_robotcar.cogni")
+    sys, channel, icon = load_from_description("../examples/example_robotcar.cogni")
     create_graph_view(sys)
     arbiter = CognitiveArbiter(name="sys", timestamp=0)
     channel = CognitiveChannel("channel_01", 0, arbiter)

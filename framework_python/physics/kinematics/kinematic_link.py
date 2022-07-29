@@ -9,7 +9,7 @@ from cognitive.format.basicelements.concepts.registry.registration_methods impor
 from cognitive.format.hypergraph.foundations.hypergraph_elements import HypergraphNode, HypergraphEdge, \
     HyperEdgeConnection
 from cognitive.format.hypergraph.foundations.hypergraph_operators import retrieve_part_hypergraph_node
-from cognitive.physics.geometry.basic_geometry import PrimitiveGeometry, calc_explicit_primitive_inertia
+from physics.geometry.basic_geometry import PrimitiveGeometry, calc_explicit_primitive_inertia
 
 
 class KinematicLink(HypergraphNode):

@@ -1697,6 +1697,7 @@ class CogniLangParser ( Parser ):
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
             self.parser = parser
+            self.value_ = None # Token
 
         def ID(self):
             return self.getToken(CogniLangParser.ID, 0)
@@ -1737,7 +1738,7 @@ class CogniLangParser ( Parser ):
             self.state = 278
             self.match(CogniLangParser.T__4)
             self.state = 279
-            self.match(CogniLangParser.INT)
+            localctx.value_ = self.match(CogniLangParser.INT)
         except RecognitionException as re:
             localctx.exception = re
             self._errHandler.reportError(self, re)

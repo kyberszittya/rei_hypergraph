@@ -124,9 +124,13 @@ class HypergraphEdge(NetworkRelation):
         else:
             self._subsets[conn.endpoint.uid] = conn
 
+    def subset_connections(self):
+        for s in filter(lambda x: isinstance(x, HyperEdgeConnection),self.subset_elements):
+            yield s
+
     def print_elements(self):
         hierarchy = self.id_name+": "
-        for s in self._subsets.values():
+        for s in self.subset_connections():
             match s.direction:
                 case EnumRelationDirection.INWARDS:
                     hierarchy += '<-'

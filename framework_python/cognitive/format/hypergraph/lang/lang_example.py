@@ -1,20 +1,14 @@
-from antlr4 import *
 from mpl_toolkits.axisartist.axes_grid import ImageGrid
 
-from cognilang.CogniLangParser import CogniLangParser
-from cognilang.CogniLangLexer import CogniLangLexer
-from cognilang.CogniLangListener import CogniLangListener
-from cognilang.CogniLangVisitor import CogniLangVisitor
-from cognitive.format.hypergraph.channels.tensor_channel import CognitiveArbiter, CognitiveChannel, TensorCognitiveIcon, \
-    HypergraphTensorTransformation
+from cognitive.channels.channel_base_definitions import CognitiveArbiter, CognitiveChannel
+from cognitive.channels.cognitive_dendrite import HypergraphTensorTransformation
+from cognitive.channels.cognitive_icons import TensorCognitiveIcon
+from presentation.graphviz.graphviz_mapping import create_graph_view
 
-from cognitive.format.hypergraph.lang.mapping.cogni_lang_mapping import load_from_description
-from cognitive.format.hypergraph.lang.mapping.graphviz_mapping import create_graph_view
-
-from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
 
 from cognitive.format.hypergraph.laplacian.graph_tensor_operations import graph_upper_bound_entropy_vector
+from simulation.sdf.sdf_generator import load_from_description
 
 
 def main():
@@ -31,8 +25,6 @@ def main():
     print(graph_upper_bound_entropy_vector(tensor))
 
     fig = plt.figure()
-    #ax = Axes3D(fig)
-    #img = ax.scatter(tensor[:], tensor[:])
     grid = ImageGrid(fig, 111, nrows_ncols=(3,3))
     for ax, im in zip(grid, tensor):
         ax.imshow(im)

@@ -2,7 +2,7 @@ from cognitive.format.basicelements.concepts.network.base_definitions import Net
 from cognitive.format.basicelements.concepts.registry.base_definitions import MetaRegistry
 from cognitive.format.basicelements.concepts.registry.registration_methods import InterfaceIdentifierGenerator
 from cognitive.format.hypergraph.foundations.hypergraph_elements import HypergraphNode
-from cognitive.physics.kinematics.kinematic_link import KinematicGraph
+from physics.kinematics.kinematic_link import KinematicGraph
 
 
 class ParameterNode(HypergraphNode):

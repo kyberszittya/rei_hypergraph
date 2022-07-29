@@ -18,7 +18,7 @@ field_float_vector: float_vector|ref_;
 parameters: param_double | param_int | param_string | param_double_vector;
 param_double:           ('double' ID '=' FLOAT);
 param_double_vector:    ('vec' ID '=' float_vector);
-param_int:              'int' ID '=' INT;
+param_int:              'int' ID '=' value_=INT;
 param_string:           'string' ID '=' STRING;
 vector_elem: float_vector | ref_;
 float_vector:  '[' value ((',')? value)* ']';

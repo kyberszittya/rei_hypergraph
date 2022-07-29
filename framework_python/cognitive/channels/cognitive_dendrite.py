@@ -1,93 +1,14 @@
 import abc
 
-from cognitive.format.basicelements.concepts.network.base_definitions import NetworkRelation, NetworkNode, \
-    NetworkElement, EnumRelationDirection
+from cognitive.channels.channel_base_definitions import CognitiveChannelDendrite, CognitiveIcon
+from cognitive.format.basicelements.concepts.network.base_definitions import NetworkRelation, EnumRelationDirection
 from cognitive.format.basicelements.concepts.registry.base_definitions import MetaRegistry
 from cognitive.format.basicelements.concepts.registry.registration_methods import InterfaceIdentifierGenerator
-from cognitive.format.hypergraph.foundations.hypergraph_elements import HypergraphNode, \
-    HypergraphEdge, HyperEdgeConnection
-
-import numpy as np
-
+from cognitive.format.hypergraph.foundations.hypergraph_elements import HypergraphNode, HypergraphEdge
 
 import queue
 
-from cbor2 import dumps
-
-
-class CognitiveArbiter(HypergraphNode):
-    """
-
-    """
-
-
-class CognitiveIcon(HypergraphNode):
-    """
-    A cognitive icon of some sort (e.g. image (2D matrix), stimuli, tensor)
-    """
-
-    @abc.abstractmethod
-    def view(self):
-        raise NotImplementedError
-
-    @abc.abstractmethod
-    def update(self, msg):
-        raise NotImplementedError
-
-
-class TensorCognitiveIcon(CognitiveIcon):
-    """
-
-    """
-
-    def __init__(self, name: str, timestamp: int, subsets: dict[bytes, NetworkElement] = None,
-                 parent: NetworkNode = None, identitygen: InterfaceIdentifierGenerator = None,
-                 domain: MetaRegistry = None):
-        super().__init__(name, timestamp, subsets, parent, identitygen, domain)
-        self._icon: np.ndarray | None = None
-
-    def update(self, msg: np.ndarray):
-        self._icon = msg
-
-    def view(self):
-        return self._icon
-
-
-class ByteBufferCognitiveIcon(CognitiveIcon):
-    """
-
-    """
-
-    def __init__(self, name: str, timestamp: int, subsets: dict[bytes, NetworkElement] = None,
-                 parent: NetworkNode = None, identitygen: InterfaceIdentifierGenerator = None,
-                 domain: MetaRegistry = None):
-        super().__init__(name, timestamp, subsets, parent, identitygen, domain)
-        self._icon: bytes | None = None
-
-    def view(self):
-        return self._icon
-
-    def update(self, msg: bytes):
-        self._icon = dumps(msg)
-
-
-class CognitiveChannelDendrite(HyperEdgeConnection):
-    """
-
-    """
-    @abc.abstractmethod
-    def encode(self, arg) -> []:
-        raise NotImplementedError
-
-    @abc.abstractmethod
-    def decode(self, arg):
-        raise NotImplementedError
-
-
-class CognitiveChannel(HypergraphEdge):
-    """
-
-    """
+import numpy as np
 
 
 class TensorChannelDendrite(CognitiveChannelDendrite):
