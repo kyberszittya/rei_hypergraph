@@ -1,11 +1,12 @@
-from cognitive.format.basicelements.concepts.network.taxonomy import NetworkTaxonomy
 from cognitive.format.hypergraph.foundations.hypergraph_operators import \
-    HypergraphCompartmentQuery, HypergraphDepthBidirectionalCompartmentQuery, \
-    HypergraphBidirectionalCompartmentQuery, HypergraphEdgeDirectConnectNodes, \
+    HypergraphCompartmentQuery, HypergraphEdgeDirectConnectNodes, \
     create_hyperedge
 from cognitive.format.hypergraph.foundations.hypergraph_elements import HypergraphNode, HypergraphEdge, \
     EnumRelationDirection
-from cognitive.format.hypergraph.test.common_test_factories import SimpleTestFactory
+from test.format.common_test_factories import SimpleTestFactory
+
+__NETWORK_NODE1: str = "network_node/sys/node1"
+__NETWORK_NODE2: str = "network_node/sys/node2"
 
 
 def test_connect_hyperedge():
@@ -16,12 +17,12 @@ def test_connect_hyperedge():
     _, test_system = SimpleTestFactory.create_4_nodes()
     # Add edge
     # Select first node
-    query_name = "network_node/sys/node2"
+    query_name = __NETWORK_NODE2
     query = HypergraphCompartmentQuery(test_system, "query1", 0)
     query.set_lookup_name(query_name)
     node1 = list(query.execute())[0]
     # Select next node
-    query_name = "network_node/sys/node1"
+    query_name = __NETWORK_NODE1
     query = HypergraphCompartmentQuery(test_system, "query2", 0)
     query.set_lookup_name(query_name)
     node2 = list(query.execute())[0]
@@ -44,12 +45,12 @@ def test_connect_hyperedge_directed():
     _, test_system = SimpleTestFactory.create_4_nodes()
     # Add edge
     # Select first node
-    query_name = "network_node/sys/node2"
+    query_name = __NETWORK_NODE2
     query = HypergraphCompartmentQuery(test_system, "query1", 0)
     query.set_lookup_name(query_name)
     node1 = list(query.execute())[0]
     # Select next node
-    query_name = "network_node/sys/node1"
+    query_name = __NETWORK_NODE1
     query = HypergraphCompartmentQuery(test_system, "query2", 0)
     query.set_lookup_name(query_name)
     node2 = list(query.execute())[0]
@@ -70,13 +71,13 @@ def test_create_edge_with_query():
     _, test_system = SimpleTestFactory.create_4_nodes()
     # Add edge
     query = HypergraphEdgeDirectConnectNodes(test_system, "concept_edge", 0)
-    query.add_endpoint_node("network_node/sys/node2")
-    query.add_endpoint_node("network_node/sys/node1", EnumRelationDirection.INWARDS)
+    query.add_endpoint_node(__NETWORK_NODE2)
+    query.add_endpoint_node(__NETWORK_NODE1, EnumRelationDirection.INWARDS)
     edge = query.execute()
     assert len(edge.subset_elements) == 2
     # Tests
     query = HypergraphCompartmentQuery(test_system, "node_search", 0)
-    query.set_lookup_name("network_node/sys/node1")
+    query.set_lookup_name(__NETWORK_NODE1)
     node1: HypergraphNode = list(query.execute())[0]
     assert edge._subsets[node1.uid].endpoint is node1
 
@@ -85,11 +86,11 @@ def test_create_edge_with_query_functor():
     _, test_system = SimpleTestFactory.create_4_nodes()
     # Add edge
     edge = create_hyperedge("concept_edge", 0, test_system,
-                            [("network_node/sys/node1", EnumRelationDirection.INWARDS),
-                             ("network_node/sys/node2", EnumRelationDirection.OUTWARDS)])
+                            [(__NETWORK_NODE1, EnumRelationDirection.INWARDS),
+                             (__NETWORK_NODE2, EnumRelationDirection.OUTWARDS)])
     assert len(edge.subset_elements) == 2
     # Tests
     query = HypergraphCompartmentQuery(test_system, "node_search", 0)
-    query.set_lookup_name("network_node/sys/node1")
+    query.set_lookup_name(__NETWORK_NODE1)
     node1: HypergraphNode = list(query.execute())[0]
     assert edge._subsets[node1.uid].endpoint is node1

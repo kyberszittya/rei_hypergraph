@@ -6,8 +6,8 @@ from simulation.sdf.sdf_generator import load_from_description
 
 
 def test_simplebot_entropy_coo():
-    sys, channel, icon = load_from_description("../examples/example_robotcar.cogni")
-    create_graph_view(sys)
+    sys, channel, icon = load_from_description("../examples/example_robotcar.cogni", output_dir="../../output/encoding")
+    create_graph_view(sys, output_directory="output")
     arbiter = CognitiveArbiter(name="sys", timestamp=0)
     channel = CognitiveChannel("channel_01", 0, arbiter)
     view_icon = TensorCognitiveIcon("out", 0)

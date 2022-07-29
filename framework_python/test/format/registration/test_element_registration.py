@@ -1,7 +1,7 @@
 from cognitive.format.hypergraph.foundations.hypergraph_elements import HypergraphNode
 from cognitive.format.basicelements.concepts.network.taxonomy import NetworkTaxonomy
 
-from cognitive.format.hypergraph.test.common_test_factories import SimpleTestFactory
+from test.format.common_test_factories import SimpleTestFactory
 
 
 def test_basic_identification_no_domain():
@@ -54,7 +54,7 @@ def test_qualified_name_hierarchy():
     """
     taxon = NetworkTaxonomy("network_node", 0)
     test_system = HypergraphNode("sys", 0, domain=taxon)
-    node_names = set(["node1", "node2", "node3", "node4"])
+    node_names = {"node1", "node2", "node3", "node4"}
     for n0 in node_names:
         v0 = HypergraphNode(n0, 0)
         test_system.add_subset(v0, 0)
@@ -70,7 +70,7 @@ def test_qualified_name_hierarchy_no_taxon():
     :return:
     """
     test_system = HypergraphNode("sys", 0)
-    node_names = set(["node1", "node2", "node3", "node4"])
+    node_names = {"node1", "node2", "node3", "node4"}
     for n0 in node_names:
         v0 = HypergraphNode(n0, 0)
         test_system.add_subset(v0, 0)
@@ -85,7 +85,7 @@ def test_qualified_name_hierarchy_change_taxon():
     :return:
     """
     test_system = HypergraphNode("sys", 0)
-    node_names = set(["node1", "node2", "node3", "node4"])
+    node_names = {"node1", "node2", "node3", "node4"}
     for n0 in node_names:
         v0 = HypergraphNode(n0, 0)
         test_system.add_subset(v0, 0)

@@ -1,8 +1,11 @@
 from cognitive.format.basicelements.concepts.network.taxonomy import NetworkTaxonomy
-from cognitive.format.hypergraph.foundations.hypergraph_elements import HypergraphNode, HypergraphEdge, \
-    EnumRelationDirection
+from cognitive.format.hypergraph.foundations.hypergraph_elements import HypergraphNode
 from cognitive.format.hypergraph.foundations.hypergraph_operators import \
     HypergraphCompartmentQuery, HypergraphDepthBidirectionalCompartmentQuery, HypergraphBidirectionalCompartmentQuery
+
+
+__QUERY_NAME_BASE_HIERARCHY = "network_node/sys/node1/node2"
+
 
 def test_retrieve_from_hierarchy():
     """
@@ -55,7 +58,7 @@ def test_retrieve_from_hierarchy2():
         for n1 in node_names:
             v1 = HypergraphNode(n1, 0)
             v0.add_subset(v1, 0)
-    query_name = "network_node/sys/node1/node2"
+    query_name = __QUERY_NAME_BASE_HIERARCHY
     query = HypergraphCompartmentQuery(test_system, "query1", 0)
     query.set_lookup_name(query_name)
     res = query.execute()
@@ -71,14 +74,14 @@ def test_retrieve_from_hierarchy_bidirectional():
     """
     taxon = NetworkTaxonomy("network_node", 0)
     test_system = HypergraphNode("sys", 0, domain=taxon)
-    node_names = set(["node1", "node2"])
+    node_names = {"node1", "node2"}
     for n0 in node_names:
         v0 = HypergraphNode(n0, 0)
         test_system.add_subset(v0, 0)
         for n1 in node_names:
             v1 = HypergraphNode(n1, 0)
             v0.add_subset(v1, 0)
-    query_name = "network_node/sys/node1/node2"
+    query_name = __QUERY_NAME_BASE_HIERARCHY
     query = HypergraphCompartmentQuery(test_system, "query1", 0)
     query.set_lookup_name(query_name)
     res = list(query.execute())[0]
@@ -104,7 +107,7 @@ def test_retrieve_from_hierarchy_depth_bidirectional():
         for n1 in node_names:
             v1 = HypergraphNode(n1, 0)
             v0.add_subset(v1, 0)
-    query_name = "network_node/sys/node1/node2"
+    query_name = __QUERY_NAME_BASE_HIERARCHY
     query = HypergraphCompartmentQuery(test_system, "query1", 0)
     query.set_lookup_name(query_name)
     res = list(query.execute())[0]
@@ -112,7 +115,7 @@ def test_retrieve_from_hierarchy_depth_bidirectional():
     query_name2 = "network_node/sys/node1/node1"
     query_depth_bidirectional.set_lookup_name(query_name2)
     res_2 = list(query_depth_bidirectional.execute())
-    assert len(res_2)==1
+    assert len(res_2) == 1
     assert res_2[0].progenitor_registry.qualified_name == query_name2
     query_depth_bidirectional = HypergraphDepthBidirectionalCompartmentQuery(res, "query1", 0)
     query_name2 = "network_node/sys/node2"

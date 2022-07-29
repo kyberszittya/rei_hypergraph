@@ -14,9 +14,9 @@ def test_fano_laplacian_calculation():
     end_time = time.perf_counter_ns()
     # Vectorized calculation of Laplacian
     start_time_v = time.perf_counter_ns()
-    D_v, L_v, deg_v = laplacian_calc_vector(A)
+    _, laplace_v, deg_v = laplacian_calc_vector(A)
     end_time_v = time.perf_counter_ns()
-    print(L_v, L)
+    print(laplace_v, L)
     print(f"Time NS, naive {end_time - start_time}, vector: {end_time_v - start_time_v}")
 
     assert total_deg == deg_v

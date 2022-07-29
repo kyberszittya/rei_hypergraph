@@ -1,3 +1,5 @@
+import os
+
 from cognitive.channels.cognitive_icons import TextfileCognitiveIcon
 from cognitive.entities.entity.cognitiveentity import CognitiveEntity
 from cognitive.format.basicelements.concepts.network.base_definitions import EnumRelationDirection
@@ -262,7 +264,10 @@ class SdfGenerator(CognitiveChannelDendrite):
 class ElementTreeCognitiveIcon(TextfileCognitiveIcon):
 
     def _write_to_file(self, filename: str):
-        etree.ElementTree(self.buffer_msg[1]).write(filename, pretty_print=True)
+        etree.ElementTree(self.buffer_msg[1]).write(filename+".sdf", pretty_print=True)
+        with open(filename+".load.sh", 'w') as f:
+            f.write(f"ros2 run gazebo_ros spawn_entity.py -entity {self.buffer_msg[0].id_name} "
+                    f"-file {self.buffer_msg[0].id_name}.sdf")
 
     def update(self, msg: tuple):
         super().update(msg)
@@ -275,7 +280,8 @@ def load_from_description(filename: str, output_dir: str):
     root.attrib["version"] = "1.7"
     # Class SDF generator
     sdf_gen = SdfGenerator("loader", 0, root, sys.domain, channel)
-    icon = ElementTreeCognitiveIcon("sdf_out", 0, output_dir)
+    target_dir = '/'.join([output_dir, sys.id_name])
+    icon = ElementTreeCognitiveIcon("sdf_out", 0, target_dir)
     channel.add_connection(sdf_gen, 0, icon)
     for n in sys.subset_elements:
         if isinstance(n, CognitiveEntity):

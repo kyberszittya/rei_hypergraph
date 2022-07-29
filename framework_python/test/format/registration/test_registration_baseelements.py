@@ -3,6 +3,10 @@ from cognitive.format.basicelements.concepts.network.taxonomy import \
 
 import pytest
 
+
+__QUERY_INTEGRITY_NODE1 = "integrity/node1"
+
+
 def test_network_taxonomy():
     taxon = NetworkTaxonomy("integrity", 0)
     n1 = NetworkRegistryItem("node", 0)
@@ -14,7 +18,7 @@ def test_network_taxonomy_multiple_items_qualified_name():
     taxon = NetworkTaxonomy("integrity", 0)
     n1 = NetworkRegistryItem("node1", 0)
     n1.register(taxon, 0)
-    assert n1.qualified_name == "integrity/node1"
+    assert n1.qualified_name == __QUERY_INTEGRITY_NODE1
     n2 = NetworkRegistryItem("node2", 0)
     n2.register(taxon, 0)
     assert n2.qualified_name == "integrity/node2"
@@ -43,7 +47,7 @@ def test_network_reregister_to_same():
     n1.register(taxon, 0)
     n1.deregister()
     n1.register(taxon, 0)
-    assert n1.qualified_name == "integrity/node1"
+    assert n1.qualified_name == __QUERY_INTEGRITY_NODE1
 
 
 def test_network_reregister_to_same2():
@@ -51,7 +55,7 @@ def test_network_reregister_to_same2():
     n1 = NetworkRegistryItem("node1", 0)
     n1.register(taxon, 0)
     n1.reregister(taxon, 0)
-    assert n1.qualified_name == "integrity/node1"
+    assert n1.qualified_name == __QUERY_INTEGRITY_NODE1
 
 
 def test_network_reregister_distinct():

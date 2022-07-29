@@ -63,7 +63,7 @@ class TextfileCognitiveIcon(CognitiveIcon):
         raise NotImplementedError
 
     def view(self):
-        self._write_to_file(f"{'/'.join([self.output_directory, self.buffer_msg[0].id_name])}.sdf")
+        self._write_to_file(f"{'/'.join([self.output_directory, self.buffer_msg[0].id_name])}")
 
     def update(self, msg):
         self.buffer_msg = copy.copy(msg)

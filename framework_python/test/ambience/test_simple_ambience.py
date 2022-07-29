@@ -3,5 +3,5 @@ from simulation.sdf.sdf_generator import load_from_description
 
 
 def test_example_robotcar_w_ambient():
-    sys, _ = load_from_description("../examples/example_robotcar_ambient.cogni")
-    create_graph_view(sys)
+    sys, _ = load_from_description("../examples/example_robotcar_ambient.cogni", output_dir="output")
+    create_graph_view(sys, "output")

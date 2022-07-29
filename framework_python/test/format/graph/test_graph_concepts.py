@@ -1,10 +1,7 @@
-from cognitive.format.hypergraph.foundations.hypergraph_elements import HypergraphNode, HypergraphEdge, \
-    EnumRelationDirection
+from cognitive.format.hypergraph.foundations.hypergraph_elements import HypergraphNode
 from cognitive.format.basicelements.concepts.network.taxonomy import NetworkTaxonomy
-from cognitive.format.hypergraph.foundations.hypergraph_operators import \
-    HypergraphCompartmentQuery, HypergraphDepthBidirectionalCompartmentQuery, HypergraphBidirectionalCompartmentQuery
 
-from cognitive.format.hypergraph.test.common_test_factories import SimpleTestFactory, default_identifier_generator
+from test.format.common_test_factories import SimpleTestFactory, default_identifier_generator
 
 
 def test_basic_identification_no_domain():

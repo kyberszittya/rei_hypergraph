@@ -114,7 +114,29 @@ class EntityGraphMapper(CogniLangVisitor):
         context: KinematicGraph = self.kinematic_graph_cache[parent_ctx_name]
         return parent_ctx_name, context
 
+    def _geometry_setup(self, name: str, link, context: KinematicGraph, body):
+        self._viz_geom_setup(name, link, context, 'viz', body.visual_node())
+        self._coll_geom_setup(name, link, context, 'coll', body.collision_node())
+
+    @staticmethod
+    def _inertia_element_geometry_setup(link: KinematicLink):
+        # If no inertia vector is defined, try to calculate it
+        for v in filter(lambda x: isinstance(x, CollisionGeometry), link.subset_elements):
+            for g in v.subset_elements:
+                for ref in filter(lambda x: isinstance(x, HypergraphReferenceConnection), g.parent.subset_elements):
+                    if ref.direction == EnumRelationDirection.INWARDS:
+                        # TODO: revise inertia calculation
+                        for inert in filter(lambda x: isinstance(x, PrimitiveGeometry),
+                                            ref.endpoint.subset_elements):
+                            link.calc_explicit_primitive_inertia(inert)
+
     def visitLink(self, ctx: CogniLangParser.LinkContext):
+        """
+        Link visitor function
+
+        :param ctx:
+        :return:
+        """
         # Retrieve name of the kinematicgraph
         _, context = self._retrieve_current_kinematic_graph(ctx)
         # Get the name of the current link
@@ -125,24 +147,15 @@ class EntityGraphMapper(CogniLangVisitor):
             pose = EntityGraphMapper._float_vector_to_numpy(self.rootentity, ctx.pose)
         mass = float(body.inertia_body().mass.text)
         link = KinematicLink(name, 0, mass=mass, pose=pose)
-        context.add_subset(link, 0)
         if ctx.root_link is not None:
             context.set_root_link(link)
-        self._viz_geom_setup(name, link, context, 'viz', body.visual_node())
-        self._coll_geom_setup(name, link, context, 'coll', body.collision_node())
+        context.add_subset(link, 0)
+        self._geometry_setup(name, link, context, body)
         # Setup inertia
         if body.inertia_body().inertia_vector() is not None:
             EntityGraphMapper._float_vector_to_numpy(context, body.inertia_body().inertia_vector().inertia_vector_)
         else:
-            # If no inertia vector is defined, try to calculate it
-            for v in filter(lambda x: isinstance(x, CollisionGeometry), link.subset_elements):
-                for g in v.subset_elements:
-                    for ref in filter(lambda x: isinstance(x, HypergraphReferenceConnection), g.parent.subset_elements):
-                        if ref.direction == EnumRelationDirection.INWARDS:
-                            # TODO: revise inertia calculation
-                            for inert in filter(lambda x: isinstance(x, PrimitiveGeometry),
-                                                ref.endpoint.subset_elements):
-                                link.calc_explicit_primitive_inertia(inert)
+            EntityGraphMapper._inertia_element_geometry_setup(link)
         # Wrap-up
         return self.visitChildren(ctx)
 
