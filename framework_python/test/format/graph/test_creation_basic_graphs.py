@@ -8,11 +8,18 @@ from cognitive.format.hypergraph.foundations.hypergraph_operators import \
     create_hyperedge, create_dir_edge
 from cognitive.format.hypergraph.laplacian.graph_tensor_operations import graph_upper_bound_entropy_vector
 
+import numpy as np
+import numpy.testing
+
 
 def create_fano_edge(sys: HypergraphNode, qualified_name: str, nodes: list[str]):
     sys.add_subset(
         create_hyperedge("e"+''.join(nodes), 0, sys,
                          [(qualified_name+x, EnumRelationDirection.UNDIRECTED) for x in nodes]), 0)
+
+
+__FANO_ENTROPY: float = 11.09473750504809
+__EXAMPLE_MULTITREE_ENTROPY = 12.89154140665565
 
 
 def create_fano_graph():
@@ -68,14 +75,11 @@ def test_fano_graph_basic():
             assert int(subset.progenitor_registry.name) in range(0, 7)
         elif isinstance(subset, HypergraphEdge):
             subset.print_elements()
+            for subrel in subset.subrelations:
+                print(subrel)
 
 
-def test_basic_tensor_channel():
-    """
-
-    :return:
-    """
-    taxon, graph = create_fano_graph()
+def setup_test_graph_elements(taxon, graph):
     sys = CognitiveArbiter(name="sys", timestamp=0, domain=taxon)
     channel = CognitiveChannel("channel_01", 0, sys)
     view_icon = TensorCognitiveIcon("out", 0, domain=taxon)
@@ -84,11 +88,21 @@ def test_basic_tensor_channel():
     print()
     ch.encode([graph])
     tensor = view_icon.view()[0]
-    import numpy as np
+    return tensor
+
+
+def test_basic_tensor_channel():
+    """
+
+    :return:
+    """
+    taxon, graph = create_fano_graph()
+    tensor = setup_test_graph_elements(taxon, graph)
     assert tensor.shape == (8, 8, 8)
-    assert np.all(np.sum(tensor[:-1, :-1, :-1], axis=0) + np.eye(7)==1)
+    assert np.all(np.sum(tensor[:-1, :-1, :-1], axis=0) + np.eye(7) == 1)
     print(tensor[:-1, -1, :-1])
-    #assert graph_upper_bound_entropy_vector(tensor) == 2.807354922057604
+    # ASSERTION
+    np.testing.assert_almost_equal(graph_upper_bound_entropy_vector(tensor)[0], __FANO_ENTROPY)
 
 
 def test_basic_tensor_channel_2():
@@ -101,17 +115,15 @@ def test_basic_tensor_channel_2():
     channel = CognitiveChannel("channel_01", 0, sys)
     view_icon = TensorCognitiveIcon("out", 0)
     ch = HypergraphTensorTransformation("dendrite1", 0, sys.domain, channel, view_icon)
-
     channel.add_connection(ch, 0, view_icon)
     print()
-    ch.encode([graph])
+    ch.encode([graph])    
     tensor = view_icon.view()[0]
-    import numpy as np
     assert tensor.shape == (8, 8, 8)
     assert np.all(np.sum(tensor[:-1, :-1, :-1], axis=0) + np.eye(7) == 1)
     entropy = graph_upper_bound_entropy_vector(tensor)
-    print(entropy[0])
-    #assert graph_upper_bound_entropy_vector(tensor) == 2.807354922057604
+    # ASSERTION
+    np.testing.assert_almost_equal(entropy[0], __FANO_ENTROPY)
 
 
 def test_basic_tensor_channel_3():
@@ -124,11 +136,10 @@ def test_basic_tensor_channel_3():
     channel = CognitiveChannel("channel_01", 0, sys)
     view_icon = TensorCognitiveIcon("out", 0)
     ch = HypergraphTensorTransformation("dendrite1", 0, sys.domain, channel, view_icon)
-
     channel.add_connection(ch, 0, view_icon)
     print()
     ch.encode([graph])
     tensor = view_icon.view()[0]
     entropy = graph_upper_bound_entropy_vector(tensor)
-    print(entropy[0])
-
+    # ASSERTION
+    np.testing.assert_almost_equal(entropy[0], __EXAMPLE_MULTITREE_ENTROPY)

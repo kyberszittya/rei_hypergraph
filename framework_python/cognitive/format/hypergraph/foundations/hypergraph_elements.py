@@ -112,7 +112,7 @@ class HypergraphEdge(NetworkRelation):
                        direction: EnumRelationDirection = None) -> None:
         """
 
-        :param node: node to be added
+        :param node_endpoint: node endpoint to be added
         :param timestamp: connection timestamp
         :param conn: connection to be added to the edge
         :param direction: top-level direction of the edge
@@ -141,6 +141,11 @@ class HypergraphEdge(NetworkRelation):
             hierarchy += s.endpoint.progenitor_registry.name + ', '
         print(hierarchy)
 
+    @property
+    def subrelations(self):
+        for rel in filter(lambda x: isinstance(x, HyperEdgeConnection), self._subsets):
+            yield rel
+
 
 def select_incoming_connections(e: HypergraphEdge):
     res = []
@@ -161,7 +166,6 @@ class HypergraphReferenceConnection(HyperEdgeConnection):
     def update(self, edge: NetworkRelation, domain, timestamp: int, endpoint: HypergraphNode,
                direction: EnumRelationDirection):
         super().update(edge, domain, timestamp, endpoint, direction)
-        # TODO: Create a function that adds subset but does not change parent
         endpoint._subsets[self.uid] = self
 
 
