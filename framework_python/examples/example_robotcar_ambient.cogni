@@ -1,0 +1,68 @@
+entity simplebot_with_ambient
+{
+    parameters {
+        WHEEL_RADIUS = 0.085
+    }
+    kinematic basic_structure {
+        kinematic wheel
+        {
+            root link wheel_base
+            {
+                inertia { mass 1.0 }
+                visual wheel_base_viz (material red){
+                    cylinder [0.02, 0.05]
+                }
+                collision {{wheel_base/wheel_base_viz}}
+            }
+            link tire @ [[0.0 0.0 0.02]]
+            {
+                inertia { mass 2.5 }
+                visual wheel_viz (material black) {
+                    cylinder [{WHEEL_RADIUS} 0.03]
+                }
+                collision {{tire/wheel_viz}}
+            }
+            joint wheel_joint: fix <- {wheel_base} rev -> {tire} [[0.0 0.0 0.0] [0.0 0.0 0.0]] | [0.0 0.0 1.0]
+        }
+        root link base_link @ [[0.0 0.0 0.1]]
+        {
+            inertia { mass 5.0 }
+            visual base_link_viz (material white){
+                polyhedron [0.3 0.2 0.1]
+            }
+            collision {{base_link/base_link_viz}}
+        }
+        joint wheel_left_front: fix <- {base_link} fix -> {wheel} [[0.1 0.12 0.0]d[-90.0 0.0 0.0]] | [0.0 0.0 1.0]
+        joint wheel_right_front: fix <- {base_link} fix -> {wheel} [[0.1 -0.12 0.0]d[90.0 0.0 0.0]]| [0.0 0.0 -1.0]
+        joint wheel_right_rear: fix <- {base_link} fix -> {wheel} [[-0.1 -0.12 0.0]d[90.0 0.0 0.0]]| [0.0 0.0 -1.0]
+        joint wheel_left_rear: fix <- {base_link} fix -> {wheel} [[-0.1 0.12 0.0]d[-90.0 0.0 0.0]]| [0.0 0.0 1.0]
+    }
+    ambient simplebot_ambience {
+         actuator wheel_motor {
+            double power = 40.0
+            double max_torque = 1.5
+            double max_current = 1.2
+         }
+         sensor camera_front visual  {
+            int width = 1960
+            int height = 1080
+            string format = "RGB8"
+         }
+         sensor gnss_coarse gnss {
+
+         }
+         port gnss_output : "/gnss" ("sensor_msgs/PoseStamped") {
+         }
+         port encoder_wheel : "/joint_state" ("sensor_msgs/JointState") {
+         }
+         port joint_cmd : "/joint_cmd" ("sensor_msgs/JointCmd") {
+         }
+         ambience wheel_connection:
+            at -> {basic_structure/wheel_left_front},
+            at -> {basic_structure/wheel_right_front},
+            at -> {basic_structure/wheel_right_rear},
+            at -> {basic_structure/wheel_left_rear},
+            union comm -> stream {encoder_wheel},
+            union comm <- stream {joint_cmd}
+    }
+}

@@ -1,6 +1,6 @@
-from cognitive.format.basicelements.concepts.network.base_definitions import NetworkNode
-from cognitive.format.basicelements.concepts.network.taxonomy import NetworkTaxonomy
-from cognitive.format.basicelements.concepts.registry.registration_methods import \
+from rei.cognitive.format.basicelements.concepts.network.base_definitions import NetworkNode
+from rei.cognitive.format.basicelements.concepts.network.taxonomy import NetworkTaxonomy
+from rei.cognitive.format.basicelements.concepts.registry.registration_methods import \
     IdentifierGeneratorSha224
 
 

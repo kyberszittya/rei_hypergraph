@@ -1,8 +1,8 @@
-from cognitive.format.basicelements.concepts.network.taxonomy import \
-    NetworkTaxonomy, NetworkRegistryItem, ErrorRegistry
 
 import pytest
 
+from rei.cognitive.format.basicelements.concepts.network.taxonomy import NetworkTaxonomy, NetworkRegistryItem
+from rei.cognitive.format.basicelements.concepts.registry.base_definitions import ErrorRegistry
 
 __QUERY_INTEGRITY_NODE1 = "integrity/node1"
 

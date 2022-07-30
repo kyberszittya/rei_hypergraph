@@ -1,0 +1,30 @@
+entity pendulum_two_link
+{
+    kinematic basic_structure {
+        link base @ [[0.0 0.0 0.7]] {
+            inertia {mass 0.1}
+            visual viz (material white) {cylinder [0.1 1.4] }
+            collision {{base/viz}}
+        }
+        link arm_1 @ [[0.0 0.0 0.25]]{
+            inertia {mass 0.1}
+            visual viz_arm (material wood) {cylinder [0.025 0.5]}
+            collision {{arm_1/viz_arm}}
+        }
+        link arm_2 @ [[0.0 0.0 0.25]]{
+            inertia {mass 0.1}
+            visual viz_arm (material wood) {cylinder [0.025 0.5]}
+            collision {{arm_2/viz_arm}}
+        }
+        link ball {
+            inertia {mass 0.5}
+            visual viz (material red) {ellipsoid [0.085]}
+            collision {{ball/viz}}
+        }
+        joint world_base: fix <- {world} fix -> {base}
+        joint base_arm_1: fix <- {base} rev -> {arm_1} [[0.20, 0.0, 0.7],d[0.0,0.0,0.0]] | [1.0 0.0 0.0]
+        joint base_arm_2: fix <- {arm_1} rev -> {arm_2} [[0.0, 0.0, 0.25],d[0.0,0.0,0.0]] | [1.0 0.0 0.0]
+        joint arm_ball: fix <- {arm_2} rev -> {ball} [[0.0, 0.0, 0.3]] | [0.0, 0.0 1.0]
+    }
+
+}

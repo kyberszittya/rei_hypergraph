@@ -1,6 +1,6 @@
-from cognitive.format.hypergraph.foundations.hypergraph_elements import HypergraphNode
-from cognitive.format.basicelements.concepts.registry.registration_methods import IdentifierGeneratorSha224
-from cognitive.format.basicelements.concepts.network.taxonomy import NetworkTaxonomy
+from rei.cognitive.format.basicelements.concepts.network.taxonomy import NetworkTaxonomy
+from rei.cognitive.format.hypergraph.foundations.hypergraph_elements import HypergraphNode
+from rei.cognitive.format.basicelements.concepts.registry.registration_methods import IdentifierGeneratorSha224
 
 
 def default_identifier_generator():

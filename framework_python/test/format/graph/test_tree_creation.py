@@ -1,10 +1,10 @@
-from cognitive.channels.cognitive_dendrite import HypergraphTensorTransformation
-from cognitive.channels.cognitive_icons import TensorCognitiveIcon
-from cognitive.format.basicelements.concepts.network.taxonomy import NetworkTaxonomy
-from cognitive.channels.channel_base_definitions import CognitiveChannel, CognitiveArbiter
-from cognitive.format.hypergraph.foundations.hypergraph_elements import HypergraphNode, HypergraphEdge
-from cognitive.format.hypergraph.foundations.hypergraph_operators import create_dir_edge
-from cognitive.format.hypergraph.laplacian.graph_tensor_operations import graph_upper_bound_entropy_vector
+from rei.cognitive.channels.cognitive_dendrite import HypergraphTensorTransformation
+from rei.cognitive.channels.cognitive_icons import TensorCognitiveIcon
+from rei.cognitive.channels.channel_base_definitions import CognitiveChannel, CognitiveArbiter
+from rei.cognitive.format.basicelements.concepts.network.taxonomy import NetworkTaxonomy
+from rei.cognitive.format.hypergraph.foundations.hypergraph_elements import HypergraphNode, HypergraphEdge
+from rei.cognitive.format.hypergraph.foundations.hypergraph_operators import create_dir_edge
+from rei.cognitive.format.hypergraph.laplacian.graph_tensor_operations import graph_upper_bound_entropy_vector
 
 
 def create_tree(taxon_name="test", tree_name="tree", nodes: list[str]|None = None):

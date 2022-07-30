@@ -1,0 +1,30 @@
+entity kinematic_loop_entity
+{
+    kinematic basic_structure {
+        link link_01 {
+            inertia {mass 0.1}
+            visual viz_link01 {polyhedron [0.1 0.1 0.1] }
+            collision {{link_01/viz_link01}}
+        }
+        link link_02 {
+            inertia {mass 0.1}
+            visual {{link_01/viz_link01}}
+            collision {{link_01/viz_link01}}
+        }
+        link link_03 {
+            inertia {mass 0.1}
+            visual {{link_01/viz_link01}}
+            collision {{link_01/viz_link01}}
+        }
+        link link_04 {
+            inertia { mass 0.1}
+            visual {{link_01/viz_link01}}
+            collision {{link_01/viz_link01}}
+        }
+        joint connect_12: fix <- {link_01} rev -> {link_02} [[1.0, 0.0, 0.0],d[0.0,0.0,0.0]] | [0.0 0.0 1.0]
+        joint connect_23: fix <- {link_02} rev -> {link_03} [[0.0, 0.0, 1.0]] | [0.0, 0.0 1.0]
+        joint connect_34: fix <- {link_03} rev -> {link_04} [[-1.0, 0.0, 0.0]] | [0.0, 0.0, 1.0]
+        joint connect_41: fix <- {link_04} rev -> {link_01} [[0.0, 0.0, -1.0]] | [0.0, 0.0, 1.0]
+    }
+
+}

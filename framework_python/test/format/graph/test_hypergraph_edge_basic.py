@@ -1,7 +1,7 @@
-from cognitive.format.hypergraph.foundations.hypergraph_operators import \
+from rei.cognitive.format.hypergraph.foundations.hypergraph_operators import \
     HypergraphCompartmentQuery, HypergraphEdgeDirectConnectNodes, \
     create_hyperedge
-from cognitive.format.hypergraph.foundations.hypergraph_elements import HypergraphNode, HypergraphEdge, \
+from rei.cognitive.format.hypergraph.foundations.hypergraph_elements import HypergraphNode, HypergraphEdge, \
     EnumRelationDirection
 from test.format.common_test_factories import SimpleTestFactory
 

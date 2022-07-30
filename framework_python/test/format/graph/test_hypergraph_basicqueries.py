@@ -1,6 +1,6 @@
-from cognitive.format.basicelements.concepts.network.taxonomy import NetworkTaxonomy
-from cognitive.format.hypergraph.foundations.hypergraph_elements import HypergraphNode
-from cognitive.format.hypergraph.foundations.hypergraph_operators import \
+from rei.cognitive.format.basicelements.concepts.network.taxonomy import NetworkTaxonomy
+from rei.cognitive.format.hypergraph.foundations.hypergraph_elements import HypergraphNode
+from rei.cognitive.format.hypergraph.foundations.hypergraph_operators import \
     HypergraphCompartmentQuery, HypergraphDepthBidirectionalCompartmentQuery, HypergraphBidirectionalCompartmentQuery
 
 

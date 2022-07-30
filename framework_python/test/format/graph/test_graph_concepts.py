@@ -1,5 +1,6 @@
-from cognitive.format.hypergraph.foundations.hypergraph_elements import HypergraphNode
-from cognitive.format.basicelements.concepts.network.taxonomy import NetworkTaxonomy
+from rei.cognitive.format.basicelements.concepts.network.taxonomy import NetworkTaxonomy
+from rei.cognitive.format.hypergraph.foundations.hypergraph_elements import HypergraphNode
+
 
 from test.format.common_test_factories import SimpleTestFactory, default_identifier_generator
 
