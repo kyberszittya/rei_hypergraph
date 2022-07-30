@@ -212,6 +212,14 @@ class EntityGraphMapper(CogniLangVisitor):
         # Return
         return self.visitChildren(ctx)
 
+    def visitSensor(self, ctx: CogniLangParser.SensorContext):
+        print(ctx.ambient_element_signature().ID())
+        return self.visitChildren(ctx)
+
+    def visitActuator(self, ctx: CogniLangParser.ActuatorContext):
+        print(ctx.ambient_element_signature().ID())
+        return self.visitChildren(ctx)
+
 
 def load_system_from_description(filename: str, verbose=True):
     sys = CognitiveArbiter(name="sys", timestamp=0)

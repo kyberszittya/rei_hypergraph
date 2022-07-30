@@ -23,7 +23,6 @@ def main():
     tensor = ch.encode([sys])
     print(sys.subset_elements)
     print(graph_upper_bound_entropy_vector(tensor))
-
     fig = plt.figure()
     grid = ImageGrid(fig, 111, nrows_ncols=(3,3))
     for ax, im in zip(grid, tensor):

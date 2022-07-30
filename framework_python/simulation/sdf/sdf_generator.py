@@ -1,5 +1,3 @@
-import os
-
 from cognitive.channels.cognitive_icons import TextfileCognitiveIcon
 from cognitive.entities.entity.cognitiveentity import CognitiveEntity
 from cognitive.format.basicelements.concepts.network.base_definitions import EnumRelationDirection
@@ -14,7 +12,7 @@ from physics.geometry.basic_geometry import PolyhedronGeometry, EllipsoidGeometr
     PrimitiveGeometry
 from physics.kinematics.kinematic_link import VisionGeometry, KinematicLink, WorldLink, CollisionGeometry, \
     KinematicJoint, KinematicJointType, KinematicGraph, GeometryNode
-from simulation.mapping.cogni_lang_mapping import load_system_from_description
+from cognitive.format.hypergraph.lang.mapping.cogni_lang_mapping import load_system_from_description
 from simulation.mapping.material_map import GAZEBO_MATERIALS_DICT
 
 
