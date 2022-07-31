@@ -1,12 +1,12 @@
 import queue
-
+from enum import IntEnum
 
 from rei.cognitive.format.basicelements.concepts.registry.registration_methods import \
     InterfaceIdentifierGenerator
 from rei.cognitive.format.basicelements.concepts.network.base_definitions import NetworkElement, EnumRelationDirection
 from rei.cognitive.format.hypergraph.foundations.graph_operations import MetaHypergraphQuery
 from rei.cognitive.format.hypergraph.foundations.hypergraph_elements import HypergraphNode, HypergraphEdge, \
-    HypergraphReferenceConnection, HyperEdgeConnection
+    HypergraphReferenceConnection
 
 
 class HypergraphCompartmentQuery(MetaHypergraphQuery):
@@ -191,11 +191,16 @@ def create_dir_simple_edge(sys: HypergraphNode, qualified_name: str, nodes: list
     sys.add_subset(e, 0)
 
 
-# TODO: make a test for the 2-factorization
-def hypergraphedge_2factorization_tree(edge: HypergraphEdge):
+class EnumFactorizationMode(IntEnum):
+    TREE_FACTORIZATION = 0,
+    PAIRING_FACTORIZATION = 1,
+    RECURRENCE_FACTORIZATION = 2
+
+
+def hypergraphedge_2factorization_tree(edge: HypergraphEdge, self_loops: bool = False):
     incoming_edges = []
     outgoing_edges = []
-    for e in filter(lambda x: isinstance(x, HyperEdgeConnection), edge._subsets.values()):
+    for e in edge.subrelations:
         match e.direction:
             case EnumRelationDirection.INWARDS:
                 incoming_edges.append(e)
@@ -208,5 +213,27 @@ def hypergraphedge_2factorization_tree(edge: HypergraphEdge):
     res = queue.Queue()
     for c0 in incoming_edges:
         for c1 in outgoing_edges:
-            res.put((c0, c1))
+            if self_loops:
+                res.put((c0, c1))
+            else:
+                if c0 is not c1:
+                    res.put((c0, c1))
     return res
+
+
+def hypergraphedge_2factorization_pairing(edge: HypergraphEdge):
+    # TODO: think through
+    pass
+
+
+
+def hypergraphedge_2factorization(edge: HypergraphEdge,
+                                  mode: EnumFactorizationMode = EnumFactorizationMode.TREE_FACTORIZATION):
+    match mode:
+        case EnumFactorizationMode.TREE_FACTORIZATION:
+            return hypergraphedge_2factorization_tree(edge)
+        case EnumFactorizationMode.PAIRING_FACTORIZATION:
+            pass
+        case EnumFactorizationMode.RECURRENCE_FACTORIZATION:
+            hypergraphedge_2factorization_tree(edge, True)
+

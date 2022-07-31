@@ -1,0 +1,12 @@
+[paths]
+source =
+   rei
+[run]
+branch = true
+parallel = true
+source =
+    test
+
+[report]
+show_missing = true
+precision = 2

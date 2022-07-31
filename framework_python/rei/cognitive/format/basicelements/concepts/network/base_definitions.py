@@ -53,8 +53,6 @@ class NetworkElement(MetaIdentifiable):
         # Subset
         self._subsets: dict[bytes, NetworkElement] = {}
 
-
-
     @abc.abstractmethod
     def register(self, domain: MetaRegistry, timestamp: int) -> EnumRegistryOperationResult:
         """

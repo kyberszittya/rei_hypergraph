@@ -4,4 +4,4 @@ if (-not (Test-Path -Path $folder)) {
     Write-Host "Created folder [$folder]"
 }
 pytest ./test/
-#pytest --cov-report term --cov=src ./test/
+#pytest --cov=src test/

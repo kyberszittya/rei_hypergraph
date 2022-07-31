@@ -88,6 +88,8 @@ class HypergraphEdge(NetworkRelation):
     def __init__(self, name: str, timestamp: int,
                  parent: HypergraphNode, identitygen: InterfaceIdentifierGenerator = None):
         super().__init__(name, timestamp, parent._taxonomy, identitygen, parent)
+        # Parent
+        #parent.add_subset(self, timestamp)
 
     def connect(self, node: HypergraphNode,
                 value, timestamp: int,
@@ -143,7 +145,7 @@ class HypergraphEdge(NetworkRelation):
 
     @property
     def subrelations(self):
-        for rel in filter(lambda x: isinstance(x, HyperEdgeConnection), self._subsets):
+        for rel in filter(lambda x: isinstance(x, HyperEdgeConnection), self._subsets.values()):
             yield rel
 
 
