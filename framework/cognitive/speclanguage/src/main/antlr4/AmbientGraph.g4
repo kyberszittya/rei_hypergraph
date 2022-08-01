@@ -28,7 +28,6 @@ accuracy_parameter: 'accuracy' field_double;
 variance_parameter: 'variance' field_double;
 sensor_type: proprioceptive_sensor | exteroceptive_sensor;
 
-
 element_placement_relation: geom_relation;
 geom_relation: 'at' direction=('->'|'<-'|'--') referenced_element_=ref_ (transformation_=rigid_transformation)?;
 
@@ -48,3 +47,5 @@ ambient_stream: 'stream';
 // Communication port (node)
 port_signature: 'port' graphnode_signature ':' topic_name=STRING '(' msg=communication_connection_msg ')' ;
 port: port_signature '{' (parameters_=parameters)*  '}';
+
+//

@@ -8,7 +8,7 @@ from lxml import etree
 
 from rei.cognitive.format.hypergraph.foundations.hypergraph_elements import HypergraphReferenceConnection, \
     select_incoming_connections
-from rei.cognitive.format.hypergraph.foundations.hypergraph_operators import hypergraphedge_2factorization_tree
+from rei.cognitive.format.hypergraph.operations.factorization_operators import hypergraphedge_2factorization_tree
 from rei.physics.geometry.basic_geometry import PolyhedronGeometry, EllipsoidGeometry, CylinderGeometry, \
     PrimitiveGeometry
 from rei.physics.kinematics.kinematic_link import VisionGeometry, KinematicLink, WorldLink, CollisionGeometry, \

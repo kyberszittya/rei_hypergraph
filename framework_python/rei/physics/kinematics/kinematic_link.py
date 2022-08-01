@@ -119,14 +119,9 @@ class KinematicJointConnection(HyperEdgeConnection):
             return default_joint_axis()
 
 
-def connect_joint_to_node(context: HypergraphNode,
-                          timestamp: int,
-                          joint: KinematicJoint,
-                          joint_type: KinematicJointType,
-                          rigid_transformation: np.ndarray,
-                          axis: np.ndarray,
-                          target_qualified_name: str,
-                          direction: EnumRelationDirection):
+def connect_joint_to_node(context: HypergraphNode, timestamp: int, joint: KinematicJoint,
+                          joint_type: KinematicJointType, rigid_transformation: np.ndarray,
+                          axis: np.ndarray, target_qualified_name: str, direction: EnumRelationDirection):
     joint.joint_type = joint_type
     target_name: str = '/'.join([context.progenitor_registry.qualified_name, target_qualified_name])
     res_target = list(retrieve_part_hypergraph_node(context, target_name))

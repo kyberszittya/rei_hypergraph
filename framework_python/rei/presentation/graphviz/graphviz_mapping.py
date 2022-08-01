@@ -2,7 +2,7 @@ import graphviz
 
 from rei.cognitive.entities.entity.cognitiveentity import CognitiveEntity
 from rei.cognitive.format.hypergraph.foundations.hypergraph_elements import HypergraphNode
-from rei.cognitive.format.hypergraph.foundations.hypergraph_operators import hypergraphedge_2factorization_tree
+from rei.cognitive.format.hypergraph.operations.factorization_operators import hypergraphedge_2factorization_tree
 from rei.physics.kinematics.kinematic_link import KinematicGraph, KinematicJoint
 
 

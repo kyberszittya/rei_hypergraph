@@ -1,15 +1,21 @@
 from antlr4 import FileStream, CommonTokenStream
 
+from rei.cognitive.ambience.elements.definitive_elements import AmbientGraph, SensorElement, ExteroceptiveSensor, \
+    AmbienceEdge, CommunicationPort, AmbienceCommunicationConnection
+from rei.cognitive.ambience.graph_operations import connect_ambience_to_port
 from rei.cognitive.entities.entity.cognitiveentity import CognitiveEntity, ParameterNode
 from rei.cognitive.format.basicelements.concepts.network.base_definitions import EnumRelationDirection
 from rei.cognitive.channels.channel_base_definitions import CognitiveChannel, CognitiveArbiter
-from rei.cognitive.format.hypergraph.foundations.common_mappings import map_graph_direction
+from rei.cognitive.format.hypergraph.foundations.common_mappings import map_graph_direction, map_communication_type
 from rei.cognitive.format.hypergraph.foundations.hypergraph_elements import HypergraphReferenceConnection, \
     HypergraphNode
-from rei.cognitive.format.hypergraph.foundations.hypergraph_operators import create_hypergraphelement_reference
-from rei.cognitive.format.hypergraph.lang.cognilang.CogniLangLexer import CogniLangLexer
-from rei.cognitive.format.hypergraph.lang.cognilang.CogniLangParser import CogniLangParser
-from rei.cognitive.format.hypergraph.lang.cognilang.CogniLangVisitor import CogniLangVisitor
+from rei.cognitive.format.hypergraph.lang.cognilang.framework.cognitive.speclanguage.src.main.antlr4.CogniLangLexer import \
+    CogniLangLexer
+from rei.cognitive.format.hypergraph.lang.cognilang.framework.cognitive.speclanguage.src.main.antlr4.CogniLangParser import \
+    CogniLangParser
+from rei.cognitive.format.hypergraph.lang.cognilang.framework.cognitive.speclanguage.src.main.antlr4.CogniLangVisitor import \
+    CogniLangVisitor
+from rei.cognitive.format.hypergraph.operations.generative_operators import create_hypergraphelement_reference
 from rei.physics.geometry.basic_geometry import CylinderGeometry, PolyhedronGeometry, EllipsoidGeometry, \
     PrimitiveGeometry
 from rei.physics.kinematics.kinematic_link import KinematicLink, KinematicJoint, VisionGeometry, \
@@ -27,6 +33,8 @@ class EntityGraphMapper(CogniLangVisitor):
         self.channel = channel
         self.rootentity: [CognitiveEntity | None] = None
         self.kinematic_graph_cache = {}
+        self.ambient_graph_cache = {}
+        self.ports_cache = {}
 
     def visitEntity(self, ctx: CogniLangParser.EntityContext):
         name = str(ctx.graphnode_signature().ID())
@@ -112,6 +120,15 @@ class EntityGraphMapper(CogniLangVisitor):
             return None, None
         parent_ctx_name = str(ctx.parentCtx.parentCtx.graphnode_signature().ID())
         context: KinematicGraph = self.kinematic_graph_cache[parent_ctx_name]
+        return parent_ctx_name, context
+
+    def _retrieve_current_ambient_graph(self, ctx):
+        _ctx = ctx.parentCtx.parentCtx.parentCtx
+        # Retrieve name of the kinematicgraph
+        if isinstance(_ctx, CogniLangParser.Entity_subset_elemContext):
+            return None, None
+        parent_ctx_name = str(_ctx.graphnode_signature().ID())
+        context: AmbientGraph = self.ambient_graph_cache[parent_ctx_name]
         return parent_ctx_name, context
 
     def _geometry_setup(self, name: str, link, context: KinematicGraph, body):
@@ -212,27 +229,52 @@ class EntityGraphMapper(CogniLangVisitor):
         # Return
         return self.visitChildren(ctx)
 
+    def visitAmbient(self, ctx: CogniLangParser.AmbientContext):
+        name = str(ctx.graphnode_signature().ID())
+        ag = AmbientGraph(name, 0)
+        self.ambient_graph_cache[name] = ag
+        self.rootentity.add_subset(ag, 0)
+        return self.visitChildren(ctx)
+
     def visitSensor(self, ctx: CogniLangParser.SensorContext):
-        print(ctx.ambient_element_signature().ID())
+        _, _parent_ambient_graph = self._retrieve_current_ambient_graph(ctx)
+        sensor_name = str(ctx.ambient_element_signature().ID())
         if ctx.sensor_type().proprioceptive_sensor() is not None:
             print("Proprioceptive sensor")
         elif ctx.sensor_type().exteroceptive_sensor() is not None:
-            ext_sensor_type: CogniLangParser.Ext_sensor_typeContext = ctx.sensor_type().exteroceptive_sensor().ext_sensor_type()
-
-            print("Exteroceptive sensor")
+            ext_sensor_type: CogniLangParser.Ext_sensor_typeContext = \
+                str(ctx.sensor_type().exteroceptive_sensor().ext_sensor_type())
+            se: ExteroceptiveSensor = ExteroceptiveSensor(sensor_name, 0)
+            _parent_ambient_graph.add_subset(se, 0)
         return self.visitChildren(ctx)
 
     def visitActuator(self, ctx: CogniLangParser.ActuatorContext):
         print(ctx.ambient_element_signature().ID())
         return self.visitChildren(ctx)
 
+    def visitPort(self, ctx: CogniLangParser.PortContext):
+        _, parent_ambient_graph = self._retrieve_current_ambient_graph(ctx)
+        port_name = str(ctx.port_signature().graphnode_signature().ID())
+        topic_name: str = str(ctx.port_signature().topic_name)
+        msg_type: str = str(ctx.port_signature().msg)
+        port: CommunicationPort = CommunicationPort(port_name, 0, topic_name, msg_type)
+        parent_ambient_graph.add_subset(port, 0)
+        self.ports_cache[port_name] = port
+        return self.visitChildren(ctx)
+
     def visitAmbience_edge(self, ctx: CogniLangParser.Ambience_edgeContext):
-        print(ctx.graphedge_signature().ID())
+        _, _parent_ambient_graph = self._retrieve_current_ambient_graph(ctx)
+        edge_name: str = str(ctx.graphedge_signature().ID())
+        edge = AmbienceEdge(edge_name, 0, _parent_ambient_graph)
         for e in ctx.ambience_edge_body():
             for comm in e.communication_connections():
-                print(comm)
+                direction = map_graph_direction(comm)
+                target_name = str(comm.ref_().ID())
+                comm_type = map_communication_type(comm)
+                connect_ambience_to_port(_parent_ambient_graph, 0, edge, comm_type, target_name, direction)
             for placement in e.element_placement_relation():
-                print(placement)
+                placement.geom_relation()
+        _parent_ambient_graph.add_subset(edge, 0)
         return self.visitChildren(ctx)
 
 

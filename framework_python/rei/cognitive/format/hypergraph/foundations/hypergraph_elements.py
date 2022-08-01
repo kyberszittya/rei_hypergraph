@@ -6,6 +6,10 @@ from rei.cognitive.format.basicelements.concepts.network.base_definitions import
     NetworkRelation, EnumRelationDirection, NetworkElement
 
 
+class ErrorSelfParentHierarchy(Exception):
+    pass
+
+
 class HypergraphNode(NetworkNode):
     """
     A netowrk node that can be extended as a hierarchy of multisets, and connected via
@@ -31,6 +35,8 @@ class HypergraphNode(NetworkNode):
         :param timestamp: timestamp of subset addition
         :return:
         """
+        if s is self:
+            raise ErrorSelfParentHierarchy
         self._subsets[s.uid] = s
         s.parent = self
         # Identification and registry
