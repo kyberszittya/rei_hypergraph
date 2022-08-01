@@ -226,7 +226,6 @@ def hypergraphedge_2factorization_pairing(edge: HypergraphEdge):
     pass
 
 
-
 def hypergraphedge_2factorization(edge: HypergraphEdge,
                                   mode: EnumFactorizationMode = EnumFactorizationMode.TREE_FACTORIZATION):
     match mode:

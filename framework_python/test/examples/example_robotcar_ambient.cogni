@@ -64,5 +64,8 @@ entity simplebot_with_ambient
             at -> {basic_structure/wheel_left_rear},
             union comm -> stream {encoder_wheel},
             union comm <- stream {joint_cmd}
+         ambience gnss_connection:
+            at -> {basic_structure/base_link}
+            comm -> stream {gnss_output}
     }
 }

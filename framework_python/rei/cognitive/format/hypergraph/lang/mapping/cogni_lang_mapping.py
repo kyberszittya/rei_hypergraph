@@ -214,10 +214,25 @@ class EntityGraphMapper(CogniLangVisitor):
 
     def visitSensor(self, ctx: CogniLangParser.SensorContext):
         print(ctx.ambient_element_signature().ID())
+        if ctx.sensor_type().proprioceptive_sensor() is not None:
+            print("Proprioceptive sensor")
+        elif ctx.sensor_type().exteroceptive_sensor() is not None:
+            ext_sensor_type: CogniLangParser.Ext_sensor_typeContext = ctx.sensor_type().exteroceptive_sensor().ext_sensor_type()
+
+            print("Exteroceptive sensor")
         return self.visitChildren(ctx)
 
     def visitActuator(self, ctx: CogniLangParser.ActuatorContext):
         print(ctx.ambient_element_signature().ID())
+        return self.visitChildren(ctx)
+
+    def visitAmbience_edge(self, ctx: CogniLangParser.Ambience_edgeContext):
+        print(ctx.graphedge_signature().ID())
+        for e in ctx.ambience_edge_body():
+            for comm in e.communication_connections():
+                print(comm)
+            for placement in e.element_placement_relation():
+                print(placement)
         return self.visitChildren(ctx)
 
 
