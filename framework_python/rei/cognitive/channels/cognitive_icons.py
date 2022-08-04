@@ -11,6 +11,8 @@ import numpy as np
 
 import copy
 
+from rei.cognitive.messages.tensor_fragment import FragmentTensor
+
 
 class TensorCognitiveIcon(CognitiveIcon):
     """
@@ -23,7 +25,7 @@ class TensorCognitiveIcon(CognitiveIcon):
         super().__init__(name, timestamp, subsets, parent, identitygen, domain)
         self._icon: np.ndarray | None = None
 
-    def update(self, msg: np.ndarray):
+    def update(self, msg: FragmentTensor):
         self._icon = msg
 
     def view(self):

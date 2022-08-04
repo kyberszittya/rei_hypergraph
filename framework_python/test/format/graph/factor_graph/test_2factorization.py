@@ -1,6 +1,6 @@
 from rei.cognitive.format.basicelements.concepts.network.base_definitions import EnumRelationDirection
 from rei.cognitive.format.hypergraph.foundations.hypergraph_elements import HypergraphNode, HypergraphEdge
-from rei.cognitive.format.hypergraph.foundations.hypergraph_operators import hypergraphedge_2factorization_tree
+from rei.cognitive.format.hypergraph.operations.factorization_operators import hypergraphedge_2factorization_tree
 
 
 def test_simple_edge_2factorization():

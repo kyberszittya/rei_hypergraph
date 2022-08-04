@@ -4,12 +4,13 @@ from rei.cognitive.format.basicelements.concepts.network.base_definitions import
 from rei.cognitive.channels.channel_base_definitions import CognitiveChannel, CognitiveArbiter
 from rei.cognitive.format.basicelements.concepts.network.taxonomy import NetworkTaxonomy
 from rei.cognitive.format.hypergraph.foundations.hypergraph_elements import HypergraphNode, HypergraphEdge
-from rei.cognitive.format.hypergraph.foundations.hypergraph_operators import \
-    create_hyperedge, create_dir_edge
 from rei.cognitive.format.hypergraph.laplacian.graph_tensor_operations import graph_upper_bound_entropy_vector
 
 import numpy as np
 import numpy.testing
+
+from rei.cognitive.format.hypergraph.operations.generative_operators import create_hyperedge, create_dir_edge
+from rei.cognitive.messages.tensor_fragment import FragmentTensor
 
 
 def create_fano_edge(sys: HypergraphNode, qualified_name: str, nodes: list[str]):
@@ -75,11 +76,14 @@ def test_fano_graph_basic():
             assert int(subset.progenitor_registry.name) in range(0, 7)
         elif isinstance(subset, HypergraphEdge):
             subset.print_elements()
+            assert len(list(subset.subrelations)) == 3
             for subrel in subset.subrelations:
-                print(subrel)
+                # TODO: Assert valid connections
+                pass
+                #print(subrel)
 
 
-def setup_test_graph_elements(taxon, graph):
+def setup_test_graph_elements(taxon, graph) -> FragmentTensor:
     sys = CognitiveArbiter(name="sys", timestamp=0, domain=taxon)
     channel = CognitiveChannel("channel_01", 0, sys)
     view_icon = TensorCognitiveIcon("out", 0, domain=taxon)
@@ -87,8 +91,8 @@ def setup_test_graph_elements(taxon, graph):
     channel.add_connection(ch, 0, view_icon)
     print()
     ch.encode([graph])
-    tensor = view_icon.view()[0]
-    return tensor
+    fragment = view_icon.view()[0]
+    return fragment
 
 
 def test_basic_tensor_channel():
@@ -97,12 +101,11 @@ def test_basic_tensor_channel():
     :return:
     """
     taxon, graph = create_fano_graph()
-    tensor = setup_test_graph_elements(taxon, graph)
-    assert tensor.shape == (8, 8, 8)
-    assert np.all(np.sum(tensor[:-1, :-1, :-1], axis=0) + np.eye(7) == 1)
-    print(tensor[:-1, -1, :-1])
+    fragment = setup_test_graph_elements(taxon, graph)
+    assert fragment.V.shape == (7, 7, 7)
+    assert np.all(np.sum(fragment.V, axis=0) + np.eye(7) == 1)
     # ASSERTION
-    np.testing.assert_almost_equal(graph_upper_bound_entropy_vector(tensor)[0], __FANO_ENTROPY)
+    np.testing.assert_almost_equal(graph_upper_bound_entropy_vector(fragment.V)[0], __FANO_ENTROPY)
 
 
 def test_basic_tensor_channel_2():
@@ -118,10 +121,32 @@ def test_basic_tensor_channel_2():
     channel.add_connection(ch, 0, view_icon)
     print()
     ch.encode([graph])    
-    tensor = view_icon.view()[0]
-    assert tensor.shape == (8, 8, 8)
-    assert np.all(np.sum(tensor[:-1, :-1, :-1], axis=0) + np.eye(7) == 1)
-    entropy = graph_upper_bound_entropy_vector(tensor)
+    fragment = view_icon.view()[0]
+    assert fragment.V.shape == (7, 7, 7)
+    assert np.all(np.sum(fragment.V, axis=0) + np.eye(7) == 1)
+    entropy = graph_upper_bound_entropy_vector(fragment)
+    # ASSERTION
+    np.testing.assert_almost_equal(entropy[0], __FANO_ENTROPY)
+
+
+
+def test_basic_tensor_channel_incidence():
+    """
+
+    :return:
+    """
+    _, graph = create_fano_graph()
+    sys = CognitiveArbiter(name="sys", timestamp=0)
+    channel = CognitiveChannel("channel_01", 0, sys)
+    view_icon = TensorCognitiveIcon("out", 0)
+    ch = HypergraphTensorTransformation("dendrite1", 0, sys.domain, channel, view_icon)
+    channel.add_connection(ch, 0, view_icon)
+    print()
+    ch.encode([graph])
+    fragment = view_icon.view()[0]
+    assert fragment.V.shape == (7, 7, 7)
+    assert np.all(fragment.V @ fragment.I == 1)
+    entropy = graph_upper_bound_entropy_vector(fragment)
     # ASSERTION
     np.testing.assert_almost_equal(entropy[0], __FANO_ENTROPY)
 
@@ -139,7 +164,7 @@ def test_basic_tensor_channel_3():
     channel.add_connection(ch, 0, view_icon)
     print()
     ch.encode([graph])
-    tensor = view_icon.view()[0]
-    entropy = graph_upper_bound_entropy_vector(tensor)
+    fragment = view_icon.view()[0]
+    entropy = graph_upper_bound_entropy_vector(fragment.V)
     # ASSERTION
     np.testing.assert_almost_equal(entropy[0], __EXAMPLE_MULTITREE_ENTROPY)

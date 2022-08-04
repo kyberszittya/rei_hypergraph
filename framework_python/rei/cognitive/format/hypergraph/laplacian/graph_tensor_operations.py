@@ -36,9 +36,9 @@ def graph_bound_entropy(A):
 
 
 def laplacian_calc_vector(M, ax=2):
-    D_m = np.apply_along_axis(np.sum, ax, M[:, :-1, :-1], 0)
+    D_m = np.apply_along_axis(np.sum, ax, M, 0)
     d = np.apply_along_axis(np.diag, 1, D_m)
-    L_m = np.abs(d) - M[:, :-1, :-1]
+    L_m = np.abs(d) - M
     deg = np.sum(np.abs(D_m))
     return D_m, L_m, deg
 
@@ -50,6 +50,6 @@ def graph_upper_bound_entropy_vector(M):
 
 
 def graph_lower_bound_entropy_vector(M):
-    D, L, deg = laplacian_calc_vector(np.swapaxes(M,0,2), 2)
+    D, L, deg = laplacian_calc_vector(np.swapaxes(M, 0, 2), 2)
     tr = np.trace(L, axis1=1, axis2=2)/deg
     return -np.sum(tr*np.log2(tr))
