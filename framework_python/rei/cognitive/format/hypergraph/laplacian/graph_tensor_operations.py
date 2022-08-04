@@ -1,6 +1,6 @@
 import numpy as np
 
-from rei.cognitive.format.hypergraph.laplacian.graph_metrics import entropy_sum
+from rei.cognitive.format.hypergraph.laplacian.graph_metrics import entropy_sum, entropy_projected_laplace
 
 
 def laplacian_calc(M):
@@ -35,21 +35,21 @@ def graph_bound_entropy(A):
     return total_entropy
 
 
-def laplacian_calc_vector(M, ax=2):
-    D_m = np.apply_along_axis(np.sum, ax, M, 0)
+def laplacian_calc_vector(M):
+    D_m = np.sum(M, 1)
     d = np.apply_along_axis(np.diag, 1, D_m)
-    L_m = np.abs(d) - M
+    L_m = d - M
     deg = np.sum(np.abs(D_m))
-    return D_m, L_m, deg
+    return d, L_m, deg
 
 
 def graph_upper_bound_entropy_vector(M):
     # TODO: This is actually very interesting. Try to find some method to handle negative adjacency matrices
-    D, L, deg = laplacian_calc_vector(M, 2)
+    D, L, deg = laplacian_calc_vector(M)
     return entropy_sum(L, D)
 
 
 def graph_lower_bound_entropy_vector(M):
-    D, L, deg = laplacian_calc_vector(np.swapaxes(M, 0, 2), 2)
+    D, L, deg = laplacian_calc_vector(np.swapaxes(M, 0, 2))
     tr = np.trace(L, axis1=1, axis2=2)/deg
     return -np.sum(tr*np.log2(tr))

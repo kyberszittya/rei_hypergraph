@@ -23,17 +23,16 @@ def entropy_edgewise(L_m, D_m):
 
 def entropy_projected_laplace(L_m, D_m):
     inv_total = 1.0/np.sum(D_m)
-    L = np.sum(L_m, axis=0) * inv_total
-    e, w = np.linalg.eig(L)
+    inv_L = np.sum(L_m, axis=0) * inv_total
+    e, w = np.linalg.eig(inv_L)
     e[e <= 0] = 1.0
     entropy = e*np.log2(e)
     return -np.sum(entropy), entropy
 
 
 def entropy_sum(L_m, D_m):
-    D = np.abs(D_m)
-    rowvise = np.sum(D, axis=0)
-    x = D*(1.0/rowvise)
+    degs = np.sum(D_m)
+    x = D_m*(1.0/degs)
     x[x <= 0] = 1.0
     entropy = -x*np.log2(x)
     return np.sum(entropy), entropy
