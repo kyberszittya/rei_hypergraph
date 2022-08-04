@@ -6,6 +6,7 @@ import copy
 class ErrorIdentificationChangeAttempt(Exception):
     pass
 
+
 class MetaIdentifiable(metaclass=abc.ABCMeta):
     """
     This interface indicates that an interface can be uniquely identified
@@ -17,7 +18,7 @@ class MetaIdentifiable(metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def __init__(self, id_name: str, timestamp: int, identitygen: InterfaceIdentifierGenerator):
-        self._uid: bytes = None
+        self._uid: bytes | None = None
         self._identitygen: InterfaceIdentifierGenerator = identitygen
         self._timestamp: int = timestamp
         self._id_name: str = id_name

@@ -38,7 +38,7 @@ class TensorChannelDendrite(CognitiveChannelDendrite):
         self.cnt_values = 0
         self.cnt_incidence = 0
         # Fragments
-        self.fragment: FragmentMessage|None = None
+        self.fragment: FragmentMessage | None = None
 
     def _collect_tensor_elements(self, cursor: HypergraphNode):
         """
@@ -60,62 +60,45 @@ class TensorChannelDendrite(CognitiveChannelDendrite):
                     self.edge_fringe.put(c)
                     self.cnt_edges += 1
 
-    def _setup_tensor_eslice(self, indices: queue.Queue, indices_incidence: queue.Queue,
-                             e: HypergraphEdge):
+    def _setup_tensor_eslice(self, indices: queue.Queue, indices_incidence: queue.Queue, e: HypergraphEdge):
         ind_e = self.homomorphism_edge[e.uid]
-        visited_pairs = set()
         # Get parent relationship
-        if e.parent.uid in self.homomorphism_node:
-            indices.put((-1, self.homomorphism_node[e.parent.uid], ind_e, 1))
-            #self.cnt_elem += 1
-        # Iterate through relations
-        for relation in e.subset_elements:
+        # Iterate through relations to produce incidence relationships
+        for relation in e.subrelations:
             ind_n = self.homomorphism_node[relation.endpoint.uid]
-            for other in e.subset_elements:
-                if other is not relation:
-                    # Sanitize values
-                    value = HypergraphTensorTransformation._setup_value(relation.value)
-                    # Get pair
-                    _pair = (ind_n, self.homomorphism_node[other.endpoint.uid])
-                    if _pair not in visited_pairs:
-                        visited_pairs.add(_pair)
-                        visited_pairs.add((_pair[1], _pair[0]))
-                        match relation.direction:
-                            case EnumRelationDirection.UNDIRECTED:
-                                indices.put((_pair[0], _pair[1], ind_e, value))
-                                indices.put((_pair[1], _pair[0], ind_e, value))
-                                self.cnt_values += 2
-                                # Put incidence
-                                indices_incidence.put((_pair[0], ind_e, 1))
-                                indices_incidence.put((_pair[1], ind_e, 1))
-                                self.cnt_incidence += 2
-                            case EnumRelationDirection.INWARDS:
-                                indices.put((_pair[0], _pair[1], ind_e, -value))
-                                indices.put((_pair[1], _pair[0], ind_e,  value))
-                                self.cnt_values += 2
-                                # Add incidence
-                                indices_incidence.put((_pair[0], ind_e, 1))
-                                indices_incidence.put((_pair[1], ind_e, -1))
-                                self.cnt_incidence += 2
-                            case EnumRelationDirection.OUTWARDS:
-                                indices.put((_pair[1], _pair[0], ind_e, -value))
-                                indices.put((_pair[0], _pair[1], ind_e,  value))
-                                self.cnt_values += 2
-                                # Add incidence
-                                indices_incidence.put((_pair[0], ind_e, -1))
-                                indices_incidence.put((_pair[1], ind_e, 1))
-                                self.cnt_incidence += 2
+            match relation.direction:
+                case EnumRelationDirection.UNDIRECTED:
+                    indices_incidence.put((ind_n, ind_e, 1))
+                case EnumRelationDirection.OUTWARDS:
+                    indices_incidence.put((ind_n, ind_e, 1))
+                case EnumRelationDirection.INWARDS:
+                    indices_incidence.put((ind_n, ind_e, -1))
+        # Value tensor setup
+        for n0 in e.subrelations:
+            for n1 in e.subrelations:
+                if n0 is not n1:
+                    value = HypergraphTensorTransformation._setup_value(n0.value)
+                    _pair = (self.homomorphism_node[n0.endpoint.uid], self.homomorphism_node[n1.endpoint.uid])
+                    match n0.direction:
+                        case EnumRelationDirection.UNDIRECTED:
+                            indices.put((_pair[0], _pair[1], ind_e, value))
+                            indices.put((_pair[1], _pair[0], ind_e, value))
+                            self.cnt_values += 2
+                        case EnumRelationDirection.OUTWARDS:
+                            indices.put((_pair[0], _pair[1], ind_e, value))
+                            self.cnt_values += 1
 
-    def _setup_tensor_hierarchy(self, indices_node: queue.Queue, indices_edge: queue.Queue,
-                                context: HypergraphNode):
+    def _setup_tensor_node_hierarchy(self, indices_node: queue.Queue, context: HypergraphNode):
         for v in context.subset_elements:
             if isinstance(v, HypergraphNode):
                 p = (self.homomorphism_node[context.uid], self.homomorphism_node[v.uid])
                 indices_node.put((p[0], p[1], 1))
+
+    def _setup_tensor_edge_hierarchy(self, indices_edge: queue.Queue, context: HypergraphNode):
+        for v in context.subset_elements:
             if isinstance(v, HypergraphEdge):
                 p = (self.homomorphism_node[context.uid], self.homomorphism_edge[v.uid])
                 indices_edge.put((p[0], p[1], 1))
-
 
     def _reset_homomorphism(self):
         self.node_fringe = queue.LifoQueue()
@@ -155,7 +138,8 @@ class TensorChannelDendrite(CognitiveChannelDendrite):
             self._setup_tensor_eslice(indices_values, indices_incidence, e)
         while not self.node_fringe.empty():
             n: HypergraphNode = self.node_fringe.get()
-            self._setup_tensor_hierarchy(indices_hierarchy, indices_edge_hierarchy, n)
+            self._setup_tensor_node_hierarchy(indices_hierarchy, n)
+            self._setup_tensor_edge_hierarchy(indices_edge_hierarchy, n)
         self._setup_icon(indices_values, indices_hierarchy, indices_incidence, indices_edge_hierarchy)
         if self.endpoint is not None:
             if isinstance(self.endpoint, CognitiveIcon):
@@ -177,25 +161,25 @@ class HypergraphTensorTransformation(TensorChannelDendrite):
     def _setup_icon(self,  indices_values: queue.Queue, indices_hierarchy: queue.Queue,
                     indices_incidence: queue.Queue, indices_edge_hierarchy: queue.Queue):
         # Values tensor
-        _indices_tensor = np.zeros(shape=(self.cnt_edges, self.cnt_node, self.cnt_node))
+        _indices_tensor = np.zeros(shape=(self.cnt_node, self.cnt_node, self.cnt_edges))
         while not indices_values.empty():
             x, y, z, v = indices_values.get()
-            _indices_tensor[z, y, x] = v
+            _indices_tensor[x, y, z] = v
         # Indices hierarchy
         _indices_hierarchy = np.zeros(shape=(self.cnt_node, self.cnt_node))
         while not indices_hierarchy.empty():
             x, y, v = indices_hierarchy.get()
-            _indices_hierarchy[y, x] = v
+            _indices_hierarchy[x, y] = v
         # Indices incidence
         _indices_incidence = np.zeros(shape=(self.cnt_node, self.cnt_edges))
         while not indices_incidence.empty():
             x, y, v = indices_incidence.get()
-            _indices_incidence[y, x] = v
+            _indices_incidence[x, y] = v
         # Indices edge hierarchy
         _indices_edge_hierarchy = np.zeros(shape=(self.cnt_node, self.cnt_edges))
         while not indices_edge_hierarchy.empty():
             x, y, v = indices_edge_hierarchy.get()
-            _indices_hierarchy[y, x] = v
+            _indices_edge_hierarchy[y, x] = v
         # Fragment tensor
         self.fragment_tensor = FragmentTensor(_indices_tensor, _indices_hierarchy,
                                               _indices_incidence, _indices_edge_hierarchy)
