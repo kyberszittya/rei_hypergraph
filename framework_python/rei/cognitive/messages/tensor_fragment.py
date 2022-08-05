@@ -1,5 +1,3 @@
-from rei.cognitive.format.basicelements.concepts.registry.base_definitions import MetaRegistrable
-
 import numpy as np
 
 from rei.cognitive.format.basicelements.concepts.registry.registration_methods import InterfaceIdentifierGenerator
@@ -64,4 +62,24 @@ class FragmentTensor(FragmentMessage):
     def serialize_bytes(self) -> bytes:
         pass
 
+    def degree_matrix_outwards(self):
+        d_out = np.sum(self.V.T, axis=2)
+        return np.apply_along_axis(np.diag, 1, d_out)
 
+    def degree_matrix_inwards(self):
+        d_in = np.sum(self.V.T, axis=1)
+        return np.apply_along_axis(np.diag, 1, d_in)
+
+    def degree_matrix(self):
+        return np.apply_along_axis(np.diag, 1, np.sum(self._tensor_values.T, 1))
+
+    @property
+    def D(self):
+        return self.degree_matrix()
+
+    def laplacian_matrix(self):
+        return self.D - self._tensor_values.T
+
+    @property
+    def L(self):
+        return self.laplacian_matrix()

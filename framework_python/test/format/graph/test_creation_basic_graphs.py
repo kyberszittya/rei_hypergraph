@@ -48,6 +48,18 @@ def test_basic_tensor_channel():
     np.testing.assert_almost_equal(graph_upper_bound_entropy_vector(fragment.V.T)[0], __FANO_ENTROPY)
 
 
+def test_tensor_fragment_properties():
+    taxon, graph = create_fano_graph()
+    fragment = setup_test_graph_elements(taxon, graph)
+    assert fragment.V.shape == (7, 7, 7)
+    assert np.all(np.sum(fragment.V, axis=2) + np.eye(7) == 1)
+    # Test properties
+    D_proj = np.sum(fragment.D, axis=0)
+    assert D_proj[0, 0] == D_proj[1, 1] == D_proj[2, 2] == D_proj[3, 3] == \
+           D_proj[4, 4] == D_proj[5, 5] == D_proj[6, 6] == 6
+    assert np.all(np.abs(np.sum(fragment.L, axis=0) - np.eye(7) * 5) == 1)
+
+
 def test_basic_tensor_channel_incidence_format():
     """
 
