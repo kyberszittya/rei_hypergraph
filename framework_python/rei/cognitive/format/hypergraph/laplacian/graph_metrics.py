@@ -1,5 +1,7 @@
 import numpy as np
 
+from rei.cognitive.messages.tensor_fragment import FragmentTensor
+
 
 def laplacian_calc(graph_tensor):
     D_m = np.apply_along_axis(np.sum, 2, graph_tensor[:-1, :-1, :-1], 0)
@@ -52,3 +54,9 @@ def entropy_sum_avg(L_m, D_m):
     v = np.max(np.average(L_m, axis=1), axis=1)
     entropy_avg = -x*np.log2(x/v)
     return np.sum(entropy_avg), entropy_avg
+
+
+def normalized_laplacian_entropy(fragment: FragmentTensor):
+    B = (fragment.L @ fragment.norm_L)/fragment.nE
+    B[B <= 0] = 1
+    return np.sum(B*-np.log2(B))

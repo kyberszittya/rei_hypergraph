@@ -71,11 +71,19 @@ class FragmentTensor(FragmentMessage):
         return np.apply_along_axis(np.diag, 1, d_in)
 
     def degree_matrix(self):
-        return np.apply_along_axis(np.diag, 1, np.sum(self._tensor_values.T, 1))
+        return self.D_in + self.D_out
 
     @property
     def D(self):
         return self.degree_matrix()
+
+    @property
+    def D_out(self):
+        return self.degree_matrix_outwards()
+
+    @property
+    def D_in(self):
+        return self.degree_matrix_inwards()
 
     def laplacian_matrix(self):
         return self.D - self._tensor_values.T
@@ -83,3 +91,12 @@ class FragmentTensor(FragmentMessage):
     @property
     def L(self):
         return self.laplacian_matrix()
+
+    @property
+    def norm_L(self):
+        D = np.nan_to_num(1.0/(np.sqrt(self.D)), posinf=0, neginf=0)
+        return D @ self.L @ D
+
+    @property
+    def nE(self):
+        return self._tensor_values.shape[2]

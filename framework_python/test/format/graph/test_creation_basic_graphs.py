@@ -2,17 +2,16 @@ from rei.cognitive.channels.cognitive_dendrite import HypergraphTensorTransforma
 from rei.cognitive.channels.cognitive_icons import TensorCognitiveIcon
 from rei.cognitive.channels.channel_base_definitions import CognitiveChannel, CognitiveArbiter
 from rei.cognitive.format.hypergraph.foundations.hypergraph_elements import HypergraphNode, HypergraphEdge
-from rei.cognitive.format.hypergraph.laplacian.graph_tensor_operations import graph_upper_bound_entropy_vector, \
-    laplacian_calc_vector
 
 import numpy as np
 import numpy.testing
 
+from rei.cognitive.format.hypergraph.laplacian.graph_metrics import normalized_laplacian_entropy
 from test.common.basic_graph_creation_functions import create_fano_graph, create_multitree, setup_test_graph_elements, \
     create_simple_tree
 
-__FANO_ENTROPY: float = 4.39231742277876
-__EXAMPLE_MULTITREE_ENTROPY = 11.094737505048094
+__FANO_ENTROPY: float = 8.605303928306439
+__EXAMPLE_MULTITREE_ENTROPY = 9.73238460346960
 
 
 def test_fano_graph_basic():
@@ -45,7 +44,7 @@ def test_basic_tensor_channel():
     assert fragment.V.shape == (7, 7, 7)
     assert np.all(np.sum(fragment.V, axis=2) + np.eye(7) == 1)
     # ASSERTION
-    np.testing.assert_almost_equal(graph_upper_bound_entropy_vector(fragment.V.T)[0], __FANO_ENTROPY)
+    np.testing.assert_almost_equal(normalized_laplacian_entropy(fragment), __FANO_ENTROPY)
 
 
 def test_tensor_fragment_properties():
@@ -56,8 +55,8 @@ def test_tensor_fragment_properties():
     # Test properties
     D_proj = np.sum(fragment.D, axis=0)
     assert D_proj[0, 0] == D_proj[1, 1] == D_proj[2, 2] == D_proj[3, 3] == \
-           D_proj[4, 4] == D_proj[5, 5] == D_proj[6, 6] == 6
-    assert np.all(np.abs(np.sum(fragment.L, axis=0) - np.eye(7) * 5) == 1)
+           D_proj[4, 4] == D_proj[5, 5] == D_proj[6, 6] == 12
+    assert np.all(np.abs(np.sum(fragment.L, axis=0) - np.eye(7) * 11) == 1)
 
 
 def test_basic_tensor_channel_incidence_format():
@@ -68,25 +67,16 @@ def test_basic_tensor_channel_incidence_format():
     taxon, graph = create_fano_graph()
     fragment = setup_test_graph_elements(taxon, graph)
     assert fragment.V.shape == (7, 7, 7)
-    D_m, L, deg = laplacian_calc_vector(fragment.V.T)
-    assert deg == 42.0
-    d = np.sum(D_m, axis=0)
-    assert d[0, 0] == 6
-    assert d[1, 1] == 6
-    assert d[2, 2] == 6
-    assert d[3, 3] == 6
-    assert d[4, 4] == 6
-    assert d[5, 5] == 6
-    assert d[6, 6] == 6
+    L = fragment.L
     # Check Laplacian
     L_sigma = np.sum(L, axis=0)
-    assert L_sigma[0, 0] == 6
-    assert L_sigma[1, 1] == 6
-    assert L_sigma[2, 2] == 6
-    assert L_sigma[3, 3] == 6
-    assert L_sigma[4, 4] == 6
-    assert L_sigma[5, 5] == 6
-    assert L_sigma[6, 6] == 6
+    assert L_sigma[0, 0] == 12
+    assert L_sigma[1, 1] == 12
+    assert L_sigma[2, 2] == 12
+    assert L_sigma[3, 3] == 12
+    assert L_sigma[4, 4] == 12
+    assert L_sigma[5, 5] == 12
+    assert L_sigma[6, 6] == 12
     assert L_sigma[0, 6] == -1
     # Also check is this computes
     assert np.all(np.sum(fragment.V.T, axis=0) + np.eye(7) == 1)
@@ -108,9 +98,9 @@ def test_basic_tensor_channel_2():
     fragment = view_icon.view()[0]
     assert fragment.V.shape == (7, 7, 7)
     assert np.all(np.sum(fragment.V, axis=2) + np.eye(7) == 1)
-    entropy = graph_upper_bound_entropy_vector(fragment.V.T)
+    entropy = normalized_laplacian_entropy(fragment)
     # ASSERTION
-    np.testing.assert_almost_equal(entropy[0], __FANO_ENTROPY)
+    np.testing.assert_almost_equal(entropy, __FANO_ENTROPY)
 
 
 def test_basic_tensor_channel_3():
@@ -127,9 +117,9 @@ def test_basic_tensor_channel_3():
     print()
     ch.encode([graph])
     fragment = view_icon.view()[0]
-    entropy = graph_upper_bound_entropy_vector(fragment.V.T)
+    entropy = normalized_laplacian_entropy(fragment)
     # ASSERTION
-    np.testing.assert_almost_equal(entropy[0], __EXAMPLE_MULTITREE_ENTROPY)
+    np.testing.assert_almost_equal(entropy, __EXAMPLE_MULTITREE_ENTROPY)
 
 
 def test_basic_simpletree():
@@ -153,5 +143,5 @@ def test_basic_simpletree():
     assert fragment.I[2, 0] == 0.0
     assert fragment.I[2, 1] == 1.0
     # Entropy
-    entropy = graph_upper_bound_entropy_vector(fragment.V.T)
-    print(entropy)
+    entropy = normalized_laplacian_entropy(fragment)
+    assert entropy == 2.0
