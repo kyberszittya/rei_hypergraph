@@ -1,6 +1,7 @@
 import numpy as np
 
 from rei.cognitive.format.basicelements.concepts.registry.registration_methods import InterfaceIdentifierGenerator
+from rei.cognitive.format.hypergraph.foundations.hypergraph_elements import HypergraphNode
 from rei.cognitive.messages.message_fragment import FragmentMessage
 
 
@@ -9,14 +10,19 @@ class FragmentTensor(FragmentMessage):
 
 
     # TODO: complete fragment
-    def __init__(self, tensor_values: np.array, hierarchy_array: np.array, incidence_array: np.array, edge_hierarchy: np.array,
+    def __init__(self, graph: HypergraphNode,
+                 tensor_values: np.array, hierarchy_array: np.array, incidence_array: np.array,
+                 edge_hierarchy: np.array, value_tensor: np.array = None,
                  id_name: str = "", timestamp: int = 0, identitygen: InterfaceIdentifierGenerator = None):
         super().__init__(id_name, timestamp, identitygen)
         # Tensor values
+        self._ref_graph = graph
         self._tensor_values = tensor_values
         self._hierarchy_array = hierarchy_array
         self._incidence_array = incidence_array
         self._edge_hierarchy_array = edge_hierarchy
+        # Value tensor
+        self._value_tensor: np.array | None = value_tensor
 
     def register(self, registry, timestamp: int) -> None:
         pass

@@ -3,8 +3,8 @@ from rei.cognitive.channels.cognitive_icons import TensorCognitiveIcon
 from rei.cognitive.channels.channel_base_definitions import CognitiveChannel, CognitiveArbiter
 from rei.cognitive.format.basicelements.concepts.network.taxonomy import NetworkTaxonomy
 from rei.cognitive.format.hypergraph.foundations.hypergraph_elements import HypergraphNode, HypergraphEdge
-from rei.cognitive.format.hypergraph.foundations.hypergraph_operators import create_dir_edge
-from rei.cognitive.format.hypergraph.laplacian.graph_tensor_operations import graph_upper_bound_entropy_vector
+from rei.cognitive.format.hypergraph.laplacian.graph_metrics import entropy_normalized_laplacian
+from rei.cognitive.format.hypergraph.operations.generative_operators import create_dir_edge
 
 
 def create_tree(taxon_name="test", tree_name="tree", nodes: list[str]|None = None):
@@ -30,6 +30,7 @@ def test_tree_basic_3nodes():
     create_dir_edge(graph, tree_pr, ["A"], ["B"])
     create_dir_edge(graph, tree_pr, ["A"], ["C"])
     assert len(graph._subsets) == 5
+    print()
     # Print graph
     for set in graph._subsets.values():
         if isinstance(set, HypergraphEdge):
@@ -40,16 +41,17 @@ def test_tree_basic_3nodes():
     ch = HypergraphTensorTransformation("dendrite1", 0, sys.domain, channel, view_icon)
     channel.add_connection(ch, 0, view_icon)
     ch.encode([graph])
-    tensor = view_icon.view()[0]
+    fragment = view_icon.view()[0]
     # Check elements
-    print(tensor)
-    assert tensor[0, 1, 0] == -1
-    assert tensor[0, 0, 1] == 1
-    assert tensor[1, 2, 0] == -1
-    assert tensor[1, 0, 2] == 1
+    assert fragment.V[0, 1, 0] == 0
+    assert fragment.V[0, 0, 1] == 0
+    assert fragment.V[1, 2, 0] == 0
+    assert fragment.V[1, 0, 1] == 0
+    assert fragment.V[1, 0, 0] == 1
+    assert fragment.V[2, 0, 1] == 1
     # Check entropy
-    eig_val_tensor, _ = graph_upper_bound_entropy_vector(tensor)
-    assert eig_val_tensor == 1.0
+    eig_val_tensor = entropy_normalized_laplacian(fragment)
+    assert eig_val_tensor == 2.0
 
 
 

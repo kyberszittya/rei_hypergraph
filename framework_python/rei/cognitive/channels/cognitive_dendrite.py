@@ -23,22 +23,8 @@ class TensorChannelDendrite(CognitiveChannelDendrite):
                  endpoint: HypergraphNode, value=None, identitygen: InterfaceIdentifierGenerator = None,
                  direction: EnumRelationDirection = EnumRelationDirection.UNDIRECTED):
         super().__init__(name, timestamp, domain, parent, endpoint, value, identitygen, direction)
-        # Mappings (as per identifier)
-        self.homomorphism_node = {}
-        self.homomorphism_node_inv = {}
-        self.cnt_node = 0
-        self.homomorphism_edge = {}
-        self.homomorphism_edge_inv = {}
-        self.cnt_edges = 0
-        # Result tensor
-        self.node_fringe = queue.LifoQueue()
-        self.edge_fringe = queue.LifoQueue()
         self.intermediate_tensor = None
-        # Elements
-        self.cnt_values = 0
-        self.cnt_incidence = 0
-        # Fragments
-        self.fragment: FragmentMessage | None = None
+
 
     def _collect_tensor_elements(self, cursor: HypergraphNode):
         """
@@ -100,21 +86,11 @@ class TensorChannelDendrite(CognitiveChannelDendrite):
                 p = (self.homomorphism_node[context.uid], self.homomorphism_edge[v.uid])
                 indices_edge.put((p[0], p[1], 1))
 
-    def _reset_homomorphism(self):
-        self.node_fringe = queue.LifoQueue()
-        self.edge_fringe = queue.LifoQueue()
-        self.cnt_node = 0
-        self.cnt_edges = 0
-        self.homomorphism_edge = {}
-        self.homomorphism_edge_inv = {}
-        self.homomorphism_node = {}
-        self.homomorphism_node_inv = {}
-        # Elements
-        self.cnt_values = 0
-        self.cnt_incidence = 0
+
 
     @abc.abstractmethod
-    def _setup_icon(self, indices_values: queue.Queue, indices_hierarchy: queue.Queue,
+    def _setup_icon(self, intermediate_graph: HypergraphNode,
+                    indices_values: queue.Queue, indices_hierarchy: queue.Queue,
                     indices_adjacency: queue.Queue, indices_edge_hierarchy: queue.Queue):
         raise NotImplementedError
 
@@ -140,7 +116,7 @@ class TensorChannelDendrite(CognitiveChannelDendrite):
             n: HypergraphNode = self.node_fringe.get()
             self._setup_tensor_node_hierarchy(indices_hierarchy, n)
             self._setup_tensor_edge_hierarchy(indices_edge_hierarchy, n)
-        self._setup_icon(indices_values, indices_hierarchy, indices_incidence, indices_edge_hierarchy)
+        self._setup_icon(arg[0], indices_values, indices_hierarchy, indices_incidence, indices_edge_hierarchy)
         if self.endpoint is not None:
             if isinstance(self.endpoint, CognitiveIcon):
                 self.endpoint.update(self._get_msg_tensor())
@@ -158,7 +134,8 @@ class HypergraphTensorTransformation(TensorChannelDendrite):
             return 1.0
         return arg
 
-    def _setup_icon(self,  indices_values: queue.Queue, indices_hierarchy: queue.Queue,
+    def _setup_icon(self, intermediate_graph: HypergraphNode,
+                    indices_values: queue.Queue, indices_hierarchy: queue.Queue,
                     indices_incidence: queue.Queue, indices_edge_hierarchy: queue.Queue):
         # Values tensor
         _indices_tensor = np.zeros(shape=(self.cnt_node, self.cnt_node, self.cnt_edges))
@@ -181,7 +158,7 @@ class HypergraphTensorTransformation(TensorChannelDendrite):
             x, y, v = indices_edge_hierarchy.get()
             _indices_edge_hierarchy[y, x] = v
         # Fragment tensor
-        self.fragment_tensor = FragmentTensor(_indices_tensor, _indices_hierarchy,
+        self.fragment_tensor = FragmentTensor(intermediate_graph, _indices_tensor, _indices_hierarchy,
                                               _indices_incidence, _indices_edge_hierarchy)
 
     def decode(self, arg):
@@ -197,12 +174,18 @@ class HypergraphCoordinateObject(TensorChannelDendrite):
 
     """
 
+    def __init__(self, name: str, timestamp: int, domain: MetaRegistry, parent: NetworkRelation,
+                 endpoint: HypergraphNode, value=None, identitygen: InterfaceIdentifierGenerator = None,
+                 direction: EnumRelationDirection = EnumRelationDirection.UNDIRECTED):
+        super().__init__(name, timestamp, domain, parent, endpoint, value, identitygen, direction)
+
     @staticmethod
     def _setup_value(arg):
         if arg is None:
             return 1.0
         return arg
 
+    """
     def _setup_icon(self, indices: queue.Queue):
         cnt = 0
         while not indices.empty():
@@ -212,13 +195,53 @@ class HypergraphCoordinateObject(TensorChannelDendrite):
             self.intermediate_tensor[cnt, 2] = e[2]
             self.value_tensor[cnt] = e[3]
             cnt += 1
+    """
+
+
+    def _setup_icon(self, intermediate_graph: HypergraphNode, indices_values: queue.Queue,
+                    indices_hierarchy: queue.Queue, indices_incidence: queue.Queue,
+                    indices_edge_hierarchy: queue.Queue):
+        _indices_tensor = np.zeros(shape=(self.cnt_values, 3), dtype=np.int)
+        _value_tensor = np.zeros(shape=(self.cnt_values, 1), dtype=np.float)
+        cnt = 0
+        # Value tensor setup
+        while not indices_values.empty():
+            e = indices_values.get()
+            _indices_tensor[cnt, 0] = e[0]
+            _indices_tensor[cnt, 1] = e[1]
+            _indices_tensor[cnt, 2] = e[2]
+            _value_tensor[cnt] = e[3]
+            cnt += 1
+        # Indices hierarchy
+        _indices_hierarchy = np.zeros(shape=(self.cnt_node, self.cnt_node), dtype = np.int)
+        while not indices_hierarchy.empty():
+            x, y, v = indices_hierarchy.get()
+            _indices_hierarchy[x, y] = v
+        # Indices incidence
+        _indices_incidence = np.zeros(shape=(self.cnt_node, self.cnt_edges))
+        while not indices_incidence.empty():
+            x, y, v = indices_incidence.get()
+            _indices_incidence[x, y] = v
+        # Indices edge hierarchy
+        _indices_edge_hierarchy = np.zeros(shape=(self.cnt_node, self.cnt_edges), dtype= np.int)
+        while not indices_edge_hierarchy.empty():
+            x, y, v = indices_edge_hierarchy.get()
+            _indices_edge_hierarchy[y, x] = v
+        # Fragment tensor
+        self.fragment_tensor = FragmentTensor(intermediate_graph, _indices_tensor, _indices_hierarchy,
+                                              _indices_incidence, _indices_edge_hierarchy, value_tensor=_value_tensor)
+
 
     def decode(self, arg):
         if self.intermediate_tensor is None:
             return None
 
     def _get_msg_tensor(self):
-        return self.fragment
+        return {"tensor_indices": self.fragment_tensor._tensor_values.tolist(),
+                "tensor_values": self.fragment_tensor._value_tensor.tolist(),
+                "hierarchy_node": self.fragment_tensor._hierarchy_array.tolist(),
+                "incidence_array": self.fragment_tensor._incidence_array.tolist(),
+                "edge_hierarchy_array": self.fragment_tensor._edge_hierarchy_array.tolist()}
 
     def set_icon(self, e: CognitiveIcon):
         self._endpoint = e

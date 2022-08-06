@@ -56,7 +56,7 @@ def entropy_sum_avg(L_m, D_m):
     return np.sum(entropy_avg), entropy_avg
 
 
-def normalized_laplacian_entropy(fragment: FragmentTensor):
+def entropy_normalized_laplacian(fragment: FragmentTensor):
     B = (fragment.L @ fragment.norm_L)/fragment.nE
     B[B <= 0] = 1
     return np.sum(B*-np.log2(B))

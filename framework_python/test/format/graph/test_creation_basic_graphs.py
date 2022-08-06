@@ -1,12 +1,15 @@
+from _pytest.outcomes import fail
+
 from rei.cognitive.channels.cognitive_dendrite import HypergraphTensorTransformation
 from rei.cognitive.channels.cognitive_icons import TensorCognitiveIcon
 from rei.cognitive.channels.channel_base_definitions import CognitiveChannel, CognitiveArbiter
+from rei.cognitive.format.basicelements.concepts.network.base_definitions import EnumRelationDirection
 from rei.cognitive.format.hypergraph.foundations.hypergraph_elements import HypergraphNode, HypergraphEdge
 
 import numpy as np
 import numpy.testing
 
-from rei.cognitive.format.hypergraph.laplacian.graph_metrics import normalized_laplacian_entropy
+from rei.cognitive.format.hypergraph.laplacian.graph_metrics import entropy_normalized_laplacian
 from test.common.basic_graph_creation_functions import create_fano_graph, create_multitree, setup_test_graph_elements, \
     create_simple_tree
 
@@ -22,16 +25,30 @@ def test_fano_graph_basic():
     _, fano_graph = create_fano_graph()
     assert len(fano_graph._subsets) == 14
     print()
+    # Result sets
+    expected_edge_connections = {
+        "e013": "013",
+        "e156": "156",
+        "e235": "235",
+        "e124": "124",
+        "e346": "346",
+        "e045": "045",
+        "e026": "026"
+    }
+    # Iterate through all elements
     for subset in fano_graph.subset_elements:
         if isinstance(subset, HypergraphNode):
             assert int(subset.progenitor_registry.name) in range(0, 7)
         elif isinstance(subset, HypergraphEdge):
             subset.print_elements()
             assert len(list(subset.subrelations)) == 3
+            relation_id = []
             for subrel in subset.subrelations:
                 # TODO: Assert valid connections
-                pass
-                #print(subrel)
+                if not subrel.direction == EnumRelationDirection.UNDIRECTED:
+                    fail("Not undirected")
+                relation_id.append(subrel.endpoint.id_name)
+            assert expected_edge_connections[subset.id_name] == ''.join(relation_id)
 
 
 def test_basic_tensor_channel():
@@ -44,7 +61,7 @@ def test_basic_tensor_channel():
     assert fragment.V.shape == (7, 7, 7)
     assert np.all(np.sum(fragment.V, axis=2) + np.eye(7) == 1)
     # ASSERTION
-    np.testing.assert_almost_equal(normalized_laplacian_entropy(fragment), __FANO_ENTROPY)
+    np.testing.assert_almost_equal(entropy_normalized_laplacian(fragment), __FANO_ENTROPY)
 
 
 def test_tensor_fragment_properties():
@@ -98,7 +115,7 @@ def test_basic_tensor_channel_2():
     fragment = view_icon.view()[0]
     assert fragment.V.shape == (7, 7, 7)
     assert np.all(np.sum(fragment.V, axis=2) + np.eye(7) == 1)
-    entropy = normalized_laplacian_entropy(fragment)
+    entropy = entropy_normalized_laplacian(fragment)
     # ASSERTION
     np.testing.assert_almost_equal(entropy, __FANO_ENTROPY)
 
@@ -117,7 +134,7 @@ def test_basic_tensor_channel_3():
     print()
     ch.encode([graph])
     fragment = view_icon.view()[0]
-    entropy = normalized_laplacian_entropy(fragment)
+    entropy = entropy_normalized_laplacian(fragment)
     # ASSERTION
     np.testing.assert_almost_equal(entropy, __EXAMPLE_MULTITREE_ENTROPY)
 
@@ -143,5 +160,5 @@ def test_basic_simpletree():
     assert fragment.I[2, 0] == 0.0
     assert fragment.I[2, 1] == 1.0
     # Entropy
-    entropy = normalized_laplacian_entropy(fragment)
+    entropy = entropy_normalized_laplacian(fragment)
     assert entropy == 2.0
