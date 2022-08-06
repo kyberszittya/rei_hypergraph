@@ -32,6 +32,7 @@ class CognitiveChannelDendrite(HyperEdgeConnection):
         self.homomorphism_edge = {}
         self.homomorphism_edge_inv = {}
         self.cnt_edges = 0
+        self.cnt_relations = 0
         # Result tensor
         self.node_fringe = queue.LifoQueue()
         self.edge_fringe = queue.LifoQueue()

@@ -59,6 +59,8 @@ class TensorChannelDendrite(CognitiveChannelDendrite):
                     indices_incidence.put((ind_n, ind_e, 1))
                 case EnumRelationDirection.INWARDS:
                     indices_incidence.put((ind_n, ind_e, -1))
+            # Count relationship for serialization purposes
+            self.cnt_relations += 1
         # Value tensor setup
         for n0 in e.subrelations:
             for n1 in e.subrelations:
@@ -213,20 +215,35 @@ class HypergraphCoordinateObject(TensorChannelDendrite):
             _value_tensor[cnt] = e[3]
             cnt += 1
         # Indices hierarchy
-        _indices_hierarchy = np.zeros(shape=(self.cnt_node, self.cnt_node), dtype = np.int)
+        if indices_hierarchy.empty():
+            _indices_hierarchy = None
+        else:
+            _indices_hierarchy = np.zeros(shape=(self.cnt_node - 1, 3), dtype = np.int)
+            cnt = 0
         while not indices_hierarchy.empty():
             x, y, v = indices_hierarchy.get()
-            _indices_hierarchy[x, y] = v
+            _indices_hierarchy[cnt, 0] = x
+            _indices_hierarchy[cnt, 1] = y
+            _indices_hierarchy[cnt, 2] = v
+            cnt += 1
         # Indices incidence
-        _indices_incidence = np.zeros(shape=(self.cnt_node, self.cnt_edges))
+        cnt = 0
+        _indices_incidence = np.zeros(shape=(self.cnt_relations, 3))
         while not indices_incidence.empty():
             x, y, v = indices_incidence.get()
-            _indices_incidence[x, y] = v
+            _indices_incidence[cnt, 0] = x
+            _indices_incidence[cnt, 1] = y
+            _indices_incidence[cnt, 2] = v
+            cnt += 1
         # Indices edge hierarchy
-        _indices_edge_hierarchy = np.zeros(shape=(self.cnt_node, self.cnt_edges), dtype= np.int)
+        _indices_edge_hierarchy = np.zeros(shape=(self.cnt_edges, 3), dtype = np.float)
+        cnt = 0
         while not indices_edge_hierarchy.empty():
             x, y, v = indices_edge_hierarchy.get()
-            _indices_edge_hierarchy[y, x] = v
+            _indices_edge_hierarchy[cnt, 0] = x
+            _indices_edge_hierarchy[cnt, 1] = y
+            _indices_edge_hierarchy[cnt, 2] = v
+            cnt += 1
         # Fragment tensor
         self.fragment_tensor = FragmentTensor(intermediate_graph, _indices_tensor, _indices_hierarchy,
                                               _indices_incidence, _indices_edge_hierarchy, value_tensor=_value_tensor)
