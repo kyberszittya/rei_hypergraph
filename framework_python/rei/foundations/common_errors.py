@@ -12,3 +12,6 @@ class ErrorElementNotExist(Exception):
 
 class ErrorClockNotSet(Exception):
     pass
+
+class ErrorRecursiveHierarchy(Exception):
+    pass

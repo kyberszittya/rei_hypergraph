@@ -3,7 +3,7 @@ import typing
 
 from rei.foundations.clock import MetaClock
 from rei.foundations.common_errors import ErrorDuplicateElement, ErrorElementNotExist, InvalidQueryName, \
-    ErrorClockNotSet
+    ErrorClockNotSet, ErrorRecursiveHierarchy
 
 
 class HierarchicalElement(object):
@@ -66,7 +66,7 @@ class HierarchicalElement(object):
 class ConceptualItem(HierarchicalElement):
 
     def __init__(self, id_name: str, uuid: bytes, qualified_name: str,
-                 clock: MetaClock, parent=None) -> None:
+                 clock: MetaClock, parent: HierarchicalElement = None) -> None:
         super().__init__(uuid, id_name, qualified_name, parent)
         self._clock = clock
         # Subelement count
@@ -78,6 +78,9 @@ class ConceptualItem(HierarchicalElement):
         self._index_elements_by_name = {}
         # Timestamp
         self._update_timestamp()
+        # Setup parent
+        if parent is not None:
+            parent.add_element(self)
 
     @property
     def clock(self):
@@ -110,6 +113,9 @@ class ConceptualItem(HierarchicalElement):
             raise ErrorClockNotSet
 
     def add_element(self, element: HierarchicalElement):
+        # Forbid hierarchy recursion
+        if element is self:
+            raise ErrorRecursiveHierarchy
         # Add as unique element
         if element.uuid not in self._sub_elements:
             self._sub_elements[element.uuid] = element
