@@ -2,11 +2,26 @@ import abc
 import typing
 
 from rei.foundations.clock import MetaClock
-from rei.foundations.common_errors import ErrorDuplicateElement, ErrorElementNotExist, InvalidQueryName, \
-    ErrorClockNotSet, ErrorRecursiveHierarchy
+from rei.foundations.common_errors import ErrorDuplicateElement, InvalidQueryName, ErrorClockNotSet, \
+    ErrorRecursiveHierarchy, ErrorInvalidQuery
 
 
-class HierarchicalElement(object):
+class MetaSetElement(metaclass=abc.ABCMeta):
+
+    @abc.abstractmethod
+    def add_element(self, element) -> None:
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def remove_element(self, id_name: str = "", uuid: bytes = None) -> None:
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def update(self):
+        raise NotImplementedError
+
+
+class HierarchicalElement(MetaSetElement):
 
     def __init__(self, uuid: bytes, id_name: str, progenitor_qualified_name: str, parent=None) -> None:
         super().__init__()
@@ -42,19 +57,7 @@ class HierarchicalElement(object):
         return self._qualified_name
 
     @abc.abstractmethod
-    def add_element(self, element) -> None:
-        raise NotImplementedError
-
-    @abc.abstractmethod
-    def remove_element(self, id_name: str = "", uuid: bytes = None) -> None:
-        raise NotImplementedError
-
-    @abc.abstractmethod
     def get_element_by_id_name(self, id_name: str) -> typing.Generator:
-        raise NotImplementedError
-
-    @abc.abstractmethod
-    def update(self):
         raise NotImplementedError
 
     def update_qualified_name(self):
@@ -71,6 +74,7 @@ class ConceptualItem(HierarchicalElement):
         self._clock = clock
         # Subelement count
         self._cnt_subelements = 0
+        self._cnt_subelements_historical = self._cnt_subelements
         # Context related attributes
         self._cid = 0
         self._sub_elements = {}
@@ -126,11 +130,13 @@ class ConceptualItem(HierarchicalElement):
             self._index_elements_by_name[element.id_name] = {}
         self._index_elements_by_name[element.id_name][element.uuid] = element
         # Set the CID of the added element
-        element.cid = self._cnt_subelements
+        element.cid = self._cnt_subelements_historical
         # Set the parent of the element
         element.parent = self
         # Subelement count increment
         self._cnt_subelements += 1
+        #
+        self._cnt_subelements_historical += 1
         # Update timestamp
         element.update()
 
@@ -139,12 +145,17 @@ class ConceptualItem(HierarchicalElement):
             if uuid is not None:
                 el = self._sub_elements.pop(uuid)
                 self._index_elements_by_name[id_name].pop(uuid)
+                # Invalidate parent
+                el.parent = None
                 el.update()
                 # Decrement element count
                 self._cnt_subelements -= 1
             else:
                 for v in self._index_elements_by_name[id_name].values():
                     el = self._sub_elements.pop(v.uuid)
+                    # Invalidate each element parent
+                    el.parent = None
+                    # Update timestamp etc.
                     el.update()
                     # Decrement by each element
                     self._cnt_subelements -= 1
@@ -153,20 +164,28 @@ class ConceptualItem(HierarchicalElement):
             if uuid is not None:
                 el = self._sub_elements.pop(uuid)
                 self._index_elements_by_name[el.id_name].pop(uuid)
+                # Invalidate element parent
+                el.parent = None
+                # Update tiemstamp etc.
                 el.update()
                 # Decrement element
                 self._cnt_subelements -= 1
             else:
-                raise ErrorElementNotExist
+                raise ErrorInvalidQuery
 
     def get_element_by_id_name(self, id_name: str) -> typing.Generator:
         tokens = id_name.split('/')
         if len(tokens) == 0:
             raise InvalidQueryName
         elif len(tokens) == 1:
-            yield self._index_elements_by_name[tokens[0]]
+            if tokens[0] in self._index_elements_by_name:
+                yield from list(self._index_elements_by_name[tokens[0]].values())
+            else:
+                yield from []
         else:
-            yield from self.get_element_by_id_name('/'.join(tokens[0:]))
+            # Iterate all possible named elements
+            for v in self._index_elements_by_name[tokens[0]].values():
+                yield from v.get_element_by_id_name('/'.join(tokens[1:]))
 
     def get_subelements(self, filterfunc: typing.Callable[[object], bool]) -> typing.Generator:
         yield from filter(filterfunc, self._sub_elements.values())

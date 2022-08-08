@@ -15,3 +15,6 @@ class ErrorClockNotSet(Exception):
 
 class ErrorRecursiveHierarchy(Exception):
     pass
+
+class ErrorInvalidQuery(Exception):
+    pass
