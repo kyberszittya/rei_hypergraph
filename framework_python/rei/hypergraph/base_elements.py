@@ -1,3 +1,5 @@
+import typing
+
 from rei.foundations.abstract_items import IdentifiableItem
 from rei.foundations.clock import MetaClock
 from rei.foundations.conceptual_item import ConceptualItem, HierarchicalElement
@@ -62,12 +64,30 @@ class HypergraphEdge(HypergraphElement):
     def __init__(self, id_name: str, uuid: bytes, qualified_name: str, clock: MetaClock,
                  parent: HierarchicalElement = None):
         super().__init__(id_name, uuid, qualified_name, clock, parent)
+        self._sub_relations = {}
 
     def unary_connect(self, endpoint: HypergraphElement,
                       direction: EnumRelationDirection = EnumRelationDirection.BIDIRECTIONAL):
         id_name = "rel"+'.'.join([self.id_name, endpoint.id_name, str(self.clock.get_time_ns())])
         rel = HypergraphRelation(self._id_generation.generate_uid(endpoint.id_name), id_name,
-                                 '/'.join([self.id_name, id_name]), endpoint, self, direction)
+                                 '/'.join([self.id_name, id_name]), endpoint, direction=direction)
+        self.add_element(rel)
+
+    def add_element(self, element: HierarchicalElement):
+        super().add_element(element)
+        match element:
+            case HypergraphRelation():
+                self._sub_relations[element.cid] = element
+
+    def remove_element(self, id_name: str = "", uuid: bytes = None) -> typing.Generator:
+        _el = super().remove_element(id_name, uuid)
+        for v in _el:
+            yield from self._sub_relations.pop(v.cid)
+
+
+    @property
+    def sub_relations(self):
+        yield from self.get_subelements(lambda x: isinstance(x, HypergraphRelation))
 
 
 class HypergraphNode(HypergraphElement):
@@ -82,9 +102,9 @@ class HypergraphNode(HypergraphElement):
 
     @property
     def sub_edges(self):
-        return filter(lambda x: isinstance(x, HypergraphEdge), self._sub_elements.values())
+        yield from self.get_subelements(lambda x: isinstance(x, HypergraphEdge))
 
     @property
     def sub_nodes(self):
-        return filter(lambda x: isinstance(x, HypergraphNode), self._sub_elements.values())
+        yield from self.get_subelements(lambda x: isinstance(x, HypergraphNode))
 

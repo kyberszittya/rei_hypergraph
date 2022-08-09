@@ -1,4 +1,5 @@
 import abc
+import asyncio
 import typing
 
 from rei.foundations.abstract_items import IdentifiableItem
@@ -14,7 +15,15 @@ class InterfaceSetElement(metaclass=abc.ABCMeta):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def remove_element(self, id_name: str = "", uuid: bytes = None) -> None:
+    async def add_elements(self, elements: typing.Iterable[typing.Any]) -> asyncio.Future:
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def remove_element(self, id_name: str = "", uuid: bytes = None) -> typing.Generator:
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    async def remove_elements(self, elements: typing.Iterable[tuple[str, bytes]]) -> asyncio.Future:
         raise NotImplementedError
 
     @abc.abstractmethod
@@ -27,6 +36,16 @@ class HierarchicalElement(IdentifiableItem, InterfaceSetElement):
     def __init__(self, uuid: bytes, id_name: str, progenitor_qualified_name: str, parent=None) -> None:
         super().__init__(uuid, id_name, progenitor_qualified_name)
         self._parent = parent
+        # Context related attributes
+        self._cid = 0
+        # Subelements
+        # Subelement count
+        self._cnt_subelements = 0
+        # All subelements assigned to this element
+        self._cnt_subelements_historical = self._cnt_subelements
+        # All subelements
+        self._sub_elements = {}
+
 
     @property
     def parent(self):
@@ -45,6 +64,73 @@ class HierarchicalElement(IdentifiableItem, InterfaceSetElement):
         if self._parent is not None:
             yield from self._parent.update_qualified_name()
 
+    @property
+    def cid(self):
+        return self._cid
+
+    @cid.setter
+    def cid(self, arg: int):
+        self._cid = arg
+
+    async def add_elements(self, elements: typing.Iterable[typing.Any]) -> asyncio.Future:
+        return asyncio.gather(self.add_element(x) for x in elements)
+
+    async def remove_elements(self, elements: typing.Iterable[tuple[str, bytes]]) -> asyncio.Future:
+        return asyncio.gather(*[self.remove_element(e[0], e[1]) for e in elements])
+
+    async def breadth_visit_children(self, visitor_func: typing.Callable[[typing.Any], typing.Any],
+                                     filter_func: typing.Callable[[typing.Any], bool],
+                                     task_list: list = None,
+                                     fringe: asyncio.Queue = None) -> list[asyncio.Future]:
+        # Fringe setup
+        if fringe is None:
+            _fringe = asyncio.Queue()
+            await _fringe.put(self)
+            _fringe.task_done()
+        else:
+            _fringe = fringe
+        # Task list setup
+        if task_list is None:
+            _task_list = []
+        else:
+            _task_list = task_list
+        # Start processing
+        if not _fringe.empty():
+            _next = await _fringe.get()
+            # Add coroutine (TODO: seek for another solution to create coroutines)
+            _task_list.append(asyncio.coroutine(visitor_func(_next)))
+            for v in _next.get_subelements(filter_func):
+                await _fringe.put(v)
+                _fringe.task_done()
+            await _next.breadth_visit_children(visitor_func, filter_func, _task_list, _fringe)
+            return _task_list
+
+    async def depth_visit_children(self, visitor_func: typing.Callable[[typing.Any], typing.Any],
+                                   filter_func: typing.Callable[[typing.Any], bool],
+                                   task_list: list = None,
+                                   fringe: asyncio.LifoQueue = None) -> list[asyncio.Future]:
+        # Fringe
+        if fringe is None:
+            _fringe = asyncio.LifoQueue()
+            await _fringe.put(self)
+            _fringe.task_done()
+        else:
+            _fringe = fringe
+        # Task list setup
+        if task_list is None:
+            _task_list = []
+        else:
+            _task_list = task_list
+        # Start processing
+        if not _fringe.empty():
+            _next = await _fringe.get()
+            _task_list.append(asyncio.coroutine(visitor_func(_next)))
+            for v in _next.get_subelements(filter_func):
+                await _fringe.put(v)
+                _fringe.task_done()
+            await _next.depth_visit_children(visitor_func, filter_func, _task_list, _fringe)
+            return _task_list
+
 
 class ConceptualItem(HierarchicalElement):
 
@@ -52,12 +138,6 @@ class ConceptualItem(HierarchicalElement):
                  clock: MetaClock, parent: HierarchicalElement = None) -> None:
         super().__init__(uuid, id_name, qualified_name, parent)
         self._clock = clock
-        # Subelement count
-        self._cnt_subelements = 0
-        self._cnt_subelements_historical = self._cnt_subelements
-        # Context related attributes
-        self._cid = 0
-        self._sub_elements = {}
         # Indices
         self._index_elements_by_name = {}
         # Timestamp
@@ -77,14 +157,6 @@ class ConceptualItem(HierarchicalElement):
     @property
     def cnt_subelements(self):
         return self._cnt_subelements
-
-    @property
-    def cid(self):
-        return self._cid
-
-    @cid.setter
-    def cid(self, arg: int):
-        self._cid = arg
 
     @property
     def timestamp(self):
@@ -120,7 +192,7 @@ class ConceptualItem(HierarchicalElement):
         # Update timestamp
         element.update()
 
-    def remove_element(self, id_name: str = "", uuid: bytes = None) -> None:
+    def remove_element(self, id_name: str = "", uuid: bytes = None) -> typing.Generator:
         if len(id_name) > 0:
             if uuid is not None:
                 el = self._sub_elements.pop(uuid)
@@ -130,8 +202,13 @@ class ConceptualItem(HierarchicalElement):
                 el.update()
                 # Decrement element count
                 self._cnt_subelements -= 1
+                # Yield element
+                yield el
             else:
-                for v in self._index_elements_by_name[id_name].values():
+                __tmp = [x for x in self._index_elements_by_name[id_name].values()]
+                # Reset indices
+                self._index_elements_by_name[id_name] = {}
+                for v in __tmp:
                     el = self._sub_elements.pop(v.uuid)
                     # Invalidate each element parent
                     el.parent = None
@@ -139,7 +216,8 @@ class ConceptualItem(HierarchicalElement):
                     el.update()
                     # Decrement by each element
                     self._cnt_subelements -= 1
-                self._index_elements_by_name[id_name] = {}
+                    # Yield element
+                    yield el
         else:
             if uuid is not None:
                 el = self._sub_elements.pop(uuid)
@@ -150,6 +228,8 @@ class ConceptualItem(HierarchicalElement):
                 el.update()
                 # Decrement element
                 self._cnt_subelements -= 1
+                # Yield element
+                yield el
             else:
                 raise ErrorInvalidQuery
 

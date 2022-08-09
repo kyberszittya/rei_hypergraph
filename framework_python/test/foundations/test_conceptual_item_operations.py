@@ -148,7 +148,7 @@ def test_conceptual_item_delete_subelement3():
     l_el = list(item.get_element_by_id_name('/'.join([__SUB_ITEM2_NAME])))
     assert len(l_el) == 1
     # Deletion
-    item.remove_element(__SUB_ITEM2_NAME)
+    list(item.remove_element(__SUB_ITEM2_NAME))
     assert item.cnt_subelements == 2
     # Retrieve subelement
     l_el = list(item.get_element_by_id_name('/'.join([__SUB_ITEM2_NAME])))
@@ -175,8 +175,8 @@ def test_conceptual_item_delete_subelement2():
     _, sub_item3 = _item_creation(__SUB_ITEM3_NAME, gen_identifier, clock,
                                   __ITEM_FACTORY_NAME, _identification_func, item)
     # Deletion
-    item.remove_element(__SUB_ITEM3_NAME)
-    item.remove_element(__SUB_ITEM1_NAME)
+    list(item.remove_element(__SUB_ITEM3_NAME))
+    list(item.remove_element(__SUB_ITEM1_NAME))
     assert item.cnt_subelements == 1
     # Assert parents are null
     assert sub_item3.parent is None
@@ -208,7 +208,7 @@ def test_conceptual_item_delete_subelement_then_add():
     _, sub_item3 = _item_creation(__SUB_ITEM3_NAME, gen_identifier, clock,
                                   __ITEM_FACTORY_NAME, _identification_func, item)
     # Deletion
-    item.remove_element(__SUB_ITEM3_NAME)
+    list(item.remove_element(__SUB_ITEM3_NAME))
     l_el = list(item.get_element_by_id_name('/'.join([__SUB_ITEM3_NAME])))
     assert len(l_el) == 0
     # Subelement 3
@@ -238,7 +238,7 @@ def test_conceptual_item_delete_middle_subelement_then_add():
     _, sub_item3 = _item_creation(__SUB_ITEM3_NAME, gen_identifier, clock,
                                   __ITEM_FACTORY_NAME, _identification_func, item)
     # Deletion
-    item.remove_element(__SUB_ITEM2_NAME)
+    list(item.remove_element(__SUB_ITEM2_NAME))
     l_el = list(item.get_element_by_id_name('/'.join([__SUB_ITEM2_NAME])))
     assert len(l_el) == 0
     assert sub_item2.parent is None
@@ -269,7 +269,7 @@ def test_conceptual_item_delete_by_uuid():
     _, sub_item3 = _item_creation(__SUB_ITEM3_NAME, gen_identifier, clock,
                                   __ITEM_FACTORY_NAME, _identification_func, item)
     # Deletion
-    item.remove_element(uuid=sub_item2.uuid)
+    list(item.remove_element(uuid=sub_item2.uuid))
     l_el = list(item.get_element_by_id_name('/'.join([__SUB_ITEM2_NAME])))
     assert len(l_el) == 0
     assert sub_item2.parent is None
@@ -289,6 +289,5 @@ def test_conceptual_item_delete_invalid_query():
         _, sub_item3 = _item_creation(__SUB_ITEM3_NAME, gen_identifier, clock,
                                       __ITEM_FACTORY_NAME, _identification_func, item)
         # Deletion
-        item.remove_element(id_name="", uuid=None)
-        l_el = list(item.get_element_by_id_name('/'.join([__SUB_ITEM2_NAME])))
-        assert len(l_el) == 0
+        list(item.remove_element(id_name="", uuid=None))
+        list(item.get_element_by_id_name('/'.join([__SUB_ITEM2_NAME])))
