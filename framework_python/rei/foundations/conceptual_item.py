@@ -1,12 +1,13 @@
 import abc
 import typing
 
+from rei.foundations.abstract_items import IdentifiableItem
 from rei.foundations.clock import MetaClock
 from rei.foundations.common_errors import ErrorDuplicateElement, InvalidQueryName, ErrorClockNotSet, \
     ErrorRecursiveHierarchy, ErrorInvalidQuery
 
 
-class MetaSetElement(metaclass=abc.ABCMeta):
+class InterfaceSetElement(metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def add_element(self, element) -> None:
@@ -21,24 +22,11 @@ class MetaSetElement(metaclass=abc.ABCMeta):
         raise NotImplementedError
 
 
-class HierarchicalElement(MetaSetElement):
+class HierarchicalElement(IdentifiableItem, InterfaceSetElement):
 
     def __init__(self, uuid: bytes, id_name: str, progenitor_qualified_name: str, parent=None) -> None:
-        super().__init__()
-        self._uuid = uuid
+        super().__init__(uuid, id_name, progenitor_qualified_name)
         self._parent = parent
-        self._id_name = id_name
-        self._progenitor_qualified_name = progenitor_qualified_name
-        # Qualified name
-        self._qualified_name = id_name
-
-    @property
-    def id_name(self):
-        return self._id_name
-
-    @property
-    def uuid(self):
-        return self._uuid
 
     @property
     def parent(self):
@@ -47,14 +35,6 @@ class HierarchicalElement(MetaSetElement):
     @parent.setter
     def parent(self, arg):
         self._parent = arg
-
-    @property
-    def progenitor_qualified_name(self):
-        return self._progenitor_qualified_name
-
-    @property
-    def qualifed_name(self):
-        return self._qualified_name
 
     @abc.abstractmethod
     def get_element_by_id_name(self, id_name: str) -> typing.Generator:
