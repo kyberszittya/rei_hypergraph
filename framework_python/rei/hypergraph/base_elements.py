@@ -8,6 +8,7 @@ from rei.hypergraph.common_definitions import EnumRelationDirection
 
 import numpy as np
 
+
 class HypergraphElement(ConceptualItem):
     """
 
@@ -96,7 +97,6 @@ class HypergraphNode(HypergraphElement):
     """
 
     def __init__(self, id_name: str, uuid: bytes, qualified_name: str, clock: MetaClock,
-
                  parent: HierarchicalElement = None) -> None:
         super().__init__(id_name, uuid, qualified_name, clock, parent)
 

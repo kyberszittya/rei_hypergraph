@@ -38,7 +38,9 @@ class HierarchicalElement(IdentifiableItem, InterfaceSetElement):
         self._parent = parent
         # Context related attributes
         self._cid = 0
+        #
         # Subelements
+        #
         # Subelement count
         self._cnt_subelements = 0
         # All subelements assigned to this element

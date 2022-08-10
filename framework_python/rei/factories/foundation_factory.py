@@ -10,11 +10,14 @@ class HypergraphFactory():
         self._factory_name: str = factory_name
         self._clock: MetaClock = clock
         self.unique_identifier = Sha3UniqueIdentifierGenerator(
-            self._factory_name, lambda x, y: f"{x}.{self.get_qualified_name(y.id_name)}")
+            self._factory_name, lambda x, y: f"{x}/{self.get_qualified_name(y)}")
 
     def get_qualified_name(self, name: str):
         return f"{name}.{self._clock.get_time_ns()}"
 
-    def generate_node(self, id_name: str):
-        node = HypergraphNode()
+    def generate_node(self, id_name: str, parent: HypergraphNode = None) -> HypergraphNode:
+        node = HypergraphNode(id_name, self.unique_identifier.generate_uid(id_name),
+                              '/'.join([self._factory_name, self.get_qualified_name(id_name)]),
+                              self._clock, parent)
+        return node
 
