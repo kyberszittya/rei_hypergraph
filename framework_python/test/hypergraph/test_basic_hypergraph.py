@@ -55,6 +55,12 @@ def test_connect_nodes():
     for i in range(2):
         assert __FIRST_NODE+str(i) in induced_subset
 
+__V0_FIRST_VALUE = 1.0
+__V1_FIRST_VALUE = 2.0
+__V0_2ND_VALUE = 10.0
+__V0_3RD_VALUE = -4.0
+__V1_2ND_VALUE = -256.7
+
 
 def test_connect_nodes_with_values():
     __clock, __factory = dummy_node_test_creation()
@@ -65,8 +71,8 @@ def test_connect_nodes_with_values():
     e = __factory.create_hyperedge(n0, __SINGLE_EDGE_NAME)
     assert e.id_name == "edge"
     # Values
-    v0 = __factory.create_value(n0, "val0", [1.0])
-    v1 = __factory.create_value(n0, "val1", [2.0])
+    v0 = __factory.create_value(n0, "val0", [__V0_FIRST_VALUE])
+    v1 = __factory.create_value(n0, "val1", [__V1_FIRST_VALUE])
     # Connections
     e.unary_connect(node_list[0], v0, EnumRelationDirection.BIDIRECTIONAL)
     e.unary_connect(node_list[1], v1, EnumRelationDirection.BIDIRECTIONAL)
@@ -81,8 +87,14 @@ def test_connect_nodes_with_values():
     for i in range(2):
         assert __FIRST_NODE+str(i) in induced_subset
     # Check values
-    assert rels[0].weight[0] == 1.0
-    assert rels[1].weight[0] == 2.0
+    assert rels[0].weight[0] == __V0_FIRST_VALUE
+    assert rels[1].weight[0] == __V1_FIRST_VALUE
     # Change value
-    v1.update_value(0, 10.0)
-    print(rels[0].weight[0])
+    v0.update_value(0, __V0_2ND_VALUE)
+    assert v0[0] == __V0_2ND_VALUE
+    assert rels[0].weight[0] == __V0_2ND_VALUE
+    v0[0] = __V0_3RD_VALUE
+    assert rels[0].weight[0] == __V0_3RD_VALUE
+    v1[0] = __V1_2ND_VALUE
+    assert rels[1].weight[0] == __V1_2ND_VALUE
+

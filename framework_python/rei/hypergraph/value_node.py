@@ -18,6 +18,7 @@ class ValueNode(HierarchicalElement):
         self._values.append(element)
 
     def remove_element(self, id_name: str = "", uuid: bytes = None) -> typing.Generator:
+        # TODO: implement it
         pass
 
     def get_value(self, i):
@@ -27,7 +28,11 @@ class ValueNode(HierarchicalElement):
         self._values[i] = arg
 
     def update(self):
+        # TODO: implement update
         pass
 
     def __getitem__(self, i, /):
         return self._values[i]
+
+    def __setitem__(self, key, value):
+        self._values[key] = value
