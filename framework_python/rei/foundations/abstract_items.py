@@ -26,3 +26,7 @@ class IdentifiableItem(metaclass=abc.ABCMeta):
     @property
     def qualifed_name(self):
         return self._qualified_name
+
+    @abc.abstractmethod
+    def update(self):
+        raise NotImplementedError

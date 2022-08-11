@@ -8,6 +8,19 @@ from rei.hypergraph.common_definitions import EnumRelationDirection
 
 import numpy as np
 
+from rei.hypergraph.value_node import ValueNode
+
+
+class HypergraphPort(HierarchicalElement):
+    """
+
+    """
+
+    def __init__(self, uuid: bytes, id_name: str, progenitor_qualified_name: str, endpoint: HierarchicalElement,
+                 parent=None) -> None:
+        super().__init__(uuid, id_name, progenitor_qualified_name, parent)
+        self._endpoint = endpoint
+
 
 class HypergraphElement(ConceptualItem):
     """
@@ -17,12 +30,24 @@ class HypergraphElement(ConceptualItem):
     def __init__(self, id_name: str, uuid: bytes, qualified_name: str, clock: MetaClock,
                  parent: HierarchicalElement = None):
         super().__init__(id_name, uuid, qualified_name, clock, parent)
-        self._id_generation = Sha3UniqueIdentifierGenerator(id_name,
-                                                            HypergraphElement.identification_generation)
+        self._id_generation = Sha3UniqueIdentifierGenerator(id_name, HypergraphElement.identification_generation)
+        # Ports to deduce associated relations
+        self._ports: dict[bytes, HypergraphPort] = {}
 
     @staticmethod
-    def identification_generation(self, x: str, y: IdentifiableItem):
+    def identification_generation(x: str, y: IdentifiableItem):
         return f"{x}/{y.id_name}"
+
+    def connect(self, el: HierarchicalElement):
+        port_name = '.'.join([self.id_name, "port", el.id_name])
+        p = HypergraphPort(self._id_generation.generate_uid(port_name), port_name,
+                           port_name, el, self)
+        self._ports[el.uuid] = p
+        self.add_element(p)
+
+    def disconnect(self, el: HierarchicalElement):
+        p = self._ports.pop(el.uuid)
+        self.remove_element(id_name=p.id_name, uuid=p.uuid)
 
 
 class HypergraphRelation(HierarchicalElement):
@@ -31,7 +56,7 @@ class HypergraphRelation(HierarchicalElement):
     """
 
     def __init__(self, uuid: bytes, id_name: str, progenitor_qualified_name: str,
-                 endpoint: HypergraphElement, parent=None,
+                 endpoint: HypergraphElement, weight: ValueNode, parent=None,
                  direction: EnumRelationDirection = EnumRelationDirection.BIDIRECTIONAL):
         super().__init__(uuid, id_name, progenitor_qualified_name, parent)
         self._endpoint = endpoint
@@ -43,6 +68,8 @@ class HypergraphRelation(HierarchicalElement):
                 self._relation_incidence_value = np.array([1.0, 0.0])
             case EnumRelationDirection.OUTWARDS:
                 self._relation_incidence_value = np.array([0.0, 1.0])
+        # Weight
+        self._weight = weight
 
     @property
     def endpoint(self):
@@ -56,6 +83,24 @@ class HypergraphRelation(HierarchicalElement):
     def relation_incidence_value(self):
         return np.copy(self._relation_incidence_value)
 
+    @property
+    def weight(self) -> ValueNode:
+        return self._weight
+
+    def update(self):
+        self._qualified_name = self.update_qualified_name()
+
+    def add_element(self, element: HypergraphElement) -> None:
+        self._endpoint = element
+        self._sub_elements[element.uuid] = element
+        # Set port
+        element.connect(self)
+
+    def remove_element(self, id_name: str = "", uuid: bytes = None) -> typing.Generator:
+        el = self._sub_elements.pop(self.endpoint.uuid)
+        self._endpoint = None
+        yield el
+
 
 class HypergraphEdge(HypergraphElement):
     """
@@ -67,11 +112,11 @@ class HypergraphEdge(HypergraphElement):
         super().__init__(id_name, uuid, qualified_name, clock, parent)
         self._sub_relations = {}
 
-    def unary_connect(self, endpoint: HypergraphElement,
+    def unary_connect(self, endpoint: HypergraphElement, weight: ValueNode,
                       direction: EnumRelationDirection = EnumRelationDirection.BIDIRECTIONAL):
         id_name = "rel"+'.'.join([self.id_name, endpoint.id_name, str(self.clock.get_time_ns())])
-        rel = HypergraphRelation(self._id_generation.generate_uid(endpoint.id_name), id_name,
-                                 '/'.join([self.id_name, id_name]), endpoint, direction=direction)
+        rel = HypergraphRelation(self._id_generation.generate_uid(endpoint), id_name,
+                                 '/'.join([self.id_name, id_name]), endpoint, weight, direction=direction)
         self.add_element(rel)
 
     def add_element(self, element: HierarchicalElement):
@@ -85,10 +130,13 @@ class HypergraphEdge(HypergraphElement):
         for v in _el:
             yield from self._sub_relations.pop(v.cid)
 
-
     @property
     def sub_relations(self):
         yield from self.get_subelements(lambda x: isinstance(x, HypergraphRelation))
+
+    @property
+    def induced_subset(self) -> typing.Generator:
+        yield from map(lambda x: x.endpoint,self.get_subelements(lambda x: isinstance(x, HypergraphRelation)))
 
 
 class HypergraphNode(HypergraphElement):
@@ -107,4 +155,5 @@ class HypergraphNode(HypergraphElement):
     @property
     def sub_nodes(self):
         yield from self.get_subelements(lambda x: isinstance(x, HypergraphNode))
+
 

@@ -1,6 +1,9 @@
+import typing
+
 from rei.foundations.clock import MetaClock
 from rei.foundations.identification.identity_generator import Sha3UniqueIdentifierGenerator
-from rei.hypergraph.base_elements import HypergraphNode
+from rei.hypergraph.base_elements import HypergraphNode, HypergraphEdge
+from rei.hypergraph.value_node import ValueNode
 
 
 class HypergraphFactory():
@@ -20,4 +23,22 @@ class HypergraphFactory():
                               '/'.join([self._factory_name, self.get_qualified_name(id_name)]),
                               self._clock, parent)
         return node
+
+    #
+    # Generator functions
+    #
+
+    def create_hyperedge(self, parent: HypergraphNode, edge_name: str):
+        uuid: bytes = self.unique_identifier.generate_uid(edge_name)
+        he = HypergraphEdge(edge_name, uuid,
+                            '/'.join([parent.qualifed_name, edge_name])+f".{parent.clock.get_time_ns()}",
+                            parent.clock, parent)
+        return he
+
+    def create_value(self, parent: HypergraphNode, value_name: str, values: list[typing.Any] = None):
+        uuid: bytes = self.unique_identifier.generate_uid(value_name)
+        val = ValueNode(uuid, value_name,
+                        '/'.join([parent.qualifed_name, value_name])+f".{parent.clock.get_time_ns()}",
+                        values, parent)
+        return val
 
