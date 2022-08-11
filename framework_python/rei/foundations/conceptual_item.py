@@ -72,62 +72,9 @@ class HierarchicalElement(IdentifiableItem, InterfaceSetOperations, ABC):
     def get_subelements(self, filterfunc: typing.Callable[[typing.Any], bool]) -> typing.Generator:
         yield from filter(filterfunc, self._sub_elements.values())
 
-    async def breadth_visit_children(self, visitor_func: typing.Callable[[typing.Any], typing.Any],
-                                     filter_func: typing.Callable[[typing.Any], bool],
-                                     task_list: list = None,
-                                     fringe: asyncio.Queue = None) -> list[asyncio.Future]:
-        # Fringe setup
-        if fringe is None:
-            _fringe = asyncio.Queue()
-            await _fringe.put(self)
-            _fringe.task_done()
-        else:
-            _fringe = fringe
-        # Task list setup
-        if task_list is None:
-            _task_list = []
-            if filter_func(self):
-                _task_list.append(asyncio.coroutine(visitor_func(self)))
-        else:
-            _task_list = task_list
-        # Start processing
-        if not _fringe.empty():
-            _next = await _fringe.get()
-            for v in _next.get_subelements(filter_func):
-                await _fringe.put(v)
-                _fringe.task_done()
-                # Add coroutine (TODO: seek for another solution to create coroutines)
-                _task_list.append(asyncio.coroutine(visitor_func(v)))
-            await _next.breadth_visit_children(visitor_func, filter_func, _task_list, _fringe)
-            return _task_list
 
-    async def depth_visit_children(self, visitor_func: typing.Callable[[typing.Any], typing.Any],
-                                   filter_func: typing.Callable[[typing.Any], bool],
-                                   task_list: list = None,
-                                   fringe: asyncio.LifoQueue = None) -> list[asyncio.Future]:
-        # Fringe
-        if fringe is None:
-            _fringe = asyncio.LifoQueue()
-            await _fringe.put(self)
-            _fringe.task_done()
-        else:
-            _fringe = fringe
-        # Task list setup
-        if task_list is None:
-            _task_list = []
-            if filter_func(self):
-                _task_list.append(asyncio.coroutine(visitor_func(self)))
-        else:
-            _task_list = task_list
-        # Start processing
-        if not _fringe.empty():
-            _next = await _fringe.get()
-            for v in _next.get_subelements(filter_func):
-                await _fringe.put(v)
-                _fringe.task_done()
-                _task_list.append(asyncio.coroutine(visitor_func(v)))
-            await _next.depth_visit_children(visitor_func, filter_func, _task_list, _fringe)
-            return _task_list
+
+
 
 
 class InterfaceNamedSubelements(metaclass=abc.ABCMeta):

@@ -1,12 +1,11 @@
+from rei.foundations.hierarchical_traversal_strategies import BreadthFirstHierarchicalTraversal, \
+    DepthFirstHierarchicalTraversal
 from test.foundations.common_functions_coneptual_items import _root_item_creation, _item_creation
 
 import asyncio
 
-__ITEM_FACTORY_NAME = "tester"
-__ROOT_ITEM1_NAME = "test_root"
-__SUB_ITEM_PREFIX_NAME = "item"
-__CNT_BASIC_ELEMENTS = 10
-__CNT_BREADTH_ELEMENTS = 4
+from common_test_literals import __ITEM_FACTORY_NAME, __ROOT_ITEM1_NAME,\
+    __CNT_BASIC_ELEMENTS, __CNT_BREADTH_ELEMENTS, __SUB_ITEM_PREFIX_NAME
 
 
 def _identification_func(x, y) -> str:
@@ -53,7 +52,9 @@ def test_conceptual_item_breadth_first_search():
                        for p in range(0, __CNT_BREADTH_ELEMENTS)])
     assert item.cnt_subelements == __CNT_BREADTH_ELEMENTS
     names = []
-    asyncio.run(item.breadth_visit_children(lambda x: names.append(x.id_name), lambda x: True))
+    # Run hierarchical traversal
+    bfs = BreadthFirstHierarchicalTraversal()
+    asyncio.run(bfs.execute(item, lambda x: names.append(x.id_name), lambda x: True))
     assert '.'.join(names) == f"{__ROOT_ITEM1_NAME}.{'.'.join([__SUB_ITEM_PREFIX_NAME+str(i) for i in range(0, __CNT_BREADTH_ELEMENTS)])}"
 
 
@@ -69,7 +70,9 @@ def test_conceptual_item_breadth_first_search_level2():
                          for p in range(0, __CNT_BREADTH_ELEMENTS)])
     assert item.cnt_subelements == __CNT_BREADTH_ELEMENTS
     names = []
-    asyncio.run(item.breadth_visit_children(lambda x: names.append(x.id_name), lambda x: True))
+    # Run hierarchical traversal
+    bfs = BreadthFirstHierarchicalTraversal()
+    asyncio.run(bfs.execute(item, lambda x: names.append(x.id_name), lambda x: True))
     assert '.'.join(names) == __ROOT_ITEM1_NAME+''.join(5*('.'+'.'.join([__SUB_ITEM_PREFIX_NAME+str(i) for i in range(0, __CNT_BREADTH_ELEMENTS)])))
 
 
@@ -81,5 +84,7 @@ def test_conceptual_item_depth_first_search():
                        for p in range(0, __CNT_BREADTH_ELEMENTS)])
     assert item.cnt_subelements == __CNT_BREADTH_ELEMENTS
     names = []
-    asyncio.run(item.depth_visit_children(lambda x: names.append(x.id_name), lambda x: True))
+    # Ru  hierarchical traversal
+    dfs = DepthFirstHierarchicalTraversal()
+    asyncio.run(dfs.execute(item, lambda x: names.append(x.id_name), lambda x: True))
     assert '.'.join(names) == f"{__ROOT_ITEM1_NAME}.{'.'.join([__SUB_ITEM_PREFIX_NAME+str(i) for i in range(__CNT_BREADTH_ELEMENTS - 1, -1, -1)])}"

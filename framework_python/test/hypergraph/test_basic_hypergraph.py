@@ -55,6 +55,7 @@ def test_connect_nodes():
     for i in range(2):
         assert __FIRST_NODE+str(i) in induced_subset
 
+
 __V0_FIRST_VALUE = 1.0
 __V1_FIRST_VALUE = 2.0
 __V0_2ND_VALUE = 10.0

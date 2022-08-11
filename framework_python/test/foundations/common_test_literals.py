@@ -1,0 +1,7 @@
+
+
+__ITEM_FACTORY_NAME = "tester"
+__ROOT_ITEM1_NAME = "test_root"
+__SUB_ITEM_PREFIX_NAME = "item"
+__CNT_BASIC_ELEMENTS = 10
+__CNT_BREADTH_ELEMENTS = 4
