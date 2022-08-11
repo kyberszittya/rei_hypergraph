@@ -60,6 +60,8 @@ __V1_FIRST_VALUE = 2.0
 __V0_2ND_VALUE = 10.0
 __V0_3RD_VALUE = -4.0
 __V1_2ND_VALUE = -256.7
+__VAL0_NAME = "val0"
+__VAL1_NAME = "val1"
 
 
 def test_connect_nodes_with_values():
@@ -71,13 +73,12 @@ def test_connect_nodes_with_values():
     e = __factory.create_hyperedge(n0, __SINGLE_EDGE_NAME)
     assert e.id_name == "edge"
     # Values
-    v0 = __factory.create_value(n0, "val0", [__V0_FIRST_VALUE])
-    v1 = __factory.create_value(n0, "val1", [__V1_FIRST_VALUE])
+    v0 = __factory.create_value(n0, __VAL0_NAME, [__V0_FIRST_VALUE])
+    v1 = __factory.create_value(n0, __VAL1_NAME, [__V1_FIRST_VALUE])
     # Connections
     e.unary_connect(node_list[0], v0, EnumRelationDirection.BIDIRECTIONAL)
     e.unary_connect(node_list[1], v1, EnumRelationDirection.BIDIRECTIONAL)
     rels = (list(e.get_subelements(lambda x: isinstance(x, HypergraphRelation))))
-    assert len(rels) == 2
     names_list = []
     asyncio.get_event_loop().run_until_complete(e.breadth_visit_children(
         lambda x: names_list.append(x.id_name), lambda x: isinstance(x, HypergraphRelation)))
@@ -97,4 +98,16 @@ def test_connect_nodes_with_values():
     assert rels[0].weight[0] == __V0_3RD_VALUE
     v1[0] = __V1_2ND_VALUE
     assert rels[1].weight[0] == __V1_2ND_VALUE
+    # Ensure values have the correct parents
+    assert v0.parent is n0
+    assert v1.parent is n0
+    # Retrieve values from node
+    val_list = list(n0.sub_values)
+    assert len(val_list) == 2
+    assert '.'.join(map(lambda x: x.id_name, val_list)) == ".".join([__VAL0_NAME, __VAL1_NAME])
+    # Retrieve specific value
+    vals = list(n0.get_element_by_id_name(__VAL0_NAME))
+    assert len(vals) == 1
+    assert vals[0][0] == __V0_3RD_VALUE
+
 

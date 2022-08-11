@@ -39,6 +39,7 @@ class HypergraphFactory():
         uuid: bytes = self.unique_identifier.generate_uid(value_name)
         val = ValueNode(uuid, value_name,
                         '/'.join([parent.qualifed_name, value_name])+f".{parent.clock.get_time_ns()}",
-                        values, parent)
+                        values)
+        parent.add_element(val)
         return val
 
