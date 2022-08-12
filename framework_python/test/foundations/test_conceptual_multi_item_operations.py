@@ -53,8 +53,8 @@ def test_conceptual_item_breadth_first_search():
     assert item.cnt_subelements == __CNT_BREADTH_ELEMENTS
     names = []
     # Run hierarchical traversal
-    bfs = BreadthFirstHierarchicalTraversal()
-    asyncio.run(bfs.execute(item, lambda x: names.append(x.id_name), lambda x: True))
+    bfs = BreadthFirstHierarchicalTraversal(lambda x: names.append(x.id_name), lambda x: True)
+    asyncio.run(bfs.execute(item))
     assert '.'.join(names) == f"{__ROOT_ITEM1_NAME}.{'.'.join([__SUB_ITEM_PREFIX_NAME+str(i) for i in range(0, __CNT_BREADTH_ELEMENTS)])}"
 
 
@@ -71,8 +71,8 @@ def test_conceptual_item_breadth_first_search_level2():
     assert item.cnt_subelements == __CNT_BREADTH_ELEMENTS
     names = []
     # Run hierarchical traversal
-    bfs = BreadthFirstHierarchicalTraversal()
-    asyncio.run(bfs.execute(item, lambda x: names.append(x.id_name), lambda x: True))
+    bfs = BreadthFirstHierarchicalTraversal(lambda x: names.append(x.id_name), lambda x: True)
+    asyncio.run(bfs.execute(item))
     assert '.'.join(names) == __ROOT_ITEM1_NAME+''.join(5*('.'+'.'.join([__SUB_ITEM_PREFIX_NAME+str(i) for i in range(0, __CNT_BREADTH_ELEMENTS)])))
 
 
@@ -85,6 +85,6 @@ def test_conceptual_item_depth_first_search():
     assert item.cnt_subelements == __CNT_BREADTH_ELEMENTS
     names = []
     # Ru  hierarchical traversal
-    dfs = DepthFirstHierarchicalTraversal()
-    asyncio.run(dfs.execute(item, lambda x: names.append(x.id_name), lambda x: True))
+    dfs = DepthFirstHierarchicalTraversal(lambda x: names.append(x.id_name), lambda x: True)
+    asyncio.run(dfs.execute(item))
     assert '.'.join(names) == f"{__ROOT_ITEM1_NAME}.{'.'.join([__SUB_ITEM_PREFIX_NAME+str(i) for i in range(__CNT_BREADTH_ELEMENTS - 1, -1, -1)])}"

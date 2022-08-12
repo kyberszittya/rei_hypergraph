@@ -24,6 +24,6 @@ def test_conceptual_item_limited_depth_first_search_level2():
     assert item.cnt_subelements == __CNT_BREADTH_ELEMENTS
     names = []
     # Depth-limited traversal
-    dlfs = DepthLimitedDepthVisitChildren(1)
-    asyncio.run(dlfs.execute(item, lambda x: names.append(x.id_name), lambda x: True))
+    dlfs = DepthLimitedDepthVisitChildren(lambda x: names.append(x.id_name), lambda x: True, 1)
+    asyncio.run(dlfs.execute(item))
     assert '.'.join(names) == f"{__ROOT_ITEM1_NAME}.{'.'.join([__SUB_ITEM_PREFIX_NAME+str(i) for i in range(__CNT_BREADTH_ELEMENTS - 1, -1, -1)])}"

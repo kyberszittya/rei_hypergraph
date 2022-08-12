@@ -1,0 +1,6 @@
+__TEST_HYPERGRAPH_FACTORY = "test.hypergraphnode"
+__FIRST_NODE = "node"
+__CNT_BASIC_ISOLATED_NODES = 2
+__CNT_TRI_NODES = 3
+__CNT_BASIC_NODES = 4
+__SINGLE_EDGE_NAME = "edge"
