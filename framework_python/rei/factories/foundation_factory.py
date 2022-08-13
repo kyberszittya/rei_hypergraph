@@ -35,11 +35,16 @@ class HypergraphFactory():
                             parent.clock, parent)
         return he
 
-    def create_value(self, parent: HypergraphNode, value_name: str, values: list[typing.Any] = None):
+    def create_value(self, parent: HypergraphNode | None, value_name: str, values: list[typing.Any] = None):
         uuid: bytes = self.unique_identifier.generate_uid(value_name)
-        val = ValueNode(uuid, value_name,
-                        '/'.join([parent.qualifed_name, value_name])+f".{parent.clock.get_time_ns()}",
-                        values)
-        parent.add_element(val)
+        if parent is not None:
+            val = ValueNode(uuid, value_name,
+                            '/'.join([parent.qualifed_name, value_name])+f".{parent.clock.get_time_ns()}",
+                            values)
+            parent.add_element(val)
+        else:
+            val = ValueNode(uuid, value_name,
+                            '/'.join([value_name])+f".{self._clock.get_time_ns()}",
+                            values)
         return val
 

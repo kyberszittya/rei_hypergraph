@@ -3,7 +3,7 @@ import asyncio
 from rei.hypergraph.base_elements import HypergraphRelation
 from rei.hypergraph.common_definitions import EnumRelationDirection
 
-from common_hypergraph_test_literals import __FIRST_NODE, __CNT_BASIC_NODES, __SINGLE_EDGE_NAME
+from test.hypergraph.common_hypergraph_test_literals import __FIRST_NODE, __CNT_BASIC_NODES, __SINGLE_EDGE_NAME
 from test.hypergraph.common_test_hypergraph_functions import dummy_node_test_creation
 
 

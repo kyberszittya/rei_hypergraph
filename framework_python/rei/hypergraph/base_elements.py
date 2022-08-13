@@ -49,6 +49,10 @@ class HypergraphElement(ConceptualItem):
         p = self._ports.pop(el.uuid)
         self.remove_element(id_name=p.id_name, uuid=p.uuid)
 
+    @property
+    def sub_ports(self):
+        yield from self.get_subelements(lambda x: isinstance(x, HypergraphPort))
+
 
 class HypergraphRelation(HierarchicalElement):
     """

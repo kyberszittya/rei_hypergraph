@@ -1,7 +1,10 @@
 from rei.factories.foundation_factory import HypergraphFactory
 from rei.foundations.clock import DummyClock
 
-from common_hypergraph_test_literals import __TEST_HYPERGRAPH_FACTORY, __FIRST_NODE, __CNT_BASIC_ISOLATED_NODES
+from test.hypergraph.common_hypergraph_test_literals import __TEST_HYPERGRAPH_FACTORY, __FIRST_NODE, __CNT_BASIC_ISOLATED_NODES, \
+    __CNT_TRI_NODES
+from rei.hypergraph.common_definitions import EnumRelationDirection
+
 
 def dummy_node_test_creation():
     __clock = DummyClock()
@@ -23,3 +26,20 @@ def test_2_isolated_nodes():
     for i in range(__CNT_BASIC_ISOLATED_NODES):
         __factory.generate_node(__FIRST_NODE+str(i), n0)
     assert n0.cnt_subelements == __CNT_BASIC_ISOLATED_NODES
+
+
+def simple_graph_creation():
+    __clock, __factory = dummy_node_test_creation()
+    n0 = __factory.generate_node(__FIRST_NODE)
+    node_list = []
+    for i in range(__CNT_TRI_NODES):
+        node_list.append(__factory.generate_node(__FIRST_NODE+str(i), n0))
+    # A--B
+    e1 = __factory.create_hyperedge(n0, "e12")
+    e1.unary_connect(node_list[0], None, EnumRelationDirection.BIDIRECTIONAL)
+    e1.unary_connect(node_list[1], None, EnumRelationDirection.BIDIRECTIONAL)
+    # B--C
+    e2 = __factory.create_hyperedge(n0, "e23")
+    e2.unary_connect(node_list[0], None, EnumRelationDirection.BIDIRECTIONAL)
+    e2.unary_connect(node_list[2], None, EnumRelationDirection.BIDIRECTIONAL)
+    return __clock, __factory, n0, node_list, [e1, e2]
