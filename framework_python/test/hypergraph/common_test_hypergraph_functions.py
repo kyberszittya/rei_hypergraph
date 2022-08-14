@@ -43,3 +43,20 @@ def simple_graph_creation():
     e2.unary_connect(node_list[0], None, EnumRelationDirection.BIDIRECTIONAL)
     e2.unary_connect(node_list[2], None, EnumRelationDirection.BIDIRECTIONAL)
     return __clock, __factory, n0, node_list, [e1, e2]
+
+
+def simple_directed_graph_creation():
+    __clock, __factory = dummy_node_test_creation()
+    n0 = __factory.generate_node(__FIRST_NODE)
+    node_list = []
+    for i in range(__CNT_TRI_NODES):
+        node_list.append(__factory.generate_node(__FIRST_NODE+str(i), n0))
+    # A--B
+    e1 = __factory.create_hyperedge(n0, "e12")
+    e1.unary_connect(node_list[0], None, EnumRelationDirection.INWARDS)
+    e1.unary_connect(node_list[1], None, EnumRelationDirection.OUTWARDS)
+    # B--C
+    e2 = __factory.create_hyperedge(n0, "e23")
+    e2.unary_connect(node_list[0], None, EnumRelationDirection.INWARDS)
+    e2.unary_connect(node_list[2], None, EnumRelationDirection.OUTWARDS)
+    return __clock, __factory, n0, node_list, [e1, e2]

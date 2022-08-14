@@ -60,11 +60,11 @@ class NumpyTensorRepresentation(AbstractTensorRepresentation):
             self._incidence_matrix_out = np.zeros(shape=(ho.cnt_edges, ho.cnt_node), dtype=np.float)
             self._incidence_matrix_in = np.zeros(shape=(ho.cnt_edges, ho.cnt_node), dtype=np.float)
 
-    def fill_tensors(self, i_e, i_n1, i_n0, i_w, val):
+    def fill_tensors(self, i_e, i_n0, i_n1, i_w, val):
         self._weight_tensor[i_e, i_n1, i_n0] = i_w
         # Fill incidence
-        self._incidence_matrix_out[i_e, i_n0] = val[0]
-        self._incidence_matrix_in[i_e, i_n0] = val[1]
+        self._incidence_matrix_out[i_e, i_n1] = i_w
+        self._incidence_matrix_in[i_e, i_n0] = i_w
 
     async def fill_weights(self, q, _task_list: list):
         while not q.empty():
@@ -76,9 +76,10 @@ class NumpyTensorRepresentation(AbstractTensorRepresentation):
 
 class NumpyHypergraphTensorTransformer(GraphMonad):
 
-    def __init__(self) -> None:
+    def __init__(self, repr_depth: int = 1) -> None:
         super().__init__()
         self._tensor_representation: AbstractTensorRepresentation | None = None
+        self.repr_depth = repr_depth
 
     async def execute(self, start) -> list[asyncio.Future]:
         homomorphism = IndexHomomorphismGraphTensor(True)
@@ -86,7 +87,7 @@ class NumpyHypergraphTensorTransformer(GraphMonad):
         self._tensor_representation = NumpyTensorRepresentation()
         self._tensor_representation.synchronize_structure_dimensions(homomorphism)
         q = queue.Queue()
-        tr = HypergraphTraversal(lambda x: q.put(x), lambda x: True, SumNorm(), homomorphism)
+        tr = HypergraphTraversal(lambda x: q.put(x), lambda x: True, SumNorm(), homomorphism, self.repr_depth)
         await tr.execute(start)
         await self._tensor_representation.fill_weights(q, _task_list)
         return _task_list
