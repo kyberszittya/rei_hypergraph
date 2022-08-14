@@ -1,12 +1,15 @@
 import abc
 import asyncio
+import queue
 
 import numpy as np
 import copy
 
+
 from rei.foundations.graph_monad import GraphMonad
-from rei.hypergraph.base_elements import HypergraphNode, HypergraphRelation, HypergraphEdge
+from rei.foundations.hypergraph_traversal_strategies import HypergraphTraversal
 from rei.hypergraph.homomorphism_functions import IndexHomomorphismGraphTensor
+from rei.hypergraph.norm.norm_functions import SumNorm
 
 
 class AbstractTensorRepresentation(metaclass=abc.ABCMeta):
@@ -57,19 +60,18 @@ class NumpyTensorRepresentation(AbstractTensorRepresentation):
             self._incidence_matrix_out = np.zeros(shape=(ho.cnt_edges, ho.cnt_node), dtype=np.float)
             self._incidence_matrix_in = np.zeros(shape=(ho.cnt_edges, ho.cnt_node), dtype=np.float)
 
-    def fill_weights(self, node: HypergraphNode):
-        ho = self._current_homomorphism
-        for e in node.sub_edges:
-            e: HypergraphEdge
-            for rel in e.sub_relations:
-                rel: HypergraphRelation
-                i_n = ho.node(rel.endpoint.uuid)
-                i_e = ho.edge(e.uuid)
+    def fill_tensors(self, i_e, i_n1, i_n0, i_w, val):
+        self._weight_tensor[i_e, i_n1, i_n0] = i_w
+        # Fill incidence
+        self._incidence_matrix_out[i_e, i_n0] = val[0]
+        self._incidence_matrix_in[i_e, i_n0] = val[1]
+
+    async def fill_weights(self, q, _task_list: list):
+        while not q.empty():
+            for v in q.get():
+                i_n0, i_n1, i_e, i_w, val = v
                 # Fill weight
-                self._weight_tensor[i_e, i_n, i_n] = rel.weight
-                # Fill incidence
-                self._incidence_matrix_out[i_e, i_n] = rel.relation_incidence_value[0]
-                self._incidence_matrix_in[i_e, i_n] = rel.relation_incidence_value[1]
+                self.fill_tensors(i_e, i_n1, i_n0, i_w, val)
 
 
 class NumpyHypergraphTensorTransformer(GraphMonad):
@@ -83,7 +85,10 @@ class NumpyHypergraphTensorTransformer(GraphMonad):
         _task_list = await homomorphism.execute(start)
         self._tensor_representation = NumpyTensorRepresentation()
         self._tensor_representation.synchronize_structure_dimensions(homomorphism)
-        self._tensor_representation.fill_weights(start)
+        q = queue.Queue()
+        tr = HypergraphTraversal(lambda x: q.put(x), lambda x: True, SumNorm(), homomorphism)
+        await tr.execute(start)
+        await self._tensor_representation.fill_weights(q, _task_list)
         return _task_list
 
     @property

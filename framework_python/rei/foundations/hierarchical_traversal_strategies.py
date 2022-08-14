@@ -23,13 +23,13 @@ class HierarchicalTraversal(GraphVisitor, ABC):
         _fringe = copy.copy(fringe)
         # Task list setup
         _task_list = []
-        if self.filter_func(start) and not self._ignore_root:
-            _task_list.append(asyncio.coroutine(self.visitor_func(start)))
+        if self._filter_func(start) and not self._ignore_root:
+            _task_list.append(asyncio.coroutine(self._visitor_func(start)))
         return _fringe, _task_list
 
     async def _fill_visit_fringe(self, current_node, _fringe: asyncio.Queue, current_depth: int = 0):
         if current_depth < self._max_depth:
-            for v in current_node.get_subelements(self.filter_func):
+            for v in current_node.get_subelements(self._filter_func):
                 await _fringe.put((v, current_depth + 1))
                 _fringe.task_done()
 
@@ -38,7 +38,7 @@ class HierarchicalTraversal(GraphVisitor, ABC):
             _next, current_depth = await _fringe.get()
             await self._fill_visit_fringe(_next, _fringe, current_depth)
             # Add coroutine (TODO: seek for another solution to create coroutines)
-            _task_list.append(asyncio.coroutine(self.visitor_func(_next)))
+            _task_list.append(asyncio.coroutine(self._visitor_func(_next)))
             await self._traverse(_fringe, _task_list)
 
 
