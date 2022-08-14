@@ -6,14 +6,14 @@ from test.hypergraph.common_hypergraph_test_literals import __TEST_HYPERGRAPH_FA
 from rei.hypergraph.common_definitions import EnumRelationDirection
 
 
-def dummy_node_test_creation():
+def dummy_node_test_factory_creation():
     __clock = DummyClock()
     __factory = HypergraphFactory(__TEST_HYPERGRAPH_FACTORY,  __clock)
     return __clock, __factory
 
 
 def test_single_hypergraph_node():
-    __clock, __factory = dummy_node_test_creation()
+    __clock, __factory = dummy_node_test_factory_creation()
     n0 = __factory.generate_node(__FIRST_NODE)
     assert n0.progenitor_qualified_name == '/'.join([__TEST_HYPERGRAPH_FACTORY, __FIRST_NODE])+".0"
     assert n0.uuid.hex() == "76cf5955e61190bbacd6e0b28f7ee2d095f083ea3945456952b646b1"
@@ -21,7 +21,7 @@ def test_single_hypergraph_node():
 
 
 def test_2_isolated_nodes():
-    __clock, __factory = dummy_node_test_creation()
+    __clock, __factory = dummy_node_test_factory_creation()
     n0 = __factory.generate_node(__FIRST_NODE)
     for i in range(__CNT_BASIC_ISOLATED_NODES):
         __factory.generate_node(__FIRST_NODE+str(i), n0)
@@ -29,7 +29,7 @@ def test_2_isolated_nodes():
 
 
 def simple_graph_creation():
-    __clock, __factory = dummy_node_test_creation()
+    __clock, __factory = dummy_node_test_factory_creation()
     n0 = __factory.generate_node(__FIRST_NODE)
     node_list = []
     for i in range(__CNT_TRI_NODES):
@@ -46,7 +46,7 @@ def simple_graph_creation():
 
 
 def simple_directed_graph_creation():
-    __clock, __factory = dummy_node_test_creation()
+    __clock, __factory = dummy_node_test_factory_creation()
     n0 = __factory.generate_node(__FIRST_NODE)
     node_list = []
     for i in range(__CNT_TRI_NODES):

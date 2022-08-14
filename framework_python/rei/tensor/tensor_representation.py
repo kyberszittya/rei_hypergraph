@@ -32,12 +32,46 @@ class AbstractTensorRepresentation(metaclass=abc.ABCMeta):
     def Ii(self):
         return self._incidence_matrix_in
 
+    @property
+    def deg(self):
+        return self.degree_matrix()
+
+    @property
+    def D(self):
+        return self.diag_degree_matrix()
+
+    @property
+    def total_deg(self):
+        return self.calc_total_deg()
+
+    @abc.abstractmethod
+    def calc_total_deg(self):
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def degree_matrix(self):
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def diag_degree_matrix(self):
+        raise NotImplementedError
+
     @abc.abstractmethod
     def synchronize_structure_dimensions(self, homomorphism: IndexHomomorphismGraphTensor):
         raise NotImplementedError
 
 
 class NumpyTensorRepresentation(AbstractTensorRepresentation):
+
+    def degree_matrix(self):
+        coeff = 1.0/(np.all(self.Io == self.Ii, axis=1) + 1)
+        return np.multiply(np.sum(self.Io, axis=1) + np.sum(self.Ii, axis=1), coeff)
+
+    def diag_degree_matrix(self):
+        return np.diag(self.degree_matrix())
+
+    def calc_total_deg(self):
+        return np.sum(self.degree_matrix())
 
     def synchronize_structure_dimensions(self, homomorphism: IndexHomomorphismGraphTensor):
         if self._current_homomorphism is not None:
@@ -72,6 +106,8 @@ class NumpyTensorRepresentation(AbstractTensorRepresentation):
                 i_n0, i_n1, i_e, i_w, val = v
                 # Fill weight
                 self.fill_tensors(i_e, i_n1, i_n0, i_w, val)
+
+
 
 
 class NumpyHypergraphTensorTransformer(GraphMonad):

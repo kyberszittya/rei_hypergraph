@@ -4,11 +4,11 @@ from rei.hypergraph.base_elements import HypergraphRelation
 from rei.hypergraph.common_definitions import EnumRelationDirection
 
 from test.hypergraph.common_hypergraph_test_literals import __FIRST_NODE, __CNT_BASIC_NODES, __SINGLE_EDGE_NAME
-from test.hypergraph.common_test_hypergraph_functions import dummy_node_test_creation
+from test.hypergraph.common_test_hypergraph_functions import dummy_node_test_factory_creation
 
 
 def test_connect_nodes():
-    __clock, __factory = dummy_node_test_creation()
+    __clock, __factory = dummy_node_test_factory_creation()
     n0 = __factory.generate_node(__FIRST_NODE)
     node_list = []
     for i in range(__CNT_BASIC_NODES):
@@ -39,7 +39,7 @@ __VAL1_NAME = "val1"
 
 
 def test_connect_nodes_with_values():
-    __clock, __factory = dummy_node_test_creation()
+    __clock, __factory = dummy_node_test_factory_creation()
     n0 = __factory.generate_node(__FIRST_NODE)
     node_list = []
     for i in range(__CNT_BASIC_NODES):
