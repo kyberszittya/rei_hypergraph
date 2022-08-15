@@ -33,8 +33,7 @@ class IndexHomomorphismGraphTensor(GraphMonad):
         self.nodes_bfs: HierarchicalTraversal = DepthLimitedBreadthVisitChildren(
             self.add_node_homology, lambda x: isinstance(x, HypergraphNode), self._depth, ignore_root)
         self.values_bfs: HierarchicalTraversal = DepthLimitedBreadthVisitChildren(
-            self.add_value_homology, lambda x: isinstance(x, ValueNode), self._depth, ignore_root
-        )
+            self.add_value_homology, lambda x: isinstance(x, ValueNode), self._depth, ignore_root)
 
     def reset_from_bijection(self, nodes, edges, values):
         self.reset_homology()
@@ -97,7 +96,9 @@ class IndexHomomorphismGraphTensor(GraphMonad):
 
     async def execute(self, start) -> list[asyncio.Future]:
         self.reset_homology()
-        return [*await self.nodes_bfs.execute(start), *await self.edges_bfs.execute(start)]
+        return [*await self.nodes_bfs.execute(start),
+                *await self.edges_bfs.execute(start),
+                *await self.values_bfs.execute(start)]
 
     def node(self, uuid: bytes) -> int:
         return self.__hom_node_dim[uuid]

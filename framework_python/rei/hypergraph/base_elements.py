@@ -60,7 +60,7 @@ class HypergraphRelation(HierarchicalElement):
     """
 
     def __init__(self, uuid: bytes, id_name: str, progenitor_qualified_name: str,
-                 endpoint: HypergraphElement, weight: ValueNode, parent=None,
+                 endpoint: HypergraphElement, weight: ValueNode | None, parent=None,
                  direction: EnumRelationDirection = EnumRelationDirection.BIDIRECTIONAL):
         super().__init__(uuid, id_name, progenitor_qualified_name, parent)
         self._endpoint = endpoint

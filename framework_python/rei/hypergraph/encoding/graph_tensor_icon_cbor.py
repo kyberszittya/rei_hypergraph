@@ -26,7 +26,10 @@ class GraphTensorCbor(object):
 
     def full_msg(self):
         msg = self._coo_tr.msg_value_updates()
-        frag = [self._coo_tr.node_index_list(), self._coo_tr.edge_index_list(), self._coo_tr.msg_relation_index_list(),
+        # Message fragment
+        frag = [self._coo_tr.node_index_list(),
+                self._coo_tr.edge_index_list(),
+                self._coo_tr.msg_relation_index_list(),
                 self._coo_tr.msg_value_nodes(),
                 msg[0], msg[1], msg[2]]
         return cbor2.dumps(frag)
@@ -57,14 +60,14 @@ class GraphTensorCbor(object):
             edges.append((e[0], e[2]))
         # Relation
         for rel in frag[2]:
-            # TODO: Something wrong with the qualified name of relations, fix it
             _el = HypergraphRelation(rel[0], rel[1], rel[2], _elements[rel[4]], None, parent=_elements[rel[5]])
             _elements[rel[5]].add_element(_el)
         # Value nodes
         values = []
         for v in frag[3]:
-            _el = ValueNode(v[0], v[1], "", parent=_elements[v[3]])
+            _el = ValueNode(v[0], v[1], v[4], v[5])
             values.append((v[0], v[2]))
+            _elements[v[3]].add_element(_el)
         # Value tensor
         # Setup homomorphism
         _homomorphism = IndexHomomorphismGraphTensor(True)

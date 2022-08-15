@@ -12,11 +12,12 @@ class ValueNode(HierarchicalElement):
         super().__init__(uuid, id_name, progenitor_qualified_name, parent)
         if values is not None:
             self._values = [x for x in values]
+            self.dim = len(self._values)
         else:
             self._values = []
+            self.dim = 0
         # Iteration
         self._recent_element = 0
-        self.dim = 0
 
     def add_element(self, element) -> None:
         self._values.append(element)

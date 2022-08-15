@@ -60,7 +60,7 @@ class CoordinateObjectTransformer(GraphMonad):
 
     def __msg_value_tuple(self, v: ValueNode):
         _val = v.get_values()
-        return v.uuid, v.id_name, self._index_homomorphism.val(v.uuid), v.parent.uuid, _val
+        return v.uuid, v.id_name, self._index_homomorphism.val(v.uuid), v.parent.uuid, v.qualified_name.encode('utf-8'), _val
 
     def node_index_list(self):
         node_list = [self.__msg_node_tuple(self._context)]
