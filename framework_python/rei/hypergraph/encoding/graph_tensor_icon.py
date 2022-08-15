@@ -56,7 +56,7 @@ class CoordinateObjectTransformer(GraphMonad):
         return el.uuid, el.id_name, self._index_homomorphism.node(el.uuid), el.parent.uuid, el.qualified_name.encode('utf-8')
 
     def __msg_edge_tuple(self, el: HypergraphEdge):
-        return el.uuid, el.id_name, self._index_homomorphism.edge(el.uuid), el.parent.uuid, el.qualified_name
+        return el.uuid, el.id_name, self._index_homomorphism.edge(el.uuid), el.parent.uuid, el.qualified_name.encode('utf-8')
 
     def __msg_value_tuple(self, v: ValueNode):
         _val = v.get_values()
@@ -74,7 +74,7 @@ class CoordinateObjectTransformer(GraphMonad):
         for el in map(lambda x: list(x.sub_relations), self._context.sub_edges):
             for rel in el:
                 rel: HypergraphRelation
-                self._msg_relations.append((rel.uuid, rel.id_name, "",
+                self._msg_relations.append((rel.uuid, rel.id_name, rel.qualified_name,
                                             rel.direction.value, rel.endpoint.uuid, rel.parent.uuid))
         return self._msg_relations
 

@@ -92,7 +92,7 @@ class HypergraphRelation(HierarchicalElement):
         return self._weight
 
     def update(self):
-        self._qualified_name = self.update_qualified_name()
+        self._qualified_name = '/'.join(list(self.update_qualified_name())[::-1])
 
     def add_element(self, element: HypergraphElement) -> None:
         self._endpoint = element
