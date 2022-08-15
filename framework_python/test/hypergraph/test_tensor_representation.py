@@ -59,7 +59,6 @@ def test_edge_traversal_two_edge_with_homomorphism():
     asyncio.run(homomorphism.execute(n0))
     tr = HypergraphTraversal(lambda x: res.append(x), lambda x: True, SumNorm(), homomorphism, depth=1)
     asyncio.run(tr.execute(n0))
-    #assert len(res) == 8
     # 2-factorization
     # New edge
     assert res[0][0][0] == 0

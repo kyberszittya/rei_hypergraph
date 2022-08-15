@@ -41,3 +41,29 @@ def test_simple_directed_graph_representation():
     # Derive incidence matrix
     assert np.all(tr.tensor_representation.Ii - tr.tensor_representation.Io == np.array([[-1, 1, 0],
                                                                                          [-1, 0, 1]]))
+
+
+def test_simple_directed_graph_representation_degree():
+    _, _, n0, node_list, e = simple_directed_graph_creation()
+    tr = NumpyHypergraphTensorTransformer()
+    asyncio.run(tr.execute(n0))
+    assert np.all(tr.tensor_representation.deg == np.array([2, 1, 1]))
+    assert tr.tensor_representation.total_deg == 4
+
+
+def test_simple_directed_graph_representation_projected_laplacian():
+    _, _, n0, node_list, e = simple_directed_graph_creation()
+    tr = NumpyHypergraphTensorTransformer()
+    asyncio.run(tr.execute(n0))
+    Lp = tr.tensor_representation.Lp
+    assert np.all(np.linalg.eig(Lp)[0] == np.array([2, 1, 1]))
+    assert np.trace(Lp) == tr.tensor_representation.total_deg
+
+
+def test_simple_directed_graph_representation_laplacian():
+    _, _, n0, node_list, e = simple_directed_graph_creation()
+    tr = NumpyHypergraphTensorTransformer()
+    asyncio.run(tr.execute(n0))
+    L = tr.tensor_representation.L
+    # Projected Laplacian is not equal to edge-wise Laplacian
+    assert not np.all(L == tr.tensor_representation.Lp)

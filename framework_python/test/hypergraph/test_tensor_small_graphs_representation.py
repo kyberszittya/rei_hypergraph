@@ -1,5 +1,6 @@
 import asyncio
 import numpy as np
+import numpy.testing
 
 from rei.foundations.clock import DummyClock
 from rei.hypergraph.sample_graphs.fano_graph import create_fano_graph
@@ -8,6 +9,9 @@ from test.hypergraph.common_test_hypergraph_functions import dummy_node_test_fac
 
 
 __FIRST_NODE = "taxon"
+__FANO_TOTAL_DEG = 21
+__FANO_NODE_DEG = 3
+__FANO_ENTROPY = 6.824888206009506
 
 
 def test_undirected_fano_graph():
@@ -138,6 +142,35 @@ def test_undirected_fano_graph_degree_matrix():
     assert np.all(np.sum(tr.tensor_representation.Io, axis=1) == np.array([3, 3, 3, 3, 3, 3, 3]))
     assert np.all(np.sum(tr.tensor_representation.Ii, axis=1) == np.array([3, 3, 3, 3, 3, 3, 3]))
     # Check degree matrix calculations
-    assert np.all(tr.tensor_representation.deg == np.array([3, 3, 3, 3, 3, 3, 3]))
-    assert np.all(tr.tensor_representation.D == np.eye(7) * 3.0)
-    assert tr.tensor_representation.total_deg == 21
+    assert np.all(tr.tensor_representation.deg == np.array([__FANO_NODE_DEG] * 7))
+    assert np.all(tr.tensor_representation.D == np.eye(7) * __FANO_NODE_DEG)
+    assert tr.tensor_representation.total_deg == __FANO_TOTAL_DEG
+
+
+def test_undirected_fano_graph_projected_laplacian():
+    _, __n0, __node_list, __edges = create_fano_graph("fano_test", DummyClock())
+    tr = NumpyHypergraphTensorTransformer()
+    asyncio.run(tr.execute(__n0))
+    # Check degree matrix calculations
+    Lp = tr.tensor_representation.Lp
+    assert np.round(np.sum(np.linalg.eig(Lp)[0])) == tr.tensor_representation.total_deg
+
+
+def test_undirected_fano_graph_laplacian():
+    _, __n0, __node_list, __edges = create_fano_graph("fano_test", DummyClock())
+    tr = NumpyHypergraphTensorTransformer()
+    asyncio.run(tr.execute(__n0))
+    # Check degree matrix calculations
+    assert np.all(np.sum(tr.tensor_representation.W, axis=1) == np.sum(tr.tensor_representation.W, axis=2))
+    assert np.all(np.sum(tr.tensor_representation.DD, axis=0) == np.eye(7)*3.0)
+    # The projection of edge wise Laplacian is equal to projected Laplacian
+    assert np.all(np.sum(tr.tensor_representation.L, axis=0) == tr.tensor_representation.Lp)
+
+
+def test_undirected_fano_graph_entropy():
+    _, __n0, __node_list, __edges = create_fano_graph("fano_test", DummyClock())
+    tr = NumpyHypergraphTensorTransformer()
+    asyncio.run(tr.execute(__n0))
+    # Check degree matrix calculations
+    # The projection of edge wise Laplacian is equal to projected Laplacian
+    np.testing.assert_almost_equal(np.sum(tr.tensor_representation.entropy()), __FANO_ENTROPY)

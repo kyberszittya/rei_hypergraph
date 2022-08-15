@@ -41,6 +41,22 @@ class AbstractTensorRepresentation(metaclass=abc.ABCMeta):
         return self.diag_degree_matrix()
 
     @property
+    def L(self):
+        return self.calc_laplacian()
+
+    @property
+    def Lp(self):
+        return self.calc_projected_laplacian()
+
+    @property
+    def DD(self):
+        return self.diag_degree_tensor()
+
+    @property
+    def Lnorm(self):
+        return self.calc_normalized_laplacian()
+
+    @property
     def total_deg(self):
         return self.calc_total_deg()
 
@@ -57,21 +73,64 @@ class AbstractTensorRepresentation(metaclass=abc.ABCMeta):
         raise NotImplementedError
 
     @abc.abstractmethod
+    def diag_degree_tensor(self):
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def calc_laplacian(self):
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def calc_projected_laplacian(self):
+        raise NotImplementedError
+
+    @abc.abstractmethod
     def synchronize_structure_dimensions(self, homomorphism: IndexHomomorphismGraphTensor):
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def calc_normalized_laplacian(self):
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def entropy(self):
         raise NotImplementedError
 
 
 class NumpyTensorRepresentation(AbstractTensorRepresentation):
 
+
+
+
     def degree_matrix(self):
-        coeff = 1.0/(np.all(self.Io == self.Ii, axis=1) + 1)
-        return np.multiply(np.sum(self.Io, axis=1) + np.sum(self.Ii, axis=1), coeff)
+        coeff = 1.0/(np.all(self.Io == self.Ii, axis=0) + 1)
+        return np.multiply(np.sum(self.Io, axis=0) + np.sum(self.Ii, axis=0), coeff)
 
     def diag_degree_matrix(self):
         return np.diag(self.degree_matrix())
 
     def calc_total_deg(self):
         return np.sum(self.degree_matrix())
+
+    def calc_laplacian(self):
+        return self.DD - self.W
+
+    def calc_projected_laplacian(self):
+        return self.D - np.sum(self.W, axis=0)
+
+    def diag_degree_tensor(self):
+        coeff = np.apply_along_axis(np.diag, 1,
+                                    1.0/((np.sum(self.W, axis=1) == np.sum(self.W, axis=2)).astype(float) + 1))
+        __DD = np.apply_along_axis(np.diag, 1, np.sum(self.W, axis=1))
+        return __DD @ coeff
+
+    def calc_normalized_laplacian(self):
+        # As per Ouvrard
+        return 1.0/(self.Ii.shape[0] - 1) * self.L/np.sqrt(self.deg)
+
+    def entropy(self):
+        di = self.calc_normalized_laplacian().diagonal(axis1=1, axis2=2)
+        return -di*np.nan_to_num(np.log2(di), neginf=0, posinf=0)
 
     def synchronize_structure_dimensions(self, homomorphism: IndexHomomorphismGraphTensor):
         if self._current_homomorphism is not None:
@@ -108,8 +167,6 @@ class NumpyTensorRepresentation(AbstractTensorRepresentation):
                 self.fill_tensors(i_e, i_n1, i_n0, i_w, val)
 
 
-
-
 class NumpyHypergraphTensorTransformer(GraphMonad):
 
     def __init__(self, repr_depth: int = 1) -> None:
@@ -131,6 +188,3 @@ class NumpyHypergraphTensorTransformer(GraphMonad):
     @property
     def tensor_representation(self):
         return self._tensor_representation
-
-
-

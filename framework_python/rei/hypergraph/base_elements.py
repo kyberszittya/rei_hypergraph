@@ -163,5 +163,3 @@ class HypergraphNode(HypergraphElement):
     @property
     def sub_values(self):
         yield from self.get_subelements(lambda x: isinstance(x, ValueNode))
-
-
