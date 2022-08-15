@@ -1,8 +1,8 @@
 from rei.factories.foundation_factory import HypergraphFactory
 from rei.foundations.clock import DummyClock
 
-from test.hypergraph.common_hypergraph_test_literals import __TEST_HYPERGRAPH_FACTORY, __FIRST_NODE, __CNT_BASIC_ISOLATED_NODES, \
-    __CNT_TRI_NODES
+from test.hypergraph.common_hypergraph_test_literals import __TEST_HYPERGRAPH_FACTORY, __FIRST_NODE, \
+    __CNT_BASIC_ISOLATED_NODES, __CNT_TRI_NODES
 from rei.hypergraph.common_definitions import EnumRelationDirection
 
 

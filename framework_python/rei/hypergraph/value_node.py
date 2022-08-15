@@ -33,6 +33,9 @@ class ValueNode(HierarchicalElement):
     def update_value(self, i, arg):
         self._values[i] = arg
 
+    def update_values(self, arg):
+        self._values = arg
+
     def update(self):
         # TODO: implement update
         pass

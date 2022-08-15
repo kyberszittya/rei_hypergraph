@@ -16,7 +16,9 @@ class GraphTensorCbor(object):
         self._coo_tr: CoordinateObjectTransformer = CoordinateObjectTransformer(context)
         self.__clock = clock
         self.__icon_name = icon_name
-
+        # Store last decoded graph & homomorphism
+        self._context: HypergraphNode | None = None
+        self._homomorphism: IndexHomomorphismGraphTensor | None = None
 
     async def update_context(self, context: HypergraphNode):
         return await self._coo_tr.reset(context)
@@ -25,7 +27,7 @@ class GraphTensorCbor(object):
         return await self._coo_tr.execute()
 
     def full_msg(self):
-        msg = self._coo_tr.msg_value_updates()
+        msg = self._coo_tr.msg_tensor_value_updates()
         # Message fragment
         frag = [self._coo_tr.node_index_list(),
                 self._coo_tr.edge_index_list(),
@@ -33,6 +35,14 @@ class GraphTensorCbor(object):
                 self._coo_tr.msg_value_nodes(),
                 msg[0], msg[1], msg[2]]
         return cbor2.dumps(frag)
+
+    def msg_value_update(self):
+        return cbor2.dumps(self._coo_tr.msg_value_node_update())
+
+    def from_msg_update_values(self, msg: bytes):
+        frag = cbor2.loads(msg)
+        for v in frag:
+            self._context[self._homomorphism.ival(v[0])].update_values(v[1])
 
     def create_graph(self, msg: bytes):
         frag = cbor2.loads(msg)
@@ -79,5 +89,8 @@ class GraphTensorCbor(object):
         del nodes
         del edges
         del values
+        # Store results locally
+        self._context = _root
+        self._homomorphism = _homomorphism
         # Return
         return _root, _homomorphism

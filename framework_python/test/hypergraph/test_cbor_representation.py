@@ -17,7 +17,7 @@ def test_simple_tree_coo_representation():
     __edge_list = tr.edge_index_list()
     assert len(__edge_list) == 2
     asyncio.run(tr.execute())
-    __val, __iout, __iin = tr.msg_value_updates()
+    __val, __iout, __iin = tr.msg_tensor_value_updates()
     assert len(__val) == 4
     tr.msg_relation_index_list()
 
@@ -95,4 +95,42 @@ def test_simple_tree_with_values_cbor_representation():
     # Value homomorphism
     assert _homomorphism.val(vals[0].uuid) == 0
     assert _homomorphism.val(vals[1].uuid) == 1
+
+
+def test_simple_tree_with_values_cbor_update_values():
+    _, _, n0, node_list, e, vals = simple_directed_graph_with_values_creation()
+    cbor_tr = GraphTensorCbor("icon1", DummyClock(), n0)
+    asyncio.run(cbor_tr.update_context(n0))
+    asyncio.run(cbor_tr.update_coo())
+    __msg = cbor_tr.full_msg()
+    # Decode CBOR
+    _new_root, _homomorphism = cbor_tr.create_graph(__msg)
+    # Check new graph
+    assert _new_root.id_name == n0.id_name
+    assert _new_root.uuid == n0.uuid
+    # Check bijections
+    # Nodes
+    assert _homomorphism.node(n0.uuid) == 0
+    assert _homomorphism.node(node_list[0].uuid) == 1
+    assert _homomorphism.node(node_list[1].uuid) == 2
+    assert _homomorphism.node(node_list[2].uuid) == 3
+    # Edges
+    assert _homomorphism.edge(e[0].uuid) == 0
+    assert _homomorphism.edge(e[1].uuid) == 1
+    # Values
+    _values = list(_new_root.sub_values)
+    assert _values[0][0] == 1.0
+    assert _values[1][0] == 4.0
+    # Value update
+    vals[0][0] = 67.5
+    # Update with CBOR
+    __msg = cbor_tr.msg_value_update()
+    cbor_tr.from_msg_update_values(__msg)
+    assert _values[0][0] == 67.5
+    # Value update another
+    vals[1][0] = -89.4
+    # Update with CBOR msg
+    __msg = cbor_tr.msg_value_update()
+    cbor_tr.from_msg_update_values(__msg)
+    assert _values[1][0] == -89.4
 

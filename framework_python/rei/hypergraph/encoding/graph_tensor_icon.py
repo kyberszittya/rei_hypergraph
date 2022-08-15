@@ -78,9 +78,11 @@ class CoordinateObjectTransformer(GraphMonad):
                                             rel.direction.value, rel.endpoint.uuid, rel.parent.uuid))
         return self._msg_relations
 
-    def msg_value_updates(self):
+    def msg_tensor_value_updates(self):
         return self._msg_value_tensor, self._msg_incidence_out, self._msg_incidence_in
 
     def msg_value_nodes(self):
         return [self.__msg_value_tuple(v) for v in self._context.sub_values]
 
+    def msg_value_node_update(self):
+        return [(self._index_homomorphism.val(v.uuid), v.get_values()) for v in self._context.sub_values]
