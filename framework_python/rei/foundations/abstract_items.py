@@ -24,7 +24,7 @@ class IdentifiableItem(metaclass=abc.ABCMeta):
         return self._progenitor_qualified_name
 
     @property
-    def qualifed_name(self):
+    def qualified_name(self):
         return self._qualified_name
 
     @abc.abstractmethod

@@ -1,11 +1,15 @@
 import asyncio
 import numpy as np
+import numpy.testing
 
 from rei.foundations.hypergraph_traversal_strategies import HypergraphTraversal
 from rei.hypergraph.homomorphism_functions import IndexHomomorphismGraphTensor
 from rei.hypergraph.norm.norm_functions import SumNorm
 from rei.tensor.tensor_representation import NumpyHypergraphTensorTransformer
 from test.hypergraph.common_test_hypergraph_functions import simple_directed_graph_creation
+
+__TREE_ENTROPY = 0.7071067811865476
+__TREE_ENTROPY_PROJECTED = 1.5
 
 
 def test_directed_edge_traversal_two_edge_with_homomorphism():
@@ -67,3 +71,13 @@ def test_simple_directed_graph_representation_laplacian():
     L = tr.tensor_representation.L
     # Projected Laplacian is not equal to edge-wise Laplacian
     assert not np.all(L == tr.tensor_representation.Lp)
+
+
+def test_simple_directed_graph_entropy():
+    _, _, n0, node_list, e = simple_directed_graph_creation()
+    tr = NumpyHypergraphTensorTransformer()
+    asyncio.run(tr.execute(n0))
+    np.testing.assert_almost_equal(tr.tensor_representation.entropy(), __TREE_ENTROPY)
+    assert tr.tensor_representation.entropy_projected() == __TREE_ENTROPY_PROJECTED
+    np.testing.assert_almost_equal(tr.tensor_representation.entropy_projected()/(2*tr.tensor_representation.entropy()),
+                                   1.0, decimal=1)

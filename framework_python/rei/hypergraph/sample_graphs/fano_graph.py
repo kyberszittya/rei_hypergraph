@@ -13,10 +13,10 @@ def create_fano_graph(context_name: str, clock: MetaClock):
         __uuid_set.add(n.uuid)
     # Connect the set of nodes
     __edges = [__factory.connect_nodes(__n0, "e012", [__node_list[0], __node_list[1], __node_list[2]]),
-             __factory.connect_nodes(__n0, "e234", [__node_list[2], __node_list[3], __node_list[4]]),
-             __factory.connect_nodes(__n0, "e146", [__node_list[1], __node_list[4], __node_list[6]]),
-             __factory.connect_nodes(__n0, "e036", [__node_list[0], __node_list[3], __node_list[6]]),
-             __factory.connect_nodes(__n0, "e256", [__node_list[2], __node_list[5], __node_list[6]]),
-             __factory.connect_nodes(__n0, "e135", [__node_list[1], __node_list[3], __node_list[5]]),
-             __factory.connect_nodes(__n0, "e045", [__node_list[0], __node_list[4], __node_list[5]])]
+               __factory.connect_nodes(__n0, "e234", [__node_list[2], __node_list[3], __node_list[4]]),
+               __factory.connect_nodes(__n0, "e146", [__node_list[1], __node_list[4], __node_list[6]]),
+               __factory.connect_nodes(__n0, "e036", [__node_list[0], __node_list[3], __node_list[6]]),
+               __factory.connect_nodes(__n0, "e256", [__node_list[2], __node_list[5], __node_list[6]]),
+               __factory.connect_nodes(__n0, "e135", [__node_list[1], __node_list[3], __node_list[5]]),
+               __factory.connect_nodes(__n0, "e045", [__node_list[0], __node_list[4], __node_list[5]])]
     return __factory, __n0, __node_list, __edges

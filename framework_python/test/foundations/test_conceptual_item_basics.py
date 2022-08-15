@@ -54,7 +54,7 @@ def test_conceptual_item_add_subelement():
     assert sub_item.uuid.hex() != item.uuid.hex()
     assert sub_item.parent is item
     # Check qualified name
-    assert sub_item.qualifed_name == '/'.join([__ROOT_ITEM1_NAME, __SUB_ITEM1_NAME])
+    assert sub_item.qualified_name == '/'.join([__ROOT_ITEM1_NAME, __SUB_ITEM1_NAME])
 
 
 def test_conceptual_item_add_subelement2():
@@ -74,7 +74,7 @@ def test_conceptual_item_add_subelement2():
     assert sub_item.uuid.hex() != item.uuid.hex()
     assert sub_item.parent is item
     # Check qualified name
-    assert sub_item.qualifed_name == '/'.join([__ROOT_ITEM1_NAME, __SUB_ITEM1_NAME])
+    assert sub_item.qualified_name == '/'.join([__ROOT_ITEM1_NAME, __SUB_ITEM1_NAME])
     # UUID check
     assert sub_item.uuid.hex() == __SUB_ITEM1_HEX_SHA3224_ID
     # Additional depth
@@ -82,7 +82,7 @@ def test_conceptual_item_add_subelement2():
     sub_item.add_element(sub_item1)
     assert sub_item1.parent is sub_item
     assert sub_item.cnt_subelements == 1
-    assert sub_item1.qualifed_name == '/'.join([__ROOT_ITEM1_NAME, __SUB_ITEM1_NAME, __SUB_ITEM1_NAME])
+    assert sub_item1.qualified_name == '/'.join([__ROOT_ITEM1_NAME, __SUB_ITEM1_NAME, __SUB_ITEM1_NAME])
 
 
 def test_conceptual_item_add_subelement2_2element():
@@ -102,7 +102,7 @@ def test_conceptual_item_add_subelement2_2element():
                                   __ITEM_FACTORY_NAME, _identification_func, item)
     assert item.cnt_subelements == 2
     assert sub_item2.parent is item
-    assert sub_item2.qualifed_name == '/'.join([__ROOT_ITEM1_NAME, __SUB_ITEM2_NAME])
+    assert sub_item2.qualified_name == '/'.join([__ROOT_ITEM1_NAME, __SUB_ITEM2_NAME])
 
 
 def test_conceptual_item_add_subelement3_w_constructor():
@@ -122,7 +122,7 @@ def test_conceptual_item_add_subelement3_w_constructor():
     assert sub_item.uuid.hex() != item.uuid.hex()
     assert sub_item.parent is item
     # Check qualified name
-    assert sub_item.qualifed_name == '/'.join([__ROOT_ITEM1_NAME, __SUB_ITEM1_NAME])
+    assert sub_item.qualified_name == '/'.join([__ROOT_ITEM1_NAME, __SUB_ITEM1_NAME])
     # UUID check
     assert sub_item.uuid.hex() == __SUB_ITEM1_HEX_SHA3224_ID
     # Additional depth
@@ -130,7 +130,7 @@ def test_conceptual_item_add_subelement3_w_constructor():
                                   __ITEM_FACTORY_NAME, _identification_func, sub_item)
     assert sub_item1.parent is sub_item
     assert sub_item.cnt_subelements == 1
-    assert sub_item1.qualifed_name == '/'.join([__ROOT_ITEM1_NAME, __SUB_ITEM1_NAME, __SUB_ITEM1_NAME])
+    assert sub_item1.qualified_name == '/'.join([__ROOT_ITEM1_NAME, __SUB_ITEM1_NAME, __SUB_ITEM1_NAME])
 
 
 def test_conceptual_item_add_subelement_recursion():

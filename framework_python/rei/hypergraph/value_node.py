@@ -45,6 +45,9 @@ class ValueNode(HierarchicalElement):
     def __iter__(self):
         return (self[i] for i in range(self.dim))
 
+    def get_values(self):
+        return [v for v in self._values]
+
     @property
     def val(self):
         return self._values

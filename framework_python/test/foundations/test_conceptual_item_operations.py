@@ -27,12 +27,12 @@ def test_conceptual_item_retrieve():
                                   __ITEM_FACTORY_NAME, _identification_func, item)
     assert sub_item1.parent is item
     # Check qualified name
-    assert sub_item1.qualifed_name == '/'.join([__ROOT_ITEM1_NAME, __SUB_ITEM1_NAME])
+    assert sub_item1.qualified_name == '/'.join([__ROOT_ITEM1_NAME, __SUB_ITEM1_NAME])
     # Additional depth
     _, sub_item2 = _item_creation(__SUB_ITEM2_NAME, gen_identifier, clock,
                                   __ITEM_FACTORY_NAME, _identification_func, item)
     assert sub_item2.parent is item
-    assert sub_item2.qualifed_name == '/'.join([__ROOT_ITEM1_NAME, __SUB_ITEM2_NAME])
+    assert sub_item2.qualified_name == '/'.join([__ROOT_ITEM1_NAME, __SUB_ITEM2_NAME])
     _, sub_item3 = _item_creation(__SUB_ITEM3_NAME, gen_identifier, clock,
                                   __ITEM_FACTORY_NAME, _identification_func, item)
     # Retrieve element
@@ -65,7 +65,7 @@ def test_conceptual_item_retrieve_2depth():
                                   __ITEM_FACTORY_NAME, _identification_func, item)
     assert sub_item1.parent is item
     # Check qualified name
-    assert sub_item1.qualifed_name == '/'.join([__ROOT_ITEM1_NAME, __SUB_ITEM1_NAME])
+    assert sub_item1.qualified_name == '/'.join([__ROOT_ITEM1_NAME, __SUB_ITEM1_NAME])
     # Additional depth
     _, sub_item2 = _item_creation(__SUB_ITEM2_NAME, gen_identifier, clock,
                                   __ITEM_FACTORY_NAME, _identification_func, item)
@@ -91,7 +91,7 @@ def test_conceptual_item_element_unexist():
                                   __ITEM_FACTORY_NAME, _identification_func, item)
     assert sub_item1.parent is item
     # Check qualified name
-    assert sub_item1.qualifed_name == '/'.join([__ROOT_ITEM1_NAME, __SUB_ITEM1_NAME])
+    assert sub_item1.qualified_name == '/'.join([__ROOT_ITEM1_NAME, __SUB_ITEM1_NAME])
     # Additional depth
     _, sub_item2 = _item_creation(__SUB_ITEM2_NAME, gen_identifier, clock,
                                   __ITEM_FACTORY_NAME, _identification_func, item)
@@ -119,12 +119,12 @@ def test_conceptual_item_delete_subelement3():
                                   __ITEM_FACTORY_NAME, _identification_func, item)
     assert sub_item1.parent is item
     # Check qualified name
-    assert sub_item1.qualifed_name == '/'.join([__ROOT_ITEM1_NAME, __SUB_ITEM1_NAME])
+    assert sub_item1.qualified_name == '/'.join([__ROOT_ITEM1_NAME, __SUB_ITEM1_NAME])
     # Additional depth
     _, sub_item2 = _item_creation(__SUB_ITEM2_NAME, gen_identifier, clock,
                                   __ITEM_FACTORY_NAME, _identification_func, item)
     assert sub_item2.parent is item
-    assert sub_item2.qualifed_name == '/'.join([__ROOT_ITEM1_NAME, __SUB_ITEM2_NAME])
+    assert sub_item2.qualified_name == '/'.join([__ROOT_ITEM1_NAME, __SUB_ITEM2_NAME])
     _, sub_item3 = _item_creation(__SUB_ITEM3_NAME, gen_identifier, clock,
                                   __ITEM_FACTORY_NAME, _identification_func, item)
     # Retrieve element
@@ -166,12 +166,12 @@ def test_conceptual_item_delete_subelement2():
                                   __ITEM_FACTORY_NAME, _identification_func, item)
     assert sub_item1.parent is item
     # Check qualified name
-    assert sub_item1.qualifed_name == '/'.join([__ROOT_ITEM1_NAME, __SUB_ITEM1_NAME])
+    assert sub_item1.qualified_name == '/'.join([__ROOT_ITEM1_NAME, __SUB_ITEM1_NAME])
     # Additional depth
     _, sub_item2 = _item_creation(__SUB_ITEM2_NAME, gen_identifier, clock,
                                   __ITEM_FACTORY_NAME, _identification_func, item)
     assert sub_item2.parent is item
-    assert sub_item2.qualifed_name == '/'.join([__ROOT_ITEM1_NAME, __SUB_ITEM2_NAME])
+    assert sub_item2.qualified_name == '/'.join([__ROOT_ITEM1_NAME, __SUB_ITEM2_NAME])
     _, sub_item3 = _item_creation(__SUB_ITEM3_NAME, gen_identifier, clock,
                                   __ITEM_FACTORY_NAME, _identification_func, item)
     # Deletion
@@ -199,12 +199,12 @@ def test_conceptual_item_delete_subelement_then_add():
                                   __ITEM_FACTORY_NAME, _identification_func, item)
     assert sub_item1.parent is item
     # Check qualified name
-    assert sub_item1.qualifed_name == '/'.join([__ROOT_ITEM1_NAME, __SUB_ITEM1_NAME])
+    assert sub_item1.qualified_name == '/'.join([__ROOT_ITEM1_NAME, __SUB_ITEM1_NAME])
     # Additional depth
     _, sub_item2 = _item_creation(__SUB_ITEM2_NAME, gen_identifier, clock,
                                   __ITEM_FACTORY_NAME, _identification_func, item)
     assert sub_item2.parent is item
-    assert sub_item2.qualifed_name == '/'.join([__ROOT_ITEM1_NAME, __SUB_ITEM2_NAME])
+    assert sub_item2.qualified_name == '/'.join([__ROOT_ITEM1_NAME, __SUB_ITEM2_NAME])
     _, sub_item3 = _item_creation(__SUB_ITEM3_NAME, gen_identifier, clock,
                                   __ITEM_FACTORY_NAME, _identification_func, item)
     # Deletion
@@ -229,12 +229,12 @@ def test_conceptual_item_delete_middle_subelement_then_add():
                                   __ITEM_FACTORY_NAME, _identification_func, item)
     assert sub_item1.parent is item
     # Check qualified name
-    assert sub_item1.qualifed_name == '/'.join([__ROOT_ITEM1_NAME, __SUB_ITEM1_NAME])
+    assert sub_item1.qualified_name == '/'.join([__ROOT_ITEM1_NAME, __SUB_ITEM1_NAME])
     # Additional depth
     _, sub_item2 = _item_creation(__SUB_ITEM2_NAME, gen_identifier, clock,
                                   __ITEM_FACTORY_NAME, _identification_func, item)
     assert sub_item2.parent is item
-    assert sub_item2.qualifed_name == '/'.join([__ROOT_ITEM1_NAME, __SUB_ITEM2_NAME])
+    assert sub_item2.qualified_name == '/'.join([__ROOT_ITEM1_NAME, __SUB_ITEM2_NAME])
     _, sub_item3 = _item_creation(__SUB_ITEM3_NAME, gen_identifier, clock,
                                   __ITEM_FACTORY_NAME, _identification_func, item)
     # Deletion
@@ -260,12 +260,12 @@ def test_conceptual_item_delete_by_uuid():
                                   __ITEM_FACTORY_NAME, _identification_func, item)
     assert sub_item1.parent is item
     # Check qualified name
-    assert sub_item1.qualifed_name == '/'.join([__ROOT_ITEM1_NAME, __SUB_ITEM1_NAME])
+    assert sub_item1.qualified_name == '/'.join([__ROOT_ITEM1_NAME, __SUB_ITEM1_NAME])
     # Additional depth
     _, sub_item2 = _item_creation(__SUB_ITEM2_NAME, gen_identifier, clock,
                                   __ITEM_FACTORY_NAME, _identification_func, item)
     assert sub_item2.parent is item
-    assert sub_item2.qualifed_name == '/'.join([__ROOT_ITEM1_NAME, __SUB_ITEM2_NAME])
+    assert sub_item2.qualified_name == '/'.join([__ROOT_ITEM1_NAME, __SUB_ITEM2_NAME])
     _, sub_item3 = _item_creation(__SUB_ITEM3_NAME, gen_identifier, clock,
                                   __ITEM_FACTORY_NAME, _identification_func, item)
     # Deletion

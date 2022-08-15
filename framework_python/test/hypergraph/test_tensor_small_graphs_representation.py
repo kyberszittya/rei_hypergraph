@@ -11,7 +11,7 @@ from test.hypergraph.common_test_hypergraph_functions import dummy_node_test_fac
 __FIRST_NODE = "taxon"
 __FANO_TOTAL_DEG = 21
 __FANO_NODE_DEG = 3
-__FANO_ENTROPY = 6.824888206009506
+__FANO_ENTROPY = 6.273684376
 
 
 def test_undirected_fano_graph():
@@ -25,12 +25,12 @@ def test_undirected_fano_graph():
         __uuid_set.add(n.uuid)
     # Connect the set of nodes
     __edges = [__factory.connect_nodes(__n0, "e012", [__node_list[0], __node_list[1], __node_list[2]]),
-             __factory.connect_nodes(__n0, "e234", [__node_list[2], __node_list[3], __node_list[4]]),
-             __factory.connect_nodes(__n0, "e146", [__node_list[1], __node_list[4], __node_list[6]]),
-             __factory.connect_nodes(__n0, "e036", [__node_list[0], __node_list[3], __node_list[6]]),
-             __factory.connect_nodes(__n0, "e256", [__node_list[2], __node_list[5], __node_list[6]]),
-             __factory.connect_nodes(__n0, "e135", [__node_list[1], __node_list[3], __node_list[5]]),
-             __factory.connect_nodes(__n0, "e045", [__node_list[0], __node_list[4], __node_list[5]])]
+               __factory.connect_nodes(__n0, "e234", [__node_list[2], __node_list[3], __node_list[4]]),
+               __factory.connect_nodes(__n0, "e146", [__node_list[1], __node_list[4], __node_list[6]]),
+               __factory.connect_nodes(__n0, "e036", [__node_list[0], __node_list[3], __node_list[6]]),
+               __factory.connect_nodes(__n0, "e256", [__node_list[2], __node_list[5], __node_list[6]]),
+               __factory.connect_nodes(__n0, "e135", [__node_list[1], __node_list[3], __node_list[5]]),
+               __factory.connect_nodes(__n0, "e045", [__node_list[0], __node_list[4], __node_list[5]])]
     # Ensure there are 7 edges
     assert len(list(__n0.sub_edges)) == 7
     # Ensure each edge have 3 sub-relations
@@ -40,7 +40,7 @@ def test_undirected_fano_graph():
     tr = NumpyHypergraphTensorTransformer()
     asyncio.run(tr.execute(__n0))
     # Ensure the adjacency matrix is as it is
-    assert (np.all(np.sum(tr.tensor_representation.W, axis=0) + np.eye(7) == np.ones(shape=(7,7))))
+    assert (np.all(np.sum(tr.tensor_representation.W, axis=0) + np.eye(7) == np.ones(shape=(7, 7))))
     # Check structure (adjacency)
     # E-012
     assert np.all(tr.tensor_representation.W[0] == np.array([
@@ -173,4 +173,7 @@ def test_undirected_fano_graph_entropy():
     asyncio.run(tr.execute(__n0))
     # Check degree matrix calculations
     # The projection of edge wise Laplacian is equal to projected Laplacian
-    np.testing.assert_almost_equal(np.sum(tr.tensor_representation.entropy()), __FANO_ENTROPY)
+    np.testing.assert_almost_equal(np.sum(tr.tensor_representation.entropy_vector()), __FANO_ENTROPY)
+    assert tr.tensor_representation.entropy() == np.sum(tr.tensor_representation.entropy_vector())
+    np.testing.assert_almost_equal(tr.tensor_representation.entropy()/(2*tr.tensor_representation.entropy_projected()),
+                                   1.0, decimal=1)

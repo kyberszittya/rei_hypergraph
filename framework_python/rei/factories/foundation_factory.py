@@ -39,7 +39,7 @@ class HypergraphFactory():
     def create_hyperedge(self, parent: HypergraphNode, edge_name: str):
         uuid: bytes = self.unique_identifier.generate_uid(edge_name)
         he = HypergraphEdge(edge_name, uuid,
-                            '/'.join([parent.qualifed_name, edge_name])+f".{parent.clock.get_time_ns()}",
+                            '/'.join([parent.qualified_name, edge_name]) + f".{parent.clock.get_time_ns()}",
                             parent.clock, parent)
         return he
 
@@ -48,7 +48,7 @@ class HypergraphFactory():
                       values: list[ValueNode] | None = None):
         uuid: bytes = self.unique_identifier.generate_uid(edge_name)
         he = HypergraphEdge(edge_name, uuid,
-                            '/'.join([container.qualifed_name, edge_name])+f".{container.clock.get_time_ns()}",
+                            '/'.join([container.qualified_name, edge_name]) + f".{container.clock.get_time_ns()}",
                             container.clock, container)
         if values is None:
             node_values = zip(nodes, len(nodes)*[None])
@@ -64,7 +64,7 @@ class HypergraphFactory():
         uuid: bytes = self.unique_identifier.generate_uid(value_name)
         if parent is not None:
             val = ValueNode(uuid, value_name,
-                            '/'.join([parent.qualifed_name, value_name])+f".{parent.clock.get_time_ns()}",
+                            '/'.join([parent.qualified_name, value_name]) + f".{parent.clock.get_time_ns()}",
                             values)
             parent.add_element(val)
         else:

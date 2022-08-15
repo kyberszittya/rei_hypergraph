@@ -140,7 +140,7 @@ class HypergraphEdge(HypergraphElement):
 
     @property
     def induced_subset(self) -> typing.Generator:
-        yield from map(lambda x: x.endpoint,self.get_subelements(lambda x: isinstance(x, HypergraphRelation)))
+        yield from map(lambda x: x.endpoint, self.get_subelements(lambda x: isinstance(x, HypergraphRelation)))
 
 
 class HypergraphNode(HypergraphElement):
