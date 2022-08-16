@@ -2,8 +2,11 @@ import argparse
 
 from antlr4 import FileStream, CommonTokenStream
 
+from rei.factories.foundation_factory import HypergraphFactory
 from rei.format.cognilang.CogniLangLexer import CogniLangLexer
 from rei.format.cognilang.CogniLangParser import CogniLangParser
+from rei.format.mapping.cognilang_file_icon import CognilangParserFileIcon
+from rei.foundations.clock import LocalClock
 
 
 def main():
@@ -19,6 +22,10 @@ def main():
     parser = CogniLangParser(stream)
     tree = parser.rootnode()
     # Instantiate visitor
+    __clock = LocalClock()
+    __factory = HypergraphFactory("cogni_file_parser", __clock)
+    visitor = CognilangParserFileIcon(__factory)
+    visitor.visit(tree)
 
 if __name__ == "__main__":
     main()
