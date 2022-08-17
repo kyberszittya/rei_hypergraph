@@ -23,9 +23,10 @@ def main():
     tree = parser.rootnode()
     # Instantiate visitor
     __clock = LocalClock()
-    __factory = HypergraphFactory("cogni_file_parser", __clock)
-    visitor = CognilangParserFileIcon(__factory)
+    visitor = CognilangParserFileIcon("cogni_lang_file", __clock)
     visitor.visit(tree)
+    print(visitor.root_entity.id_name)
+
 
 if __name__ == "__main__":
     main()

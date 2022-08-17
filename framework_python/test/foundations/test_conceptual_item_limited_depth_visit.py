@@ -1,10 +1,9 @@
 from rei.foundations.hierarchical_traversal_strategies import DepthLimitedDepthVisitChildren
-from test.foundations.common_functions_coneptual_items import _root_item_creation, _item_creation
+from test.foundations.common_functions_conceptual_items import _root_item_creation, _item_creation, \
+    __ITEM_FACTORY_NAME, __ROOT_ITEM1_NAME, __CNT_BREADTH_ELEMENTS, __SUB_ITEM_PREFIX_NAME
 
 import asyncio
 
-from common_test_literals import __ITEM_FACTORY_NAME, __ROOT_ITEM1_NAME, \
-    __CNT_BREADTH_ELEMENTS, __SUB_ITEM_PREFIX_NAME
 
 
 def _identification_func(x, y) -> str:

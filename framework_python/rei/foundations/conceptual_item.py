@@ -206,8 +206,6 @@ class ConceptualItem(HierarchicalElement, InterfaceSetMultipleElementsOperation,
             for v in self._index_elements_by_name[tokens[0]].values():
                 yield from v.get_element_by_id_name('/'.join(tokens[1:]))
 
-
-
     def update(self):
         self._update_timestamp()
         self._qualified_name = '/'.join(list(self.update_qualified_name())[::-1])

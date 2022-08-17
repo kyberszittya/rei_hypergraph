@@ -8,7 +8,7 @@ from rei.hypergraph.common_definitions import EnumRelationDirection
 
 import numpy as np
 
-from rei.hypergraph.value_node import ValueNode
+from rei.hypergraph.value_node import ValueNode, SemanticValueNode
 
 
 class HypergraphPort(HierarchicalElement):
@@ -61,7 +61,8 @@ class HypergraphRelation(HierarchicalElement):
 
     def __init__(self, uuid: bytes, id_name: str, progenitor_qualified_name: str,
                  endpoint: HypergraphElement, weight: ValueNode | None, parent=None,
-                 direction: EnumRelationDirection = EnumRelationDirection.BIDIRECTIONAL):
+                 direction: EnumRelationDirection = EnumRelationDirection.BIDIRECTIONAL,
+                 semantic_value_node: SemanticValueNode = None):
         super().__init__(uuid, id_name, progenitor_qualified_name, parent)
         self._endpoint = endpoint
         self._direction = direction
@@ -74,6 +75,8 @@ class HypergraphRelation(HierarchicalElement):
                 self._relation_incidence_value = np.array([0.0, 1.0])
         # Weight
         self._weight = weight
+        # Semantic value node
+        self.semantic_value_node = semantic_value_node
 
     @property
     def endpoint(self):
@@ -117,10 +120,12 @@ class HypergraphEdge(HypergraphElement):
         self._sub_relations = {}
 
     def unary_connect(self, endpoint: HypergraphElement, weight: ValueNode,
-                      direction: EnumRelationDirection = EnumRelationDirection.BIDIRECTIONAL):
+                      direction: EnumRelationDirection = EnumRelationDirection.BIDIRECTIONAL,
+                      semantic_value_node: SemanticValueNode = None):
         id_name = "rel"+'.'.join([self.id_name, endpoint.id_name, str(self.clock.get_time_ns())])
         rel = HypergraphRelation(self._id_generation.generate_uid(endpoint), id_name,
-                                 '/'.join([self.id_name, id_name]), endpoint, weight, direction=direction)
+                                 '/'.join([self.id_name, id_name]), endpoint, weight, direction=direction,
+                                 semantic_value_node=semantic_value_node)
         self.add_element(rel)
 
     def add_element(self, element: HierarchicalElement):

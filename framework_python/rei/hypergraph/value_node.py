@@ -56,3 +56,27 @@ class ValueNode(HierarchicalElement):
     def val(self):
         return self._values
 
+
+class SemanticValueNode(HierarchicalElement):
+
+    def __init__(self, uuid: bytes, id_name: str, progenitor_qualified_name: str, parent=None):
+        super().__init__(uuid, id_name, progenitor_qualified_name, parent)
+        self.__attribute_dictionary = {}
+
+    def add_named_attribute(self, name: str, arg):
+        self.__attribute_dictionary[name] = arg
+
+    def remove_named_attribute(self, name: str):
+        if name in self.__attribute_dictionary:
+            self.__attribute_dictionary.pop(name)
+
+    def update(self):
+        self._qualified_name = self.update_qualified_name()
+
+    def add_element(self, element) -> None:
+        self.add_named_attribute(element[0], element[1])
+
+    def remove_element(self, id_name: str = "", uuid: bytes = None) -> typing.Generator:
+        self.remove_named_attribute(id_name)
+
+

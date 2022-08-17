@@ -1,27 +1,16 @@
 import typing
 
+from rei.factories.abstract_factory import AbstractElementFactory, ErrorInsufficientValues
 from rei.foundations.clock import MetaClock
-from rei.foundations.identification.identity_generator import Sha3UniqueIdentifierGenerator
 from rei.hypergraph.base_elements import HypergraphNode, HypergraphEdge
 from rei.hypergraph.common_definitions import EnumRelationDirection
-from rei.hypergraph.value_node import ValueNode
+from rei.hypergraph.value_node import ValueNode, SemanticValueNode
 
 
-class ErrorInsufficientValues(Exception):
-    pass
-
-
-class HypergraphFactory():
+class HypergraphFactory(AbstractElementFactory):
 
     def __init__(self, factory_name: str, clock: MetaClock) -> None:
-        super().__init__()
-        self._factory_name: str = factory_name
-        self._clock: MetaClock = clock
-        self.unique_identifier = Sha3UniqueIdentifierGenerator(
-            self._factory_name, lambda x, y: f"{x}/{self.get_qualified_name(y)}")
-
-    def get_qualified_name(self, name: str):
-        return f"{name}.{self._clock.get_time_ns()}"
+        super().__init__(factory_name, clock)
 
     def generate_node(self, id_name: str, parent: HypergraphNode = None) -> HypergraphNode:
         node = HypergraphNode(id_name, self.unique_identifier.generate_uid(id_name),
@@ -39,7 +28,7 @@ class HypergraphFactory():
     def create_hyperedge(self, parent: HypergraphNode, edge_name: str):
         uuid: bytes = self.unique_identifier.generate_uid(edge_name)
         he = HypergraphEdge(edge_name, uuid,
-                            '/'.join([parent.qualified_name, edge_name]) + f".{parent.clock.get_time_ns()}",
+                            self.get_stamped_qualified_name(edge_name, parent),
                             parent.clock, parent)
         return he
 
@@ -47,9 +36,7 @@ class HypergraphFactory():
                       direction: EnumRelationDirection = EnumRelationDirection.BIDIRECTIONAL,
                       values: list[ValueNode] | None = None):
         uuid: bytes = self.unique_identifier.generate_uid(edge_name)
-        he = HypergraphEdge(edge_name, uuid,
-                            '/'.join([container.qualified_name, edge_name]) + f".{container.clock.get_time_ns()}",
-                            container.clock, container)
+        he = HypergraphEdge(edge_name, uuid, self.get_stamped_qualified_name(edge_name, container), container.clock, container)
         if values is None:
             node_values = zip(nodes, len(nodes)*[None])
         else:
@@ -60,12 +47,27 @@ class HypergraphFactory():
             he.unary_connect(n, v, direction)
         return he
 
+    def connect_tuple_nodes(self, container: HypergraphNode, edge_name: str,
+                      nodes: list[tuple[HypergraphNode, EnumRelationDirection, ValueNode | None, SemanticValueNode | None]]):
+        """
+
+        :param container:
+        :param edge_name:
+        :param nodes: endpoint, direction, value node, semantiv calue node
+        :return:
+        """
+        uuid: bytes = self.unique_identifier.generate_uid(edge_name)
+        he = HypergraphEdge(edge_name, uuid, self.get_stamped_qualified_name(edge_name, container), container.clock, container)
+        for n, dir, v, sv in nodes:
+            he.unary_connect(n, v, dir, sv)
+            if sv.parent is not he:
+                he.add_element(sv)
+        return he
+
     def create_value(self, parent: HypergraphNode | None, value_name: str, values: list[typing.Any] = None):
         uuid: bytes = self.unique_identifier.generate_uid(value_name)
         if parent is not None:
-            val = ValueNode(uuid, value_name,
-                            '/'.join([parent.qualified_name, value_name]) + f".{parent.clock.get_time_ns()}",
-                            values)
+            val = ValueNode(uuid, value_name, self.get_stamped_qualified_name(value_name, parent), values)
             parent.add_element(val)
         else:
             val = ValueNode(uuid, value_name, '/'.join([value_name])+f".{self._clock.get_time_ns()}", values)

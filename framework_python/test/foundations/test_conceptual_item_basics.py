@@ -3,7 +3,7 @@ import pytest
 from rei.foundations.common_errors import ErrorRecursiveHierarchy, ErrorDuplicateElement
 from rei.foundations.conceptual_item import ConceptualItem
 from rei.foundations.identification.identity_generator import Sha3UniqueIdentifierGenerator
-from test.foundations.common_functions_coneptual_items import _root_item_creation, _item_creation
+from test.foundations.common_functions_conceptual_items import _root_item_creation, _item_creation
 
 __ITEM_FACTORY_NAME = "tester"
 __ROOT_ITEM1_NAME = "test"

@@ -1,8 +1,14 @@
 import typing
 
-from rei.factories.foundation_factory import Sha3UniqueIdentifierGenerator
 from rei.foundations.clock import DummyClock
 from rei.foundations.conceptual_item import ConceptualItem
+from rei.foundations.identification.identity_generator import Sha3UniqueIdentifierGenerator
+
+__ITEM_FACTORY_NAME = "tester"
+__ROOT_ITEM1_NAME = "test_root"
+__SUB_ITEM_PREFIX_NAME = "item"
+__CNT_BASIC_ELEMENTS = 10
+__CNT_BREADTH_ELEMENTS = 4
 
 
 def _root_item_creation(factoryname: str, item_name: str,

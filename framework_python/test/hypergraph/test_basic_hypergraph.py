@@ -1,5 +1,6 @@
 import asyncio
 
+from rei.foundations.hierarchical_traversal_strategies import BreadthFirstHierarchicalTraversal
 from rei.hypergraph.base_elements import HypergraphRelation
 from rei.hypergraph.common_definitions import EnumRelationDirection
 
@@ -20,8 +21,9 @@ def test_connect_nodes():
     rels = (list(e.get_subelements(lambda x: isinstance(x, HypergraphRelation))))
     assert len(rels) == 2
     names_list = []
-    asyncio.get_event_loop().run_until_complete(e.breadth_visit_children(
-        lambda x: names_list.append(x.id_name), lambda x: isinstance(x, HypergraphRelation)))
+    trav = BreadthFirstHierarchicalTraversal(lambda x: names_list.append(x.id_name),
+                                          lambda x: isinstance(x, HypergraphRelation))
+    asyncio.get_event_loop().run_until_complete(trav.execute(e))
     assert '_'.join(names_list) == '_'.join(["reledge.node0."+'0', "reledge.node1."+'0'])
     induced_subset = set(map(lambda x: x.id_name, e.induced_subset))
     assert len(induced_subset) == 2
@@ -54,8 +56,9 @@ def test_connect_nodes_with_values():
     e.unary_connect(node_list[1], v1, EnumRelationDirection.BIDIRECTIONAL)
     rels = (list(e.get_subelements(lambda x: isinstance(x, HypergraphRelation))))
     names_list = []
-    asyncio.get_event_loop().run_until_complete(e.breadth_visit_children(
-        lambda x: names_list.append(x.id_name), lambda x: isinstance(x, HypergraphRelation)))
+    trav = BreadthFirstHierarchicalTraversal(lambda x: names_list.append(x.id_name),
+                                             lambda x: isinstance(x, HypergraphRelation))
+    asyncio.get_event_loop().run_until_complete(trav.execute(e))
     assert '_'.join(names_list) == '_'.join(["reledge.node0."+'0', "reledge.node1."+'0'])
     induced_subset = set(map(lambda x: x.id_name, e.induced_subset))
     assert len(induced_subset) == 2

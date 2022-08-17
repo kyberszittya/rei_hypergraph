@@ -1,7 +1,7 @@
 import pytest
 
 from rei.foundations.common_errors import ErrorInvalidQuery
-from test.foundations.common_functions_coneptual_items import _root_item_creation, _item_creation
+from test.foundations.common_functions_conceptual_items import _root_item_creation, _item_creation
 
 __ITEM_FACTORY_NAME = "tester"
 __ROOT_ITEM1_NAME = "test_root"
