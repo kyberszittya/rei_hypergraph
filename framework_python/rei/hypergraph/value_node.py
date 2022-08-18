@@ -59,9 +59,11 @@ class ValueNode(HierarchicalElement):
 
 class SemanticValueNode(HierarchicalElement):
 
-    def __init__(self, uuid: bytes, id_name: str, progenitor_qualified_name: str, parent=None):
+    def __init__(self, uuid: bytes, id_name: str, progenitor_qualified_name: str, parent, attr: dict):
         super().__init__(uuid, id_name, progenitor_qualified_name, parent)
         self.__attribute_dictionary = {}
+        if 'name' in attr:
+            self.add_named_attribute('name', attr['name'])
 
     def add_named_attribute(self, name: str, arg):
         self.__attribute_dictionary[name] = arg
