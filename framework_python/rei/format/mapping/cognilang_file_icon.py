@@ -1,21 +1,16 @@
+import math
 import typing
 
 from rei.factories.foundation_factory import HypergraphFactory
 from rei.format.cognilang.CogniLangParser import CogniLangParser
 from rei.format.cognilang.CogniLangVisitor import CogniLangVisitor
-from rei.format.semantics.CognitiveEntity import CognitiveEntity, KinematicJoint, KinematicGraphDefinition
+from rei.format.mapping.cognilang_mapping_errors import ErrorParserNoFactorySet
+from rei.format.mapping.cognilang_map_utility import dir_enum_relation, extract_graphelement_signature
 from rei.format.semantics.cognitive_entity_semantic_factory import CognitiveEntitySemanticFactory
 from rei.foundations.clock import MetaClock
-from rei.hypergraph.base_elements import HypergraphNode, HypergraphElement, HypergraphRelation
+from rei.hypergraph.base_elements import HypergraphNode, HypergraphElement
 from rei.hypergraph.common_definitions import EnumRelationDirection
 
-
-class ErrorParserNoFactorySet(Exception):
-    pass
-
-
-class ErrorInvalidDirection(Exception):
-    pass
 
 __DEFAULT_ROTATION_LIST = [0.0, 0.0, 0.0]
 
@@ -39,24 +34,17 @@ class CognilangParserFileIcon(CogniLangVisitor):
     def root_entity(self):
         return self.__root_entity
 
-
     #
     # SECTION: utility functions
     #
-
-    def __extract_graphelement_signature(self, ctx: CogniLangParser.Graphnode_signatureContext):
-        return str(ctx.ID())
-
-    def __extract_linknodebody(self, ctx: CogniLangParser.Linknode_bodyContext) -> list[HypergraphNode]:
-        return
 
     def __get_parent_name(self, ctx):
         if hasattr(ctx, 'ID'):
             yield str(ctx.ID())
         elif hasattr(ctx, 'graphnode_signature'):
-            yield self.__extract_graphelement_signature(ctx.graphnode_signature())
+            yield extract_graphelement_signature(ctx.graphnode_signature())
         elif hasattr(ctx, 'graphedge_signature'):
-            yield self.__extract_graphelement_signature(ctx.graphedge_signature())
+            yield extract_graphelement_signature(ctx.graphedge_signature())
         if ctx.parentCtx is not None:
             yield from self.__get_parent_name(ctx.parentCtx)
 
@@ -72,30 +60,34 @@ class CognilangParserFileIcon(CogniLangVisitor):
             else:
                 return list(parent.get_element_by_id_name(reference_name))[0], reference_name
 
-    def __dir_enum_relation(self, dir: str):
-        match dir:
-            case '<-':
-                return EnumRelationDirection.INWARDS
-            case '->':
-                return EnumRelationDirection.OUTWARDS
-            case '--':
-                return EnumRelationDirection.BIDIRECTIONAL
-        raise ErrorInvalidDirection
-
     def __extract_joint_relation(self, ctx: CogniLangParser.Joint_relationContext, parent: HypergraphElement):
         __endpoint, reference_name = self.__lookup_reference(ctx, parent)
-        __direction = self.__dir_enum_relation(ctx.direction.text)
+        __direction = dir_enum_relation(ctx.direction.text)
         # Joint attributes
         __joint_type: str = str(ctx.type_)
+
         # Semantic value setup
         __semantic_value_node = self.__cognitive_element_factory.generate_semantic_element(
             "kinematicjoint", f"joint.{parent.id_name}_{reference_name}", parent, {
                 "joint_type": __joint_type
             })
-        # TODO: Set rigid transformation as a value
-        #self.__extract_rigid_transformation_element(ctx, )
         # Extract rigid transformation
-        return __endpoint, __direction, None, __semantic_value_node
+        values = None
+        if ctx.rigid_transformation() is not None:
+            _translation, _rotation, _rotation_type = self.__extract_rigid_transformation(ctx.rigid_transformation())
+            _sv_trans = self.__cognitive_element_factory.generate_semantic_element(
+                'rigidtransformation', f"joint.{parent.id_name}_{reference_name}.transformation", __semantic_value_node,
+                {'translation': _translation, 'rotation': _rotation, 'rotation_type': _rotation_type})
+            __semantic_value_node.add_element(('rigid_transformation', _sv_trans))
+            # Set rigid transformation as a value
+            match _rotation_type:
+                case 'deg':
+                    _rotation = [float(x)*math.pi/180.0 for x in _rotation]
+                case _:
+                    _rotation = [float(x) for x in _rotation]
+            values = [_translation, _rotation]
+        # Extract rigid transformation
+        return __endpoint, __direction, values, __semantic_value_node
 
     def __collect_joint_relations(self, ctx: CogniLangParser.Joint_bodyContext, parent: HypergraphElement):
         for rel in ctx.joint_relation():
@@ -109,10 +101,10 @@ class CognilangParserFileIcon(CogniLangVisitor):
             depth += 1
         elif hasattr(ctx, 'graphnode_signature'):
             if min_depth <= current_depth:
-                yield self.__extract_graphelement_signature(ctx.graphnode_signature())
+                yield extract_graphelement_signature(ctx.graphnode_signature())
             depth += 1
         elif hasattr(ctx, 'graphedge_signature'):
-            yield self.__extract_graphelement_signature(ctx.graphedge_signature())
+            yield extract_graphelement_signature(ctx.graphedge_signature())
         if ctx.parentCtx is not None:
             yield from self.__get_lookup_name_depth(ctx.parentCtx, min_depth, depth)
 
@@ -128,21 +120,33 @@ class CognilangParserFileIcon(CogniLangVisitor):
                     return self._element_cache[_name]
         return None
 
-    def __search_for_reference(self, reference_name: str, ctx):
+    def __search_for_reference(self, reference, parent_ctx):
+        reference_name: str = str(reference.ID())
         tags = reference_name.split('/')
         depth = len(tags)
-        inferred_name = '/'.join([*self.__lookup_name(ctx, depth), *tags])
+        inferred_name = '/'.join([*self.__lookup_name(parent_ctx, depth), *tags])
         if inferred_name in self._element_cache:
             return self._element_cache[inferred_name], inferred_name
         return None
 
-    def __add_reference(self, ctx, container_node):
-        referenced_element_name = str(ctx.geometries().ref_().ID())
+    def __add_geometry_reference(self, ctx, container_node):
         parent_graph_name = '/'.join(list(self.__get_parent_name(ctx))[::-1][:-2])
         parent_graph: HypergraphNode = self._element_cache[parent_graph_name]
-        _el_ref, _inferred_name = self.__search_for_reference(referenced_element_name, ctx)
+        _el_ref, _inferred_name = self.__search_for_reference(ctx.geometries().ref_(), ctx)
         if _inferred_name not in self._reference_cache:
-            ref_e = self.__factory.create_hyperedge(parent_graph, f"ref_{referenced_element_name}")
+            ref_e = self.__factory.create_hyperedge(
+                parent_graph, f"ref_{container_node.id_name}_{str(ctx.geometries().ref_().ID())}")
+            ref_e.unary_connect(_el_ref, None, EnumRelationDirection.OUTWARDS)
+            ref_e.unary_connect(container_node, None, EnumRelationDirection.INWARDS)
+            self._reference_cache[_inferred_name] = ref_e
+
+    def __add_reference(self, ctx, container_node):
+        parent_graph_name = '/'.join(list(self.__get_parent_name(ctx))[::-1][:-2])
+        parent_graph: HypergraphNode = self._element_cache[parent_graph_name]
+        _el_ref, _inferred_name = self.__search_for_reference(ctx.ref_(), ctx)
+        if _inferred_name not in self._reference_cache:
+            ref_e = self.__factory.create_hyperedge(
+                parent_graph, f"ref_{container_node.id_name}_{str(ctx.ref_().ID())}")
             ref_e.unary_connect(_el_ref, None, EnumRelationDirection.OUTWARDS)
             ref_e.unary_connect(container_node, None, EnumRelationDirection.INWARDS)
             self._reference_cache[_inferred_name] = ref_e
@@ -150,22 +154,21 @@ class CognilangParserFileIcon(CogniLangVisitor):
     def __extract_vector_field_values(self, ctx: CogniLangParser.Field_float_vectorContext):
         yield from self.__extract_float_vector_values(ctx.float_vector())
 
-    def __extract_float_vector_values(self, ctx: CogniLangParser.Float_vectorContext):
+    def __extract_float_vector_values(self, ctx: CogniLangParser.Float_vectorContext, parent=None):
         for x in ctx.value():
             if x.ref_() is not None:
-                pass
+                yield self.__factory.create_value(parent, '_'.join([parent.id_name, x.ref().ID()]))
             else:
                 yield float(str(x.FLOAT()))
 
     def __collect_geometries(self, ctx: CogniLangParser.Geometry_bodyContext, container_node: HypergraphNode):
         if ctx.geometries().ref_() is not None:
-            self.__add_reference(ctx, container_node)
+            self.__add_geometry_reference(ctx, container_node)
         else:
             __geom_id_name = '_'.join(["geom", container_node.id_name])
             _el = self.__factory.generate_node(__geom_id_name, container_node)
-            geom_ctx = None
+            geom_ctx: typing.Any = None
             __geometry_type: str = ""
-            values = []
             if ctx.geometries().cylinder_geometry() is not None:
                 geom_ctx: CogniLangParser.Cylinder_geometryContext = ctx.geometries().cylinder_geometry()
                 __geometry_type = 'cylindergeometry'
@@ -208,8 +211,8 @@ class CognilangParserFileIcon(CogniLangVisitor):
             _translation, _rotation, _rotation_type = self.__extract_rigid_transformation(ctx.rigid_transformation())
             trans_id_container: str = '_'.join([_el.id_name, 'transformation'])
             _sv_trans = self.__cognitive_element_factory.generate_semantic_element(
-                'transformation', trans_id_container, _el, {'translation': _translation,
-                                                            'rotation': _rotation, 'rotation_type': _rotation_type})
+                'rigidtransformation', trans_id_container, _el,
+                {'translation': _translation, 'rotation': _rotation, 'rotation_type': _rotation_type})
             self._element_cache[_sv_trans.qualified_name] = _sv_trans
             return _sv_trans
 
@@ -237,8 +240,8 @@ class CognilangParserFileIcon(CogniLangVisitor):
         # Return to context
         return self.visitChildren(ctx)
 
-    def visitKinematic(self, ctx:CogniLangParser.KinematicContext):
-        name = self.__extract_graphelement_signature(ctx.graphnode_signature())
+    def visitKinematic(self, ctx: CogniLangParser.KinematicContext):
+        name = extract_graphelement_signature(ctx.graphnode_signature())
         _el = self.__factory.generate_node(name, self.__root_entity)
         self.__cognitive_element_factory.generate_semantic_element('kinematicgraph', name, _el,
                                                                    {'name': name})
@@ -267,7 +270,7 @@ class CognilangParserFileIcon(CogniLangVisitor):
         return self.visitChildren(ctx)
 
     def visitLink(self, ctx: CogniLangParser.LinkContext):
-        name = self.__extract_graphelement_signature(ctx.graphnode_signature())
+        name = extract_graphelement_signature(ctx.graphnode_signature())
         parent_name = self.__generate_parent_name(ctx)
         parent = self._element_cache[parent_name]
         _el = self.__factory.generate_node(name, parent)
@@ -280,9 +283,9 @@ class CognilangParserFileIcon(CogniLangVisitor):
         return self.visitChildren(ctx)
 
     def visitJoint(self, ctx: CogniLangParser.JointContext):
-        name = self.__extract_graphelement_signature(ctx.graphedge_signature())
+        name = extract_graphelement_signature(ctx.graphedge_signature())
         parent_name = self.__generate_parent_name(ctx)
         parent = self._element_cache[parent_name]
         res = list(self.__collect_joint_relations(ctx.joint_body(), parent))
-        he = self.__factory.connect_tuple_nodes(parent, name, res)
+        self.__factory.connect_tuple_nodes(parent, name, res)
         return self.visitChildren(ctx)

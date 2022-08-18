@@ -15,8 +15,9 @@ class CognitiveEntitySemanticFactory(AbstractElementFactory):
     def __init__(self, factory_name: str, clock: MetaClock):
         super().__init__(factory_name, clock)
 
-    def generate_semantic_element(self, raw_element_type: str, id_name, parent, attr: dict[str, typing.Any], values=None):
-        if len(attr)==0:
+    def generate_semantic_element(self, raw_element_type: str, id_name,
+                                  parent, attr: dict[str, typing.Any], values=None):
+        if len(attr) == 0:
             raise ErrorInsufficientValues
         element_type = ''.join(raw_element_type.lower().strip().split('_'))
         uuid = self.unique_identifier.generate_uid(id_name)
@@ -41,7 +42,8 @@ class CognitiveEntitySemanticFactory(AbstractElementFactory):
                                          parent, attr, values)
             case 'material':
                 return VisualMaterial(uuid, id_name, self.get_stamped_qualified_name(id_name, parent), parent, attr)
-            case 'transformation':
-                return RigidTransformation(uuid, id_name, self.get_stamped_qualified_name(id_name, parent), parent, attr)
+            case 'rigidtransformation':
+                return RigidTransformation(
+                    uuid, id_name, self.get_stamped_qualified_name(id_name, parent), parent, attr)
             case _:
                 raise InvalidSemanticType

@@ -6,6 +6,8 @@ import copy
 from abc import ABC
 
 from rei.foundations.graph_monad import GraphVisitor
+from rei.hypergraph.base_elements import HypergraphNode, HypergraphEdge, HypergraphRelation
+from rei.hypergraph.common_definitions import EnumRelationDirection
 
 
 class HierarchicalTraversal(GraphVisitor, ABC):
@@ -86,3 +88,38 @@ class DepthLimitedBreadthVisitChildren(HierarchicalTraversal):
         await self._fill_visit_fringe(start, _fringe, 0)
         await self._traverse(_fringe, _task_list)
         return _task_list
+
+#
+# SECTION: utility functions
+#
+
+
+def direction_to_text(direction: EnumRelationDirection):
+    match direction:
+        case EnumRelationDirection.OUTWARDS:
+            return '->'
+        case EnumRelationDirection.INWARDS:
+            return '<-'
+        case EnumRelationDirection.BIDIRECTIONAL:
+            return '--'
+
+
+def print_element(_el):
+    match _el:
+        case HypergraphNode():
+            _el: HypergraphNode
+            if _el.parent is None:
+                print(f"node {_el.qualified_name}: {_el.id_name}")
+            else:
+                print(f"node {_el.qualified_name}: {_el.id_name} <- {_el.parent.id_name}")
+        case HypergraphEdge():
+            _el: HypergraphEdge
+            print(f"edge {_el.qualified_name}: {_el.id_name} {_el.cnt_subelements} <- {_el.parent.id_name}")
+        case HypergraphRelation():
+            _el: HypergraphRelation
+            print(f"relation {_el.qualified_name}: {direction_to_text(_el.direction)} {_el.endpoint.id_name}:: {_el.weight}")
+
+
+async def print_graph_hierarchy(start):
+    tr = BreadthFirstHierarchicalTraversal(lambda x: print_element(x), lambda x: True)
+    return await tr.execute(start)

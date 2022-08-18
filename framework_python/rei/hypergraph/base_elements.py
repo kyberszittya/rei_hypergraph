@@ -171,3 +171,4 @@ class HypergraphNode(HypergraphElement):
 
     def __getitem__(self, uuid: bytes):
         return self._sub_elements[uuid]
+

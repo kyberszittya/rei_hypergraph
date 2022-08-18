@@ -6,6 +6,7 @@ from rei.foundations.identification.identity_generator import Sha3UniqueIdentifi
 class ErrorInsufficientValues(Exception):
     pass
 
+
 class AbstractElementFactory():
 
     def __init__(self, factory_name: str, clock: MetaClock) -> None:
