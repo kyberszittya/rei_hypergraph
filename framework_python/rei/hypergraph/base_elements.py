@@ -147,6 +147,16 @@ class HypergraphEdge(HypergraphElement):
     def induced_subset(self) -> typing.Generator:
         yield from map(lambda x: x.endpoint, self.get_subelements(lambda x: isinstance(x, HypergraphRelation)))
 
+    def get_incoming_relations(self):
+        yield from filter(
+            lambda x: x.direction == EnumRelationDirection.INWARDS or x.direction == EnumRelationDirection.BIDIRECTIONAL,
+            self.sub_relations)
+
+    def get_outgoing_relations(self):
+        yield from filter(
+            lambda x: x.direction == EnumRelationDirection.OUTWARDS or x.direction == EnumRelationDirection.BIDIRECTIONAL,
+            self.sub_relations)
+
 
 class HypergraphNode(HypergraphElement):
     """

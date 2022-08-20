@@ -4,9 +4,10 @@ from rei.factories.foundation_factory import HypergraphFactory
 from rei.foundations.clock import DummyClock
 from rei.foundations.hierarchical_traversal_strategies import print_graph_hierarchy
 from rei.hypergraph.common_definitions import EnumRelationDirection
+from rei.hypergraph.factorization_operations import Factorization2Operation, MapFactorizationToFactorGraph
 
 
-def create_simple_factor_graph():
+def create_simple_factor_graph_nodes():
     __clock = DummyClock()
     __factory = HypergraphFactory("factor_graph", __clock)
     _graph = __factory.generate_node("graph_sys")
@@ -15,6 +16,11 @@ def create_simple_factor_graph():
     for i in __node_names:
         __n = __factory.generate_node(i, _graph)
         nodes.append(__n)
+    return __factory, _graph, nodes, __node_names
+
+
+def create_simple_factor_graph():
+    __factory, _graph, nodes, __node_names = create_simple_factor_graph_nodes()
     edge = __factory.create_hyperedge(_graph, "e1")
     for i,s in enumerate(__node_names[1:]):
         edge.unary_connect(nodes[i+1], None, EnumRelationDirection.OUTWARDS)
@@ -22,42 +28,37 @@ def create_simple_factor_graph():
     return _graph
 
 
+def factor_tuple(x):
+    return [(x[0], x0) for x0 in x[1]]
+
+
 def test_simple_edge_2factorization():
     _graph = create_simple_factor_graph()
     print()
     asyncio.run(print_graph_hierarchy(_graph))
-
-    """
-    factorization = hypergraphedge_2factorization_tree(edge)
+    op = Factorization2Operation()
+    l = asyncio.run(op.execute(_graph))
+    mapping = MapFactorizationToFactorGraph(lambda x: factor_tuple(x))
+    factorization = list(*asyncio.run(mapping.execute(l)))
     edgefactorset = {
-        ('0', '1'),
-        ('0', '2'),
-        ('0', '3'),
-        ('0', '4')
+        ('n0', 'n1'),
+        ('n0', 'n2'),
+        ('n0', 'n3'),
+        ('n0', 'n4')
     }
-    assert not factorization.empty()
+    assert len(factorization) != 0
     res = set()
-    while not factorization.empty():
-        e = factorization.get()
+    for e in factorization:
         assert ((e[0].endpoint.id_name, e[1].endpoint.id_name) in edgefactorset)
         res.add(e)
-    assert ('0', '0') not in res
-    assert ('1', '0') not in res
-    assert ('2', '0') not in res
-    """
+    assert ('n0', 'n0') not in res
+    assert ('n1', 'n0') not in res
+    assert ('n2', 'n0') not in res
 
 
 def test_simple_edge_2factorization_bidirectional():
     _graph = create_simple_factor_graph()
     """
-    graph = HypergraphNode("graph_sys", 0)
-    node_names = [str(x) for x in range(0,5)]
-    nodes = []
-    for i in node_names:
-        n = HypergraphNode(i, 0)
-        nodes.append(n)
-        graph.add_subset(n, 0)
-    edge = HypergraphEdge("e1", 0, graph)
     for i,s in enumerate(node_names[0:]):
         edge.connect(nodes[i], 1.0, 0, EnumRelationDirection.UNDIRECTED)
     edge.connect(nodes[0], 1.0, 0, EnumRelationDirection.UNDIRECTED)
@@ -85,24 +86,18 @@ def test_simple_edge_2factorization_pairing():
 
     :return:
     """
-    _graph = create_simple_factor_graph()
-    """
-    graph = HypergraphNode("graph_sys", 0)
-    node_names = [str(x) for x in range(0,5)]
-    nodes = []
-    for i in node_names:
-        n = HypergraphNode(i, 0)
-        nodes.append(n)
-        graph.add_subset(n, 0)
-    edge = HypergraphEdge("e1", 0, graph)
-    for i,s in enumerate(node_names[0:]):
-        edge.connect(nodes[i], 1.0, 0, EnumRelationDirection.OUTWARDS)
-    edge.connect(nodes[0], 1.0, 0, EnumRelationDirection.INWARDS)
-    edge.connect(nodes[1], 1.0, 0, EnumRelationDirection.INWARDS)
-    graph.add_subset(edge, 0)
+    __factory, _graph, nodes, __node_names = create_simple_factor_graph_nodes()
+    edge = __factory.create_hyperedge(_graph, "e1")
+    for i,s in enumerate(__node_names[2:]):
+        edge.unary_connect(nodes[i+2], None, EnumRelationDirection.OUTWARDS)
+    edge.unary_connect(nodes[0], None, EnumRelationDirection.INWARDS)
+    edge.unary_connect(nodes[1], None, EnumRelationDirection.INWARDS)
     print()
-    graph.print_hierarchy_tree()
-    factorization = hypergraphedge_2factorization_tree(edge)
+    asyncio.run(print_graph_hierarchy(_graph))
+    op = Factorization2Operation()
+    l = asyncio.run(op.execute(_graph))
+    mapping = MapFactorizationToFactorGraph(lambda x: factor_tuple(x))
+    factorization = list(asyncio.run(mapping.execute(l)))
     edgefactorset = {
         ('0', '2'),
         ('0', '3'),
@@ -111,12 +106,10 @@ def test_simple_edge_2factorization_pairing():
         ('1', '3'),
         ('1', '4')
     }
-    assert not factorization.empty()
+    assert len(factorization) != 0
     res = set()
-    while not factorization.empty():
-        e = factorization.get()
+    for e in factorization:
         assert (e[0].endpoint.id_name, e[1].endpoint.id_name) in edgefactorset
         res.add(e)
     assert ('0', '1') not in res
     assert ('1', '0') not in res
-    """
