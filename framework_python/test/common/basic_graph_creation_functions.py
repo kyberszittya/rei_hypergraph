@@ -1,52 +1,33 @@
-from rei.cognitive.channels.channel_base_definitions import CognitiveArbiter, CognitiveChannel
-from rei.cognitive.channels.cognitive_dendrite import HypergraphTensorTransformation
-from rei.cognitive.channels.cognitive_icons import TensorCognitiveIcon
-from rei.cognitive.format.basicelements.concepts.network.base_definitions import EnumRelationDirection
-from rei.cognitive.format.basicelements.concepts.network.taxonomy import NetworkTaxonomy
-from rei.cognitive.format.hypergraph.foundations.hypergraph_elements import HypergraphNode
-from rei.cognitive.format.hypergraph.operations.generative_operators import create_hyperedge, create_dir_edge
+from rei.factories.foundation_factory import HypergraphFactory
+from rei.foundations.clock import DummyClock
+from rei.hypergraph.base_elements import HypergraphNode
+from rei.hypergraph.common_definitions import EnumRelationDirection
+
 
 #
 # Segment: FANO GRAPH
 #
-from rei.cognitive.messages.tensor_fragment import FragmentTensor
-
-
-def create_fano_edge(sys: HypergraphNode, qualified_name: str, nodes: list[str]):
-    sys.add_subset(
-        create_hyperedge("e"+''.join(nodes), 0, sys,
-                         [(qualified_name+x, EnumRelationDirection.UNDIRECTED) for x in nodes]), 0)
 
 
 def create_fano_graph():
-    taxon = NetworkTaxonomy("test", 0)
-    test_system = HypergraphNode("fano_graph", 0, domain=taxon)
+    __clock = DummyClock()
+    __factory = HypergraphFactory("test", __clock)
+    test_system = __factory.generate_node("fano_graph")
     # Create nodes
     node_names = ["0", "1", "2", "3", "4", "5", "6"]
+    __nodes = []
     for n0 in node_names:
-        v0 = HypergraphNode(n0, 0)
-        test_system.add_subset(v0, 0)
+        __nodes.append(__factory.generate_node(n0, test_system))
     # Create edges
-    fano_pr = "test/fano_graph/"
-    create_fano_edge(test_system, fano_pr, ["0", "1", "3"])
-    create_fano_edge(test_system, fano_pr, ["1", "5", "6"])
-    create_fano_edge(test_system, fano_pr, ["2", "3", "5"])
-    create_fano_edge(test_system, fano_pr, ["1", "2", "4"])
-    create_fano_edge(test_system, fano_pr, ["3", "4", "6"])
-    create_fano_edge(test_system, fano_pr, ["0", "4", "5"])
-    create_fano_edge(test_system, fano_pr, ["0", "2", "6"])
-    return taxon, test_system
+    __factory.connect_nodes(test_system, "e013", [__nodes[0], __nodes[1], __nodes[3]], EnumRelationDirection.BIDIRECTIONAL)
+    __factory.connect_nodes(test_system, "e156", [__nodes[1], __nodes[5], __nodes[6]], EnumRelationDirection.BIDIRECTIONAL)
+    __factory.connect_nodes(test_system, "e235", [__nodes[2], __nodes[3], __nodes[5]], EnumRelationDirection.BIDIRECTIONAL)
+    __factory.connect_nodes(test_system, "e124", [__nodes[1], __nodes[2], __nodes[4]], EnumRelationDirection.BIDIRECTIONAL)
+    __factory.connect_nodes(test_system, "e346", [__nodes[3], __nodes[4], __nodes[6]], EnumRelationDirection.BIDIRECTIONAL)
+    __factory.connect_nodes(test_system, "e045", [__nodes[0], __nodes[4], __nodes[5]], EnumRelationDirection.BIDIRECTIONAL)
+    __factory.connect_nodes(test_system, "e026", [__nodes[0], __nodes[2], __nodes[6]], EnumRelationDirection.BIDIRECTIONAL)
+    return __nodes, __factory, test_system
 
-
-def setup_test_graph_elements(taxon, graph) -> FragmentTensor:
-    sys = CognitiveArbiter(name="sys", timestamp=0, domain=taxon)
-    channel = CognitiveChannel("channel_01", 0, sys)
-    view_icon = TensorCognitiveIcon("out", 0, domain=taxon)
-    ch = HypergraphTensorTransformation("dendrite1", 0, taxon, channel, view_icon)
-    channel.add_connection(ch, 0, view_icon)
-    ch.encode([graph])
-    fragment = view_icon.view()[0]
-    return fragment
 
 #
 # END SEGMENT: FANO GRAPH
@@ -59,23 +40,30 @@ def setup_test_graph_elements(taxon, graph) -> FragmentTensor:
 
 
 def create_multitree():
-    taxon = NetworkTaxonomy("test", 0)
-    test_system = HypergraphNode("multitree", 0, domain=taxon)
+    __clock = DummyClock()
+    __factory = HypergraphFactory("test", __clock)
+    test_system = __factory.generate_node("multitree")
     # Create nodes
     node_names = ["0", "1", "2", "3", "4", "5", "6"]
+    __nodes = []
     for n0 in node_names:
-        v0 = HypergraphNode(n0, 0)
-        test_system.add_subset(v0, 0)
+        __nodes.append(__factory.generate_node(n0, test_system))
     # Create edges
-    tree_pr = "test/multitree/"
-    create_dir_edge(test_system, tree_pr, ["4"], ["0", "1", "3"])
-    create_dir_edge(test_system, tree_pr, ["2"], ["1", "5", "6"])
-    create_dir_edge(test_system, tree_pr, ["1"], ["2", "3", "5"])
-    create_dir_edge(test_system, tree_pr, ["6"], ["1", "2", "4"])
-    create_dir_edge(test_system, tree_pr, ["1"], ["3", "4", "6"])
-    create_dir_edge(test_system, tree_pr, ["3"], ["0", "4", "5"])
-    create_dir_edge(test_system, tree_pr, ["1"], ["0", "2", "6"])
-    return taxon, test_system
+    __factory.connect_2factor_edges(test_system, "e4_013", [__nodes[4]], [__nodes[0], __nodes[1], __nodes[3]],
+                                    (EnumRelationDirection.INWARDS, EnumRelationDirection.OUTWARDS))
+    __factory.connect_2factor_edges(test_system, "e2_156", [__nodes[2]], [__nodes[1], __nodes[5], __nodes[6]],
+                                    (EnumRelationDirection.INWARDS, EnumRelationDirection.OUTWARDS))
+    __factory.connect_2factor_edges(test_system, "e1_235", [__nodes[1]], [__nodes[2], __nodes[3], __nodes[5]],
+                                    (EnumRelationDirection.INWARDS, EnumRelationDirection.OUTWARDS))
+    __factory.connect_2factor_edges(test_system, "e6_124", [__nodes[6]], [__nodes[1], __nodes[2], __nodes[4]],
+                                    (EnumRelationDirection.INWARDS, EnumRelationDirection.OUTWARDS))
+    __factory.connect_2factor_edges(test_system, "e1_346", [__nodes[1]], [__nodes[3], __nodes[4], __nodes[6]],
+                                    (EnumRelationDirection.INWARDS, EnumRelationDirection.OUTWARDS))
+    __factory.connect_2factor_edges(test_system, "e3_045", [__nodes[3]], [__nodes[0], __nodes[4], __nodes[5]],
+                                    (EnumRelationDirection.INWARDS, EnumRelationDirection.OUTWARDS))
+    __factory.connect_2factor_edges(test_system, "e1_026", [__nodes[1]], [__nodes[0], __nodes[2], __nodes[6]],
+                                    (EnumRelationDirection.INWARDS, EnumRelationDirection.OUTWARDS))
+    return __nodes, __factory, test_system
 
 #
 # END SEGMENT: Simple Multi-tree
@@ -86,15 +74,15 @@ def create_multitree():
 #
 
 def create_simple_tree():
-    taxon = NetworkTaxonomy("test", 0)
-    test_system = HypergraphNode("simpletree", 0, domain=taxon)
+    __clock = DummyClock()
+    __factory = HypergraphFactory("test", __clock)
+    test_system = __factory.generate_node("testtree")
     # Create nodes
     node_names = ["0", "1", "2"]
+    __nodes = []
     for n0 in node_names:
-        v0 = HypergraphNode(n0, 0)
-        test_system.add_subset(v0, 0)
+        __nodes.append(__factory.generate_node(n0, test_system))
     # Create edges
-    tree_pr = "test/simpletree/"
-    create_dir_edge(test_system, tree_pr, ["0"], ["1"])
-    create_dir_edge(test_system, tree_pr, ["0"], ["2"])
-    return taxon, test_system
+    __factory.connect_dir_edges(test_system, "e0_1", [__nodes[0]], [__nodes[1]])
+    __factory.connect_dir_edges(test_system, "e0_2", [__nodes[0]], [__nodes[2]])
+    return __nodes, __factory, test_system

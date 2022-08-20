@@ -1,9 +1,4 @@
-from rei.cognitive.format.hypergraph.foundations.hypergraph_operators import \
-    HypergraphCompartmentQuery
-from rei.cognitive.format.hypergraph.foundations.hypergraph_elements import HypergraphNode, HypergraphEdge, \
-    EnumRelationDirection
-from rei.cognitive.format.hypergraph.operations.generative_operators import HypergraphEdgeDirectConnectNodes, \
-    create_hyperedge
+
 from test.format.common_test_factories import SimpleTestFactory
 
 __NETWORK_NODE1: str = "network_node/sys/node1"
