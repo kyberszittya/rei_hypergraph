@@ -25,7 +25,7 @@ class Factorization2Operation(GraphMonad):
                     i_e = __next.get_incoming_relations()
                     o_e = __next.get_outgoing_relations()
                     for i in i_e:
-                        self.__relation_list.append((i, list(o_e)))
+                        self.__relation_list.append((i, list(__next.get_outgoing_relations())))
                     for i in o_e:
                         await fringe.put(i.endpoint)
                         fringe.task_done()
@@ -50,3 +50,4 @@ class MapFactorizationToFactorGraph(GraphMonad):
 
     async def execute(self, start) -> map:
         return map(lambda x: self.__mapping_function(x), start)
+

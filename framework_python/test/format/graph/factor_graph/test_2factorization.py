@@ -49,7 +49,7 @@ def test_simple_edge_2factorization():
     assert len(factorization) != 0
     res = set()
     for e in factorization:
-        assert ((e[0].endpoint.id_name, e[1].endpoint.id_name) in edgefactorset)
+        assert (e[0].endpoint.id_name, e[1].endpoint.id_name) in edgefactorset
         res.add(e)
     assert ('n0', 'n0') not in res
     assert ('n1', 'n0') not in res
@@ -57,15 +57,17 @@ def test_simple_edge_2factorization():
 
 
 def test_simple_edge_2factorization_bidirectional():
-    _graph = create_simple_factor_graph()
-    """
-    for i,s in enumerate(node_names[0:]):
-        edge.connect(nodes[i], 1.0, 0, EnumRelationDirection.UNDIRECTED)
-    edge.connect(nodes[0], 1.0, 0, EnumRelationDirection.UNDIRECTED)
-    graph.add_subset(edge, 0)
+    __factory, _graph, nodes, __node_names = create_simple_factor_graph_nodes()
+    edge = __factory.create_hyperedge(_graph, "e1")
+    for i,s in enumerate(__node_names[1:]):
+        edge.unary_connect(nodes[i+1], None, EnumRelationDirection.BIDIRECTIONAL)
+    edge.unary_connect(nodes[0], None, EnumRelationDirection.BIDIRECTIONAL)
     print()
-    graph.print_hierarchy_tree()
-    factorization = hypergraphedge_2factorization_tree(edge)
+    asyncio.run(print_graph_hierarchy(_graph))
+    op = Factorization2Operation()
+    l = asyncio.run(op.execute(_graph))
+    mapping = MapFactorizationToFactorGraph(lambda x: factor_tuple(x))
+    factorization = list(asyncio.run(mapping.execute(l)))
     edgefactorset = {
         ('0', '0'),
         ('1', '1'),
@@ -73,11 +75,10 @@ def test_simple_edge_2factorization_bidirectional():
         ('3', '3'),
         ('4', '4')
     }
-    assert not factorization.empty()
-    while not factorization.empty():
-        e = factorization.get()
-        assert (e[0].endpoint.id_name, e[1].endpoint.id_name) not in edgefactorset
-    """
+    assert len(factorization) != 0
+    for e in factorization:
+        i = e[0]
+        assert (i[0].endpoint.id_name, i[1].endpoint.id_name) not in edgefactorset
 
 
 def test_simple_edge_2factorization_pairing():
@@ -98,6 +99,9 @@ def test_simple_edge_2factorization_pairing():
     l = asyncio.run(op.execute(_graph))
     mapping = MapFactorizationToFactorGraph(lambda x: factor_tuple(x))
     factorization = list(asyncio.run(mapping.execute(l)))
+    res = []
+    for x in factorization:
+        res.extend(x)
     edgefactorset = {
         ('0', '2'),
         ('0', '3'),
@@ -107,8 +111,9 @@ def test_simple_edge_2factorization_pairing():
         ('1', '4')
     }
     assert len(factorization) != 0
+    assert len(res) == 6
     res = set()
-    for e in factorization:
+    for e in res:
         assert (e[0].endpoint.id_name, e[1].endpoint.id_name) in edgefactorset
         res.add(e)
     assert ('0', '1') not in res
