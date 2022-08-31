@@ -13,8 +13,11 @@ class HypergraphFactory(AbstractElementFactory):
         super().__init__(factory_name, clock)
 
     def generate_node(self, id_name: str, parent: HypergraphNode = None) -> HypergraphNode:
-        node = HypergraphNode(id_name, self.unique_identifier.generate_uid(id_name),
-                              '/'.join([self._factory_name, self.get_qualified_name(id_name)]),
+        if parent is not None:
+            uid = self.unique_identifier.generate_uid('/'.join([parent.qualified_name, id_name]))
+        else:
+            uid = self.unique_identifier.generate_uid(id_name)
+        node = HypergraphNode(id_name, uid, '/'.join([self._factory_name, self.get_qualified_name(id_name)]),
                               self._clock, parent)
         return node
 

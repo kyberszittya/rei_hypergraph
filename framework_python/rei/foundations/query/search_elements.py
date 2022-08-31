@@ -1,6 +1,5 @@
 import abc
 import asyncio
-import typing
 from abc import ABC
 import copy
 
@@ -76,18 +75,17 @@ class QuerySearchElement(GraphQuery):
     async def _traverse(self, fringe: asyncio.Queue):
         if not fringe.empty():
             __next: HypergraphElement = await fringe.get()
-            if __next.parent is not None:
-                await fringe.put(__next.parent)
-                self.visited_set.add(__next.uuid)
-                fringe.task_done()
+            self.visited_set.add(__next.uuid)
             if __next.qualified_name == self._query_def:
                 self._element_cache[__next.qualified_name] = __next
                 self._result.append(__next)
                 return
             for n in __next.get_subelements(lambda x: True):
-                # TODO: exclude same elements
-                #if n.uuid not in self.visited_set:
-                await fringe.put(n)
+                if n.uuid not in self.visited_set:
+                    await fringe.put(n)
+                    fringe.task_done()
+            if __next.parent is not None:
+                await fringe.put(__next.parent)
                 fringe.task_done()
             await self._traverse(fringe)
 
