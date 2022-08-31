@@ -35,7 +35,7 @@ class HierarchicalElement(IdentifiableItem, InterfaceSetOperations, ABC):
 
     def __init__(self, uuid: bytes, id_name: str, progenitor_qualified_name: str, parent=None) -> None:
         super().__init__(uuid, id_name, progenitor_qualified_name)
-        self._parent = parent
+        self._parent = None
         # Context related attributes
         self._cid = 0
         #
@@ -129,21 +129,36 @@ class ConceptualItem(HierarchicalElement, InterfaceSetMultipleElementsOperation,
             self._sub_elements[element.uuid] = element
         else:
             raise ErrorDuplicateElement
-        # Index by names (multiple names can exist, add them as a list)
-        if element.id_name not in self._index_elements_by_name:
-            self._index_elements_by_name[element.id_name] = {}
-        self._index_elements_by_name[element.id_name][element.uuid] = element
-        # Set the CID of the added element
-        element.cid = self._cnt_subelements_historical
         # Set the parent of the element
         if element.parent is not self:
+            # Index by names (multiple names can exist, add them as a list)
+            if element.id_name not in self._index_elements_by_name:
+                self._index_elements_by_name[element.id_name] = {}
+            self._index_elements_by_name[element.id_name][element.uuid] = element
+            # Set the CID of the added element
+            element.cid = self._cnt_subelements_historical
+            # Check whether this element has been assigned to somewhere else
+            if element.parent is not None:
+                for e in element.parent.remove_element(uuid=element.uuid):            # Update all sub elements
+                    e.update()
             element.parent = self
-        # Subelement count increment
-        self._cnt_subelements += 1
-        #
-        self._cnt_subelements_historical += 1
-        # Update timestamp
-        element.update()
+            # Subelement count increment
+            self._cnt_subelements += 1
+            # All-ever created subelement count
+            self._cnt_subelements_historical += 1
+            # Update subelements as well
+            self.__update_element(element)
+
+    def __update_element(self, element: HierarchicalElement):
+        import queue
+        __fringe = queue.Queue()
+        __fringe.put(element)
+        while not __fringe.empty():
+            __next: HierarchicalElement = __fringe.get()
+            __next.update()
+            for e in __next.get_subelements(lambda x: True):
+                __fringe.put(e)
+
 
     def remove_element(self, id_name: str = "", uuid: bytes = None) -> typing.Generator:
         if len(id_name) > 0:

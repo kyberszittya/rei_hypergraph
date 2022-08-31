@@ -1,36 +1,40 @@
-from rei.cognitive.format.basicelements.concepts.network.base_definitions import NetworkNode
-from rei.cognitive.format.basicelements.concepts.network.taxonomy import NetworkTaxonomy
-from rei.cognitive.format.basicelements.concepts.registry.registration_methods import \
-    IdentifierGeneratorSha224
+from rei.foundations.clock import DummyClock
+from rei.foundations.identification.identity_generator import Sha3UniqueIdentifierGenerator
+from rei.hypergraph.base_elements import HypergraphNode
 
 
 def test_network_node_qualified_name():
-    n0 = NetworkNode("node0", 0, IdentifierGeneratorSha224(""), None)
-    assert n0.progenitor_registry.qualified_name == "node0"
+    unique_identifier = Sha3UniqueIdentifierGenerator("test", lambda x, y: f"{x}")
+    __clock = DummyClock()
+    n0 = HypergraphNode("node0", unique_identifier.generate_uid("test"), "node0", __clock)
+    assert n0.qualified_name == "node0"
 
 
 def test_network_node_register_qualified_name():
-    n0 = NetworkNode("node0", 0, IdentifierGeneratorSha224(""), None)
-    taxon = NetworkTaxonomy("taxon", 0)
-    n0.register(taxon, 0)
+    unique_identifier = Sha3UniqueIdentifierGenerator("test", lambda x, y: f"{x}")
+    __clock = DummyClock()
+    n0 = HypergraphNode("node0", unique_identifier.generate_uid("test"), "node0", __clock)
+    taxon = HypergraphNode("taxon", unique_identifier.generate_uid("test"), "taxon", __clock)
+    taxon.add_element(n0)
 
     # Regression test of parents
-    assert n0.progenitor_registry._parent_registry is not None
-    assert n0.progenitor_registry._parent_registry is taxon
-    assert taxon._parent_registry is None
-    assert n0.progenitor_registry.qualified_name == "taxon/node0"
+    assert n0.parent is not None
+    assert taxon.parent is None
+    assert n0.qualified_name == "taxon/node0"
 
 
 def test_network_node_reregister_qualified_name():
-    n0 = NetworkNode("node0", 0, IdentifierGeneratorSha224(""), None)
-    taxon = NetworkTaxonomy("taxon", 0)
-    n0.register(taxon, 0)
-    taxon2 = NetworkTaxonomy("taxon2", 0)
-    n0.register(taxon2, 0)
+    unique_identifier = Sha3UniqueIdentifierGenerator("test", lambda x, y: f"{x}")
+    __clock = DummyClock()
+    n0 = HypergraphNode("node0", unique_identifier.generate_uid("test"), "node0", __clock)
+    taxon = HypergraphNode("taxon", unique_identifier.generate_uid("test"), "node0", __clock)
+    taxon.add_element(n0)
+    taxon2 = HypergraphNode("taxon2", unique_identifier.generate_uid("test"), "node0", __clock)
+    taxon2.add_element(n0)
 
     # Regression test on parents
-    assert n0.progenitor_registry._parent_registry is not None
-    assert n0.progenitor_registry._parent_registry is taxon2
-    assert taxon._parent_registry is None
-    assert taxon2._parent_registry is None
-    assert n0.progenitor_registry.qualified_name == "taxon2/node0"
+    assert n0.parent is not None
+    assert n0.parent is taxon2
+    assert taxon.parent is None
+    assert taxon2.parent is None
+    assert n0.qualified_name == "taxon2/node0"

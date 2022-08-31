@@ -53,6 +53,14 @@ class HypergraphElement(ConceptualItem):
     def sub_ports(self):
         yield from self.get_subelements(lambda x: isinstance(x, HypergraphPort))
 
+    def deregister(self):
+        if self.parent is not None:
+            for el in self.parent.remove_element(uuid=self.uuid):
+                el.update()
+
+    def register(self, parent: HierarchicalElement):
+        parent.add_element(self)
+
 
 class HypergraphRelation(HierarchicalElement):
     """
