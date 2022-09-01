@@ -47,6 +47,8 @@ class HierarchicalElement(IdentifiableItem, InterfaceSetOperations, ABC):
         self._cnt_subelements_historical = self._cnt_subelements
         # All subelements
         self._sub_elements = {}
+        # Indices
+        self._index_elements_by_name = {}
 
     @property
     def parent(self):
@@ -61,6 +63,9 @@ class HierarchicalElement(IdentifiableItem, InterfaceSetOperations, ABC):
         if self._parent is not None:
             yield from self._parent.update_qualified_name()
 
+    def update(self):
+        self._qualified_name = '/'.join(list(self.update_qualified_name())[::-1])
+
     @property
     def cid(self):
         return self._cid
@@ -72,55 +77,7 @@ class HierarchicalElement(IdentifiableItem, InterfaceSetOperations, ABC):
     def get_subelements(self, filterfunc: typing.Callable[[typing.Any], bool]) -> typing.Generator:
         yield from filter(filterfunc, self._sub_elements.values())
 
-
-
-
-
-
-class InterfaceNamedSubelements(metaclass=abc.ABCMeta):
-
-    @abc.abstractmethod
-    def get_element_by_id_name(self, id_name: str) -> typing.Generator:
-        raise NotImplementedError
-
-
-class ConceptualItem(HierarchicalElement, InterfaceSetMultipleElementsOperation, InterfaceNamedSubelements):
-
-    def __init__(self, id_name: str, uuid: bytes, qualified_name: str,
-                 clock: MetaClock, parent: HierarchicalElement = None) -> None:
-        super().__init__(uuid, id_name, qualified_name, parent)
-        self._clock = clock
-        # Indices
-        self._index_elements_by_name = {}
-        # Timestamp
-        self._update_timestamp()
-        # Setup parent
-        if parent is not None:
-            parent.add_element(self)
-
-    @property
-    def clock(self):
-        return self._clock
-
-    @clock.setter
-    def clock(self, arg: MetaClock):
-        self._clock = arg
-
-    @property
-    def cnt_subelements(self):
-        return self._cnt_subelements
-
-    @property
-    def timestamp(self):
-        return self._timestamp
-
-    def _update_timestamp(self):
-        if self._clock is not None:
-            self._timestamp = self._clock.get_time_ns()
-        else:
-            raise ErrorClockNotSet
-
-    def add_element(self, element: HierarchicalElement):
+    def add_element(self, element):
         # Forbid hierarchy recursion
         if element is self:
             raise ErrorRecursiveHierarchy
@@ -148,17 +105,6 @@ class ConceptualItem(HierarchicalElement, InterfaceSetMultipleElementsOperation,
             self._cnt_subelements_historical += 1
             # Update subelements as well
             self.__update_element(element)
-
-    def __update_element(self, element: HierarchicalElement):
-        import queue
-        __fringe = queue.Queue()
-        __fringe.put(element)
-        while not __fringe.empty():
-            __next: HierarchicalElement = __fringe.get()
-            __next.update()
-            for e in __next.get_subelements(lambda x: True):
-                __fringe.put(e)
-
 
     def remove_element(self, id_name: str = "", uuid: bytes = None) -> typing.Generator:
         if len(id_name) > 0:
@@ -200,6 +146,61 @@ class ConceptualItem(HierarchicalElement, InterfaceSetMultipleElementsOperation,
                 yield el
             else:
                 raise ErrorInvalidQuery
+
+    def __update_element(self, element):
+        import queue
+        __fringe = queue.Queue()
+        __fringe.put(element)
+        while not __fringe.empty():
+            __next: HierarchicalElement = __fringe.get()
+            __next.update()
+            for e in __next.get_subelements(lambda x: True):
+                __fringe.put(e)
+
+
+class InterfaceNamedSubelements(metaclass=abc.ABCMeta):
+
+    @abc.abstractmethod
+    def get_element_by_id_name(self, id_name: str) -> typing.Generator:
+        raise NotImplementedError
+
+
+class ConceptualItem(HierarchicalElement, InterfaceSetMultipleElementsOperation, InterfaceNamedSubelements):
+
+    def __init__(self, id_name: str, uuid: bytes, qualified_name: str,
+                 clock: MetaClock, parent: HierarchicalElement = None) -> None:
+        super().__init__(uuid, id_name, qualified_name, parent)
+        self._clock = clock
+
+        # Timestamp
+        self._update_timestamp()
+        # Setup parent
+        if parent is not None:
+            parent.add_element(self)
+
+    @property
+    def clock(self):
+        return self._clock
+
+    @clock.setter
+    def clock(self, arg: MetaClock):
+        self._clock = arg
+
+    @property
+    def cnt_subelements(self):
+        return self._cnt_subelements
+
+    @property
+    def timestamp(self):
+        return self._timestamp
+
+    def _update_timestamp(self):
+        if self._clock is not None:
+            self._timestamp = self._clock.get_time_ns()
+        else:
+            raise ErrorClockNotSet
+
+
 
     async def add_elements(self, elements: typing.Iterable[typing.Any]) -> asyncio.Future:
         return asyncio.gather(self.add_element(x) for x in elements)

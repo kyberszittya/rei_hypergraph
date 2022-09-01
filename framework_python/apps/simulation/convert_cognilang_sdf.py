@@ -2,11 +2,12 @@ import argparse
 
 from antlr4 import FileStream, CommonTokenStream
 
-from rei.factories.foundation_factory import HypergraphFactory
 from rei.format.cognilang.CogniLangLexer import CogniLangLexer
 from rei.format.cognilang.CogniLangParser import CogniLangParser
 from rei.format.mapping.cognilang_file_icon import CognilangParserFileIcon
-from rei.foundations.clock import LocalClock
+from rei.format.semantics.CognitiveEntity import KinematicLink, KinematicJoint
+from rei.foundations.clock import LocalClock, DummyClock
+from rei.query.query_engine import HierarchicalPrepositionQuery, HypergraphQueryEngine
 
 
 def main():
@@ -25,7 +26,15 @@ def main():
     __clock = LocalClock()
     visitor = CognilangParserFileIcon("cogni_lang_file", __clock)
     visitor.visit(tree)
-    print(visitor.root_entity.id_name)
+    root_item = visitor.root_entity
+    link_query = HierarchicalPrepositionQuery(root_item, lambda x: isinstance(x, KinematicLink))
+    joint_query = HierarchicalPrepositionQuery(root_item, lambda x: isinstance(x, KinematicJoint))
+    engine = HypergraphQueryEngine("engine", b'00', "engine/engine", DummyClock(), None)
+    engine.add_query('link_query', link_query)
+    engine.add_query('joint_query', joint_query)
+    res = engine.execute_all_queries()
+    print(res)
+    #asyncio.run(bfs.execute(root_item))
 
 
 if __name__ == "__main__":

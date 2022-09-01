@@ -21,29 +21,32 @@ class CognitiveEntitySemanticFactory(AbstractElementFactory):
             raise ErrorInsufficientValues
         element_type = ''.join(raw_element_type.lower().strip().split('_'))
         uuid = self.unique_identifier.generate_uid(id_name)
+        el = None
         match element_type:
             case 'cognitiveentity':
-                return CognitiveEntity(uuid, id_name, self.get_stamped_qualified_name(id_name, parent), parent, attr)
+                el = CognitiveEntity(uuid, id_name, self.get_stamped_qualified_name(id_name, parent), parent, attr)
             case 'kinematicgraph':
-                return KinematicGraphDefinition(uuid, id_name,
+                el = KinematicGraphDefinition(uuid, id_name,
                                                 self.get_stamped_qualified_name(id_name, parent), parent, attr)
             case 'kinematiclink':
-                return KinematicLink(uuid, id_name, self.get_stamped_qualified_name(id_name, parent), parent, attr)
+                el = KinematicLink(uuid, id_name, self.get_stamped_qualified_name(id_name, parent), parent, attr)
             case 'kinematicjoint':
-                return KinematicJoint(uuid, id_name, self.get_stamped_qualified_name(id_name, parent), parent, attr)
+                el = KinematicJoint(uuid, id_name, self.get_stamped_qualified_name(id_name, parent), parent, attr)
             case 'cylindergeometry':
-                return CylinderGeometry(uuid, id_name, self.get_stamped_qualified_name(id_name, parent),
+                el = CylinderGeometry(uuid, id_name, self.get_stamped_qualified_name(id_name, parent),
                                         parent, attr, values)
             case 'polyhedrongeometry':
-                return PolyhedronGeometry(uuid, id_name, self.get_stamped_qualified_name(id_name, parent),
+                el = PolyhedronGeometry(uuid, id_name, self.get_stamped_qualified_name(id_name, parent),
                                           parent, attr, values)
             case 'ellipsoidgeometry':
-                return EllipsoidGeometry(uuid, id_name, self.get_stamped_qualified_name(id_name, parent),
+                el = EllipsoidGeometry(uuid, id_name, self.get_stamped_qualified_name(id_name, parent),
                                          parent, attr, values)
             case 'material':
-                return VisualMaterial(uuid, id_name, self.get_stamped_qualified_name(id_name, parent), parent, attr)
+                el = VisualMaterial(uuid, id_name, self.get_stamped_qualified_name(id_name, parent), parent, attr)
             case 'rigidtransformation':
-                return RigidTransformation(
-                    uuid, id_name, self.get_stamped_qualified_name(id_name, parent), parent, attr)
+                el = RigidTransformation(uuid, id_name, self.get_stamped_qualified_name(id_name, parent), parent, attr)
             case _:
                 raise InvalidSemanticType
+        if el is not None:
+            parent.add_element(el)
+        return el

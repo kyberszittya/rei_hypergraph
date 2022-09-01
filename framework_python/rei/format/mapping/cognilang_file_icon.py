@@ -78,7 +78,7 @@ class CognilangParserFileIcon(CogniLangVisitor):
             _sv_trans = self.__cognitive_element_factory.generate_semantic_element(
                 'rigidtransformation', f"joint.{parent.id_name}_{reference_name}.transformation", __semantic_value_node,
                 {'translation': _translation, 'rotation': _rotation, 'rotation_type': _rotation_type})
-            __semantic_value_node.add_element(('rigid_transformation', _sv_trans))
+            __semantic_value_node.add_named_attribute('rigid_transformation', _sv_trans)
             # Set rigid transformation as a value
             match _rotation_type:
                 case 'deg':

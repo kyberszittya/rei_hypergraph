@@ -19,14 +19,6 @@ class ValueNode(HierarchicalElement):
         # Iteration
         self._recent_element = 0
 
-    def add_element(self, element) -> None:
-        self._values.append(element)
-        self.dim += 1
-
-    def remove_element(self, id_name: str = "", uuid: bytes = None) -> typing.Generator:
-        # TODO: implement it
-        pass
-
     def get_value(self, i):
         return self._values[i]
 
@@ -35,10 +27,6 @@ class ValueNode(HierarchicalElement):
 
     def update_values(self, arg):
         self._values = arg
-
-    def update(self):
-        # TODO: implement update
-        pass
 
     def __getitem__(self, i, /):
         return self._values[i]
@@ -72,13 +60,10 @@ class SemanticValueNode(HierarchicalElement):
         if name in self.__attribute_dictionary:
             self.__attribute_dictionary.pop(name)
 
-    def update(self):
-        self._qualified_name = self.update_qualified_name()
+#    def add_element(self, element) -> None:
+#        self.add_named_attribute(element[0], element[1])
 
-    def add_element(self, element) -> None:
-        self.add_named_attribute(element[0], element[1])
-
-    def remove_element(self, id_name: str = "", uuid: bytes = None) -> typing.Generator:
-        self.remove_named_attribute(id_name)
+#    def remove_element(self, id_name: str = "", uuid: bytes = None) -> typing.Generator:
+#        self.remove_named_attribute(id_name)
 
 
