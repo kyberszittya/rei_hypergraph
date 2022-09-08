@@ -105,11 +105,13 @@ class HypergraphRelation(HierarchicalElement):
     def update(self):
         self._qualified_name = '/'.join(list(self.update_qualified_name())[::-1])
 
-    def add_element(self, element: HypergraphElement) -> None:
+    def add_element(self, element: HierarchicalElement) -> None:
+        super().add_element(element)
         self._endpoint = element
-        self._sub_elements[element.uuid] = element
-        # Set port
-        element.connect(self)
+        #self._sub_elements[element.uuid] = element
+        if isinstance(element, HypergraphElement):
+            # Set port
+            element.connect(self)
 
     def remove_element(self, id_name: str = "", uuid: bytes = None) -> typing.Generator:
         el = self._sub_elements.pop(self.endpoint.uuid)
@@ -134,6 +136,8 @@ class HypergraphEdge(HypergraphElement):
         rel = HypergraphRelation(self._id_generation.generate_uid(endpoint), id_name,
                                  '/'.join([self.id_name, id_name]), endpoint, weight, direction=direction,
                                  semantic_value_node=semantic_value_node)
+        if semantic_value_node is not None:
+            rel.add_element(semantic_value_node)
         self.add_element(rel)
 
     def add_element(self, element: HierarchicalElement):

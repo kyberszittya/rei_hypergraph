@@ -4,7 +4,7 @@ from rei.foundations.clock import MetaClock
 from rei.foundations.conceptual_item import HierarchicalElement
 from rei.foundations.graph_monad import GraphMonad
 from rei.foundations.hierarchical_traversal_strategies import BreadthFirstHierarchicalTraversal
-from rei.hypergraph.base_elements import HypergraphNode, HypergraphEdge
+from rei.hypergraph.base_elements import HypergraphNode, HypergraphEdge, HypergraphRelation
 
 import asyncio
 
@@ -22,7 +22,7 @@ class HierarchicalPrepositionQuery(GraphMonad):
         self.__result = asyncio.Queue()
         self.__prefilter = []
         self.__bfs = BreadthFirstHierarchicalTraversal(lambda x: self.__prefilter.append(self.add_to_result(x)),
-                                                       lambda x: isinstance(x, HypergraphNode |
+                                                       lambda x: isinstance(x, HypergraphNode | HypergraphRelation |
                                                                             HypergraphEdge | SemanticValueNode))
 
     async def prefilter(self):

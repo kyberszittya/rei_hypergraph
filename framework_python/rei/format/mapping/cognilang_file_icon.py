@@ -65,10 +65,11 @@ class CognilangParserFileIcon(CogniLangVisitor):
         __direction = dir_enum_relation(ctx.direction.text)
         # Joint attributes
         __joint_type: str = str(ctx.type_)
+        __joint_edge_name = extract_graphelement_signature(ctx.parentCtx.parentCtx.graphedge_signature())
 
         # Semantic value setup
         __semantic_value_node = self.__cognitive_element_factory.generate_semantic_element(
-            "kinematicjoint", f"joint.{parent.id_name}_{reference_name}", parent, {
+            "kinematicjoint", f"joint_{__joint_edge_name}.{reference_name}", parent, {
                 "joint_type": __joint_type
             })
         # Extract rigid transformation

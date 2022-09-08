@@ -89,8 +89,10 @@ class HypergraphFactory(AbstractElementFactory):
         he = HypergraphEdge(edge_name, uuid, self.get_stamped_qualified_name(edge_name, container), container.clock, container)
         for n, dir, v, sv in nodes:
             he.unary_connect(n, v, dir, sv)
+            """
             if sv.parent is not he:
                 he.add_element(sv)
+            """
         return he
 
     def create_value(self, parent: HypergraphNode | None, value_name: str, values: list[typing.Any] = None):

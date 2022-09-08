@@ -41,7 +41,6 @@ def test_pendulum_kinematic_joint_relations():
     engine = HypergraphQueryEngine("engine", b'00', "engine/engine", DummyClock(), None)
     engine.add_query('link_query', link_query)
     res = engine.execute_all_queries()
-    print(res)
     assert len(res) == 6
 
 

@@ -5,9 +5,12 @@ from antlr4 import FileStream, CommonTokenStream
 from rei.format.cognilang.CogniLangLexer import CogniLangLexer
 from rei.format.cognilang.CogniLangParser import CogniLangParser
 from rei.format.mapping.cognilang_file_icon import CognilangParserFileIcon
-from rei.format.semantics.CognitiveEntity import KinematicLink, KinematicJoint
+from rei.format.mapping.cognilang_sdf_icon import CognilangSdfIcon
+from rei.format.semantics.CognitiveEntity import KinematicLink, KinematicJoint, CognitiveEntity
 from rei.foundations.clock import LocalClock, DummyClock
 from rei.query.query_engine import HierarchicalPrepositionQuery, HypergraphQueryEngine
+
+from lxml import etree
 
 
 def main():
@@ -29,11 +32,16 @@ def main():
     root_item = visitor.root_entity
     link_query = HierarchicalPrepositionQuery(root_item, lambda x: isinstance(x, KinematicLink))
     joint_query = HierarchicalPrepositionQuery(root_item, lambda x: isinstance(x, KinematicJoint))
+    cognitiveentity_query = HierarchicalPrepositionQuery(root_item, lambda x: isinstance(x, CognitiveEntity))
     engine = HypergraphQueryEngine("engine", b'00', "engine/engine", DummyClock(), None)
     engine.add_query('link_query', link_query)
     engine.add_query('joint_query', joint_query)
+    engine.add_query('cognitive_query', cognitiveentity_query)
     res = engine.execute_all_queries()
-    print(res)
+    sdf_icon = CognilangSdfIcon()
+    for i in res:
+        sdf_icon.encode_element(i)
+    print(etree.tostring(sdf_icon.root_xml, pretty_print=True).decode('utf-8'))
     #asyncio.run(bfs.execute(root_item))
 
 
