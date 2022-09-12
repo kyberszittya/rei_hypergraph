@@ -1,4 +1,5 @@
 import argparse
+import asyncio
 
 from antlr4 import FileStream, CommonTokenStream
 
@@ -39,8 +40,7 @@ def main():
     engine.add_query('cognitive_query', cognitiveentity_query)
     res = engine.execute_all_queries()
     sdf_icon = CognilangSdfIcon()
-    for i in res:
-        sdf_icon.encode_element(i)
+    asyncio.run(sdf_icon.encode(res))
     print(etree.tostring(sdf_icon.root_xml, pretty_print=True).decode('utf-8'))
     #asyncio.run(bfs.execute(root_item))
 

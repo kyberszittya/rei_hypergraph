@@ -2,12 +2,13 @@ import asyncio
 import typing
 
 from rei.foundations.graph_monad import GraphMonad
-from rei.hypergraph.base_elements import HypergraphNode, HypergraphEdge
+from rei.hypergraph.base_elements import HypergraphNode, HypergraphEdge, HypergraphRelation
+from rei.hypergraph.common_definitions import EnumRelationDirection
 
 
 class Factorization2Operation(GraphMonad):
 
-    def __init__(self) -> None:
+    def __init__(self):
         super().__init__()
         self.__relation_list = []
 
@@ -39,6 +40,60 @@ class Factorization2Operation(GraphMonad):
         await __fringe.put(start)
         __fringe.task_done()
         await self.__traverse(__fringe)
+        return self.__relation_list
+
+
+class Factorization2SubsetOperation(GraphMonad):
+
+    def __init__(self, self_loop=False):
+        super().__init__()
+        self.nodes = None
+        self.self_loop = self_loop
+
+    async def execute(self, start) -> list[asyncio.Future]:
+        self.__relation_list = []
+        self.nodes = [x for x in filter(lambda x: isinstance(x, HypergraphNode), start)]
+        for __edge in filter(lambda x: isinstance(x, HypergraphEdge), start):
+            __edge: HypergraphEdge
+            i_e = filter(lambda x: x.endpoint in self.nodes, __edge.get_incoming_relations())
+            for e in i_e:
+                o_e = filter(lambda x: x.endpoint in self.nodes, __edge.get_outgoing_relations())
+                for e1 in o_e:
+                    if (e.endpoint.uuid != e1.endpoint.uuid) or self.self_loop:
+                        self.__relation_list.append([e, e1])
+        return self.__relation_list
+
+
+class RelationFactorization2SubsetOperation(GraphMonad):
+
+    def __init__(self, self_loop=False):
+        super().__init__()
+        self.nodes = None
+        self.self_loop = self_loop
+
+    async def execute(self, start) -> list[asyncio.Future]:
+        self.__relation_list = []
+        self.nodes = [x for x in filter(lambda x: isinstance(x, HypergraphNode), start)]
+        self.incoming_relations = {}
+        self.outgoing_relations = {}
+        # Collect incoming and outgoing edges
+        for __rel in filter(lambda x: isinstance(x, HypergraphRelation), start):
+            __rel: HypergraphRelation
+            if __rel.direction == EnumRelationDirection.INWARDS or __rel.direction == EnumRelationDirection.BIDIRECTIONAL:
+                if __rel.parent.uuid not in self.incoming_relations:
+                    self.incoming_relations[__rel.parent.uuid] = []
+                self.incoming_relations[__rel.parent.uuid].append(__rel)
+            elif __rel.direction == EnumRelationDirection.OUTWARDS:
+                if __rel.parent.uuid not in self.outgoing_relations:
+                    self.outgoing_relations[__rel.parent.uuid] = []
+                self.outgoing_relations[__rel.parent.uuid].append(__rel)
+        # Pair relations
+        for k in self.incoming_relations:
+            for i_e in self.incoming_relations[k]:
+                for o_e in self.outgoing_relations[k]:
+                    if (o_e.endpoint.uuid != i_e.endpoint.uuid) or self.self_loop:
+                        self.__relation_list.append([i_e, o_e])
+        # Relation list
         return self.__relation_list
 
 

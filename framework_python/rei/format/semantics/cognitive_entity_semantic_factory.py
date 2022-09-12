@@ -49,4 +49,6 @@ class CognitiveEntitySemanticFactory(AbstractElementFactory):
                 raise InvalidSemanticType
         if el is not None:
             parent.add_element(el)
+            if values is not None:
+                el.add_named_attribute("values", values)
         return el

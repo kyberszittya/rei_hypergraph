@@ -8,7 +8,6 @@ class CognitiveEntity(SemanticValueNode):
                  parent: HierarchicalElement, attr: dict):
         super().__init__(uuid, id_name, progenitor_qualified_name, parent, attr)
 
-
     def setup(self, name: str):
         self.remove_named_attribute('name')
         self.add_named_attribute('name', name)
@@ -40,14 +39,10 @@ class KinematicLink(SemanticValueNode):
         super().__init__(uuid, id_name, progenitor_qualified_name, parent, attr)
 
 
-
-
 class KinematicJoint(SemanticValueNode):
 
     def __init__(self, uuid: bytes, id_name: str, progenitor_qualified_name: str, parent, attr: dict):
         super().__init__(uuid, id_name, progenitor_qualified_name, parent, attr)
-
-
 
 
 #

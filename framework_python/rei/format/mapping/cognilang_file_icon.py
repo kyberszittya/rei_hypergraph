@@ -64,9 +64,8 @@ class CognilangParserFileIcon(CogniLangVisitor):
         __endpoint, reference_name = self.__lookup_reference(ctx, parent)
         __direction = dir_enum_relation(ctx.direction.text)
         # Joint attributes
-        __joint_type: str = str(ctx.type_)
+        __joint_type: str = str(ctx.type_.value_.text)
         __joint_edge_name = extract_graphelement_signature(ctx.parentCtx.parentCtx.graphedge_signature())
-
         # Semantic value setup
         __semantic_value_node = self.__cognitive_element_factory.generate_semantic_element(
             "kinematicjoint", f"joint_{__joint_edge_name}.{reference_name}", parent, {
@@ -74,18 +73,12 @@ class CognilangParserFileIcon(CogniLangVisitor):
             })
         # Extract rigid transformation
         values = None
+        if ctx.axis() is not None:
+            __ax = self.__extract_float_vector_values(ctx.axis().axis_)
+            __semantic_value_node.add_named_attribute('axis', [float(x) for x in __ax])
         if ctx.rigid_transformation() is not None:
-            _translation, _rotation, _rotation_type = self.__extract_rigid_transformation(ctx.rigid_transformation())
-            _sv_trans = self.__cognitive_element_factory.generate_semantic_element(
-                'rigidtransformation', f"joint.{parent.id_name}_{reference_name}.transformation", __semantic_value_node,
-                {'translation': _translation, 'rotation': _rotation, 'rotation_type': _rotation_type})
-            __semantic_value_node.add_named_attribute('rigid_transformation', _sv_trans)
+            _sv_trans, _translation, _rotation = self.__extract_rigid_transformation_element(ctx, __semantic_value_node)
             # Set rigid transformation as a value
-            match _rotation_type:
-                case 'deg':
-                    _rotation = [float(x)*math.pi/180.0 for x in _rotation]
-                case _:
-                    _rotation = [float(x) for x in _rotation]
             values = [_translation, _rotation]
         # Extract rigid transformation
         return __endpoint, __direction, values, __semantic_value_node
@@ -194,7 +187,7 @@ class CognilangParserFileIcon(CogniLangVisitor):
         __material_name_id = f'material_{container_node.id_name}'
         _sv = self.__cognitive_element_factory.generate_semantic_element(
             'material', __material_name_id, container_node,
-            {'name': __material_name_id, 'material_name': ctx.material_name})
+            {'name': __material_name_id, 'material_name': ctx.material_name.text})
         self._element_cache[_sv.qualified_name] = _sv
 
     def __extract_rigid_transformation(self, ctx: CogniLangParser.Rigid_transformationContext):
@@ -214,8 +207,13 @@ class CognilangParserFileIcon(CogniLangVisitor):
             _sv_trans = self.__cognitive_element_factory.generate_semantic_element(
                 'rigidtransformation', trans_id_container, _el,
                 {'translation': _translation, 'rotation': _rotation, 'rotation_type': _rotation_type})
+            match _rotation_type:
+                case 'deg':
+                    _rotation = [float(x)*math.pi/180.0 for x in _rotation]
+                case _:
+                    _rotation = [float(x) for x in _rotation]
             self._element_cache[_sv_trans.qualified_name] = _sv_trans
-            return _sv_trans
+            return _sv_trans, _translation, _rotation
 
     #
     # END SECTION
@@ -235,8 +233,8 @@ class CognilangParserFileIcon(CogniLangVisitor):
         # Create entity as hypergraph
         _n = self.__factory.generate_node(name, None)
         self.__root_entity = _n
-        self.__cognitive_element_factory.generate_semantic_element('cognitiveentity', name, self.__root_entity,
-                                                                   {'name': name})
+        self.__cognitive_element_factory.generate_semantic_element(
+            'cognitiveentity', name, self.__root_entity, {'name': name})
         self._element_cache[_n.qualified_name] = _n
         # Return to context
         return self.visitChildren(ctx)
@@ -244,8 +242,7 @@ class CognilangParserFileIcon(CogniLangVisitor):
     def visitKinematic(self, ctx: CogniLangParser.KinematicContext):
         name = extract_graphelement_signature(ctx.graphnode_signature())
         _el = self.__factory.generate_node(name, self.__root_entity)
-        self.__cognitive_element_factory.generate_semantic_element('kinematicgraph', name, _el,
-                                                                   {'name': name})
+        self.__cognitive_element_factory.generate_semantic_element('kinematicgraph', name, _el, {'name': name})
         self._element_cache[_el.qualified_name] = _el
         return self.visitChildren(ctx)
 
@@ -262,7 +259,10 @@ class CognilangParserFileIcon(CogniLangVisitor):
 
     def visitCollision_node(self, ctx: CogniLangParser.Collision_nodeContext):
         _parent = self.__generate_parent_name(ctx)
-        _name = str(ctx.ID())
+        if ctx.ID() is None:
+            _name = "/".join([_parent, "coll"])
+        else:
+            _name = str(ctx.ID())
         # Create node
         _el = self.__factory.generate_node(_name, self._element_cache[_parent])
         self._element_cache[_el.qualified_name] = _el
@@ -275,11 +275,11 @@ class CognilangParserFileIcon(CogniLangVisitor):
         parent_name = self.__generate_parent_name(ctx)
         parent = self._element_cache[parent_name]
         _el = self.__factory.generate_node(name, parent)
-        #
-        self.__extract_rigid_transformation_element(ctx, _el)
-        #
-        self.__cognitive_element_factory.generate_semantic_element('kinematiclink', name, _el,
-                                                                   {'name': name})
+        # Kinematic link
+        __sv = self.__cognitive_element_factory.generate_semantic_element('kinematiclink', name, _el, {'name': name})
+        __sv_trans = self.__extract_rigid_transformation_element(ctx, __sv)
+        if __sv_trans is not None:
+            __sv.add_named_attribute('rigidtransformation', __sv_trans)
         self._element_cache[_el.qualified_name] = _el
         return self.visitChildren(ctx)
 

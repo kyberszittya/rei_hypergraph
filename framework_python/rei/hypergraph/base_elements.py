@@ -107,7 +107,7 @@ class HypergraphRelation(HierarchicalElement):
 
     def add_element(self, element: HierarchicalElement) -> None:
         super().add_element(element)
-        self._endpoint = element
+        #self._endpoint = element
         #self._sub_elements[element.uuid] = element
         if isinstance(element, HypergraphElement):
             # Set port

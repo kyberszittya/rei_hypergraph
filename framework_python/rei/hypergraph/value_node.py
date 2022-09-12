@@ -49,9 +49,10 @@ class SemanticValueNode(HierarchicalElement):
 
     def __init__(self, uuid: bytes, id_name: str, progenitor_qualified_name: str, parent, attr: dict):
         super().__init__(uuid, id_name, progenitor_qualified_name, parent)
-        self.__attribute_dictionary = {}
-        if 'name' in attr:
-            self.add_named_attribute('name', attr['name'])
+        self.__attribute_dictionary = {x: attr[x] for x in attr}
+        #if 'name' in attr:
+        #    self.add_named_attribute('name', attr['name'])
+
 
     def add_named_attribute(self, name: str, arg):
         self.__attribute_dictionary[name] = arg
@@ -60,10 +61,17 @@ class SemanticValueNode(HierarchicalElement):
         if name in self.__attribute_dictionary:
             self.__attribute_dictionary.pop(name)
 
+
+
 #    def add_element(self, element) -> None:
 #        self.add_named_attribute(element[0], element[1])
 
 #    def remove_element(self, id_name: str = "", uuid: bytes = None) -> typing.Generator:
 #        self.remove_named_attribute(id_name)
+
+    def __getitem__(self, item):
+        if item not in self.__attribute_dictionary:
+            return None
+        return self.__attribute_dictionary[item]
 
 
