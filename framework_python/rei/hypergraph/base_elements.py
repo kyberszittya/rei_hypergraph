@@ -21,6 +21,10 @@ class HypergraphPort(HierarchicalElement):
         super().__init__(uuid, id_name, progenitor_qualified_name, parent)
         self._endpoint = endpoint
 
+    @property
+    def endpoint(self):
+        return self._endpoint
+
 
 class HypergraphElement(ConceptualItem):
     """
@@ -40,7 +44,7 @@ class HypergraphElement(ConceptualItem):
 
     def connect(self, el: HierarchicalElement):
         port_name = '.'.join([self.id_name, "port", el.id_name])
-        p = HypergraphPort(self._id_generation.generate_uid(port_name), port_name,
+        p = HypergraphPort(self._id_generation.generate_uid(el), port_name,
                            port_name, el, self)
         self._ports[el.uuid] = p
         self.add_element(p)
@@ -136,6 +140,7 @@ class HypergraphEdge(HypergraphElement):
         rel = HypergraphRelation(self._id_generation.generate_uid(endpoint), id_name,
                                  '/'.join([self.id_name, id_name]), endpoint, weight, direction=direction,
                                  semantic_value_node=semantic_value_node)
+        endpoint.connect(rel)
         if semantic_value_node is not None:
             rel.add_element(semantic_value_node)
         self.add_element(rel)

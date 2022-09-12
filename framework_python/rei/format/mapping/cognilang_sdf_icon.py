@@ -5,6 +5,7 @@ from lxml import etree
 from rei.format.semantics.CognitiveEntity import KinematicJoint, KinematicLink, CognitiveEntity, RigidTransformation, \
     VisualMaterial, GeometryNode, CylinderGeometry, EllipsoidGeometry
 from rei.hypergraph.base_elements import HypergraphNode
+from rei.hypergraph.common_definitions import EnumRelationDirection
 from rei.hypergraph.factorization_operations import Factorization2SubsetOperation, RelationFactorization2SubsetOperation
 
 
@@ -63,6 +64,10 @@ class CognilangSdfIcon(object):
                     link_el.append(el_joint_pose)
                 # Visual & collision geometry setup
                 p: HypergraphNode = element.parent
+                for x in p.sub_ports:
+                    # TODO: complete it
+                    if x.endpoint.direction == EnumRelationDirection.INWARDS:
+                        print(x.endpoint)
                 sub_nodes = [x for x in p.get_subelements(lambda x: isinstance(x, HypergraphNode))]
                 __sem_collision = []
                 __sem_visual = []
