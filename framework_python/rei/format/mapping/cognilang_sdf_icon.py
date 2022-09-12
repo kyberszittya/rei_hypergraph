@@ -4,7 +4,7 @@ from lxml import etree
 
 from rei.format.semantics.CognitiveEntity import KinematicJoint, KinematicLink, CognitiveEntity, RigidTransformation, \
     VisualMaterial, GeometryNode, CylinderGeometry, EllipsoidGeometry
-from rei.hypergraph.base_elements import HypergraphNode
+from rei.hypergraph.base_elements import HypergraphNode, HypergraphPort
 from rei.hypergraph.common_definitions import EnumRelationDirection
 from rei.hypergraph.factorization_operations import Factorization2SubsetOperation, RelationFactorization2SubsetOperation
 
@@ -57,18 +57,25 @@ class CognilangSdfIcon(object):
                 element: KinematicLink
                 link_el = etree.Element("link")
                 link_el.attrib["name"] = element.id_name
+                #
+                cont_node: HypergraphNode = element.parent
+                # Check relative frame
+                relative_frame_name = None
+                for x in cont_node.sub_ports:
+                    x: HypergraphPort
+                    subel = [r for r in x.endpoint.get_subelements(lambda y: isinstance(y, KinematicJoint))]
+                    if x.endpoint.direction == EnumRelationDirection.INWARDS and len(subel)>0:
+                        relative_frame_name = subel[0].id_name
                 # Rigid transformation
                 for x in element.get_subelements(lambda x: isinstance(x, RigidTransformation)):
                     el_joint_pose = self.__extract_rigid_transformation_element(x)
+                    # Check relative frame
+                    if relative_frame_name is not None:
+                        el_joint_pose.attrib["relative_to"] = relative_frame_name
                     # Add pose to joint
                     link_el.append(el_joint_pose)
                 # Visual & collision geometry setup
-                p: HypergraphNode = element.parent
-                for x in p.sub_ports:
-                    # TODO: complete it
-                    if x.endpoint.direction == EnumRelationDirection.INWARDS:
-                        print(x.endpoint)
-                sub_nodes = [x for x in p.get_subelements(lambda x: isinstance(x, HypergraphNode))]
+                sub_nodes = [x for x in cont_node.get_subelements(lambda x: isinstance(x, HypergraphNode))]
                 __sem_collision = []
                 __sem_visual = []
                 __sem_material = {}
