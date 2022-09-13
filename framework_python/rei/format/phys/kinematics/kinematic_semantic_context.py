@@ -72,7 +72,7 @@ def __encode_joint_type(joint_type: str):
     match joint_type:
         case "fix":
             return "fixed"
-        case "revolute":
+        case "rev":
             return "revolute"
     return "fixed"
 
