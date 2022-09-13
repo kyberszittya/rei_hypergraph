@@ -12,7 +12,7 @@ from rei.foundations.clock import LocalClock, DummyClock
 from rei.query.query_engine import HierarchicalPrepositionQuery, HypergraphQueryEngine
 
 from lxml import etree
-
+import os
 
 def main():
     parser = argparse.ArgumentParser(description="Convert Cognilang to OSRF SDF")
@@ -41,7 +41,10 @@ def main():
     res = engine.execute_all_queries()
     sdf_icon = CognilangSdfIcon()
     asyncio.run(sdf_icon.encode(res))
-    print(etree.tostring(sdf_icon.root_xml, pretty_print=True).decode('utf-8'))
+    with open(os.path.join(args.output, root_item.id_name+".sdf"), 'w') as f:
+        f.write(etree.tostring(sdf_icon.root_xml, pretty_print=True).decode('utf-8'))
+    with open(os.path.join(args.output, root_item.id_name+".load.sh"), 'w') as f:
+        f.write(f"ros2 run gazebo_ros spawn_entity.py -entity {root_item.id_name} -file {root_item.id_name}.sdf")
     #asyncio.run(bfs.execute(root_item))
 
 

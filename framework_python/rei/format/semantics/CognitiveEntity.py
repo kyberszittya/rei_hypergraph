@@ -13,6 +13,15 @@ class CognitiveEntity(SemanticValueNode):
         self.add_named_attribute('name', name)
 
 #
+# Inertia
+#
+
+class InertiaElement(SemanticValueNode):
+
+    def __init__(self, uuid: bytes, id_name: str, progenitor_qualified_name: str, parent, attr: dict):
+        super().__init__(uuid, id_name, progenitor_qualified_name, parent, attr)
+
+#
 # Transformations
 #
 

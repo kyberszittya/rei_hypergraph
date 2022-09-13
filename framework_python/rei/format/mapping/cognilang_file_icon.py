@@ -48,8 +48,11 @@ class CognilangParserFileIcon(CogniLangVisitor):
         if ctx.parentCtx is not None:
             yield from self.__get_parent_name(ctx.parentCtx)
 
-    def __generate_parent_name(self, ctx):
+    def __generate_parent_node_name(self, ctx):
         return '/'.join(list(self.__get_parent_name(ctx))[::-1][:-1])
+
+    def __generate_parent_name(self, ctx):
+        return '/'.join(list(self.__get_parent_name(ctx))[::-1])
 
     def __lookup_reference(self, ctx, parent):
         if hasattr(ctx, "ref_"):
@@ -123,24 +126,13 @@ class CognilangParserFileIcon(CogniLangVisitor):
             return self._element_cache[inferred_name], inferred_name
         return None
 
-    def __add_geometry_reference(self, ctx, container_node):
+    def __add_reference(self, ctx, container_node, ref_func: typing.Callable):
         parent_graph_name = '/'.join(list(self.__get_parent_name(ctx))[::-1][:-2])
         parent_graph: HypergraphNode = self._element_cache[parent_graph_name]
-        _el_ref, _inferred_name = self.__search_for_reference(ctx.geometries().ref_(), ctx)
+        _el_ref, _inferred_name = self.__search_for_reference(ref_func(ctx).ref_(), ctx)
         if _inferred_name not in self._reference_cache:
             ref_e = self.__factory.create_hyperedge(
-                parent_graph, f"ref_{container_node.id_name}_{str(ctx.geometries().ref_().ID())}")
-            ref_e.unary_connect(_el_ref, None, EnumRelationDirection.OUTWARDS)
-            ref_e.unary_connect(container_node, None, EnumRelationDirection.INWARDS)
-            self._reference_cache[_inferred_name] = ref_e
-
-    def __add_reference(self, ctx, container_node):
-        parent_graph_name = '/'.join(list(self.__get_parent_name(ctx))[::-1][:-2])
-        parent_graph: HypergraphNode = self._element_cache[parent_graph_name]
-        _el_ref, _inferred_name = self.__search_for_reference(ctx.ref_(), ctx)
-        if _inferred_name not in self._reference_cache:
-            ref_e = self.__factory.create_hyperedge(
-                parent_graph, f"ref_{container_node.id_name}_{str(ctx.ref_().ID())}")
+                parent_graph, f"ref_{container_node.id_name}_{str(ref_func(ctx).ref_().ID())}")
             ref_e.unary_connect(_el_ref, None, EnumRelationDirection.OUTWARDS)
             ref_e.unary_connect(container_node, None, EnumRelationDirection.INWARDS)
             self._reference_cache[_inferred_name] = ref_e
@@ -156,11 +148,11 @@ class CognilangParserFileIcon(CogniLangVisitor):
                 yield float(str(x.FLOAT()))
 
     def __collect_geometries(self, ctx: CogniLangParser.Geometry_bodyContext, container_node: HypergraphNode):
+        __geom_id_name = '_'.join(["geom", container_node.id_name])
+        _el = self.__factory.generate_node(__geom_id_name, container_node)
         if ctx.geometries().ref_() is not None:
-            self.__add_geometry_reference(ctx, container_node)
+            self.__add_reference(ctx, _el, lambda x: x.geometries())
         else:
-            __geom_id_name = '_'.join(["geom", container_node.id_name])
-            _el = self.__factory.generate_node(__geom_id_name, container_node)
             geom_ctx: typing.Any = None
             __geometry_type: str = ""
             if ctx.geometries().cylinder_geometry() is not None:
@@ -180,8 +172,8 @@ class CognilangParserFileIcon(CogniLangVisitor):
                 _sv = self.__cognitive_element_factory.generate_semantic_element(
                     __geometry_type, __geom_id_name, _el, {'name': __geom_id_name}, values)
                 self._element_cache[_sv.qualified_name] = _sv
-            # Wrap up
-            self._element_cache[_el.qualified_name] = _el
+        # Wrap up
+        self._element_cache[_el.qualified_name] = _el
 
     def __collect_materials(self, ctx: CogniLangParser.MaterialContext, container_node: HypergraphNode):
         __material_name_id = f'material_{container_node.id_name}'
@@ -196,9 +188,10 @@ class CognilangParserFileIcon(CogniLangVisitor):
             rotation = list(self.__extract_float_vector_values(ctx.rotation().float_vector()))
             rotation_type = str(ctx.rotation().rot_type)
             return translation, rotation, rotation_type
-        rotation = [0.0, 0.0, 0.0]
-        rotation_type = 'deg'
-        return translation, rotation, rotation_type
+        else:
+            rotation = [0.0, 0.0, 0.0]
+            rotation_type = 'deg'
+            return translation, rotation, rotation_type
 
     def __extract_rigid_transformation_element(self, ctx, _el):
         if ctx.rigid_transformation() is not None:
@@ -247,7 +240,7 @@ class CognilangParserFileIcon(CogniLangVisitor):
         return self.visitChildren(ctx)
 
     def visitVisual_node(self, ctx: CogniLangParser.Visual_nodeContext):
-        _parent = self.__generate_parent_name(ctx)
+        _parent = self.__generate_parent_node_name(ctx)
         _name = str(ctx.ID())
         # Create node
         _el = self.__factory.generate_node(_name, self._element_cache[_parent])
@@ -258,7 +251,7 @@ class CognilangParserFileIcon(CogniLangVisitor):
         return self.visitChildren(ctx)
 
     def visitCollision_node(self, ctx: CogniLangParser.Collision_nodeContext):
-        _parent = self.__generate_parent_name(ctx)
+        _parent = self.__generate_parent_node_name(ctx)
         if ctx.ID() is None:
             _name = "/".join([_parent, "coll"])
         else:
@@ -272,21 +265,36 @@ class CognilangParserFileIcon(CogniLangVisitor):
 
     def visitLink(self, ctx: CogniLangParser.LinkContext):
         name = extract_graphelement_signature(ctx.graphnode_signature())
-        parent_name = self.__generate_parent_name(ctx)
+        parent_name = self.__generate_parent_node_name(ctx)
         parent = self._element_cache[parent_name]
         _el = self.__factory.generate_node(name, parent)
         # Kinematic link
         __sv = self.__cognitive_element_factory.generate_semantic_element('kinematiclink', name, _el, {'name': name})
+        # Rigid transformation
         __sv_trans = self.__extract_rigid_transformation_element(ctx, __sv)
         if __sv_trans is not None:
             __sv.add_named_attribute('rigidtransformation', __sv_trans)
+        # Inertia
+        # Add element to cache
         self._element_cache[_el.qualified_name] = _el
         return self.visitChildren(ctx)
 
     def visitJoint(self, ctx: CogniLangParser.JointContext):
         name = extract_graphelement_signature(ctx.graphedge_signature())
-        parent_name = self.__generate_parent_name(ctx)
+        parent_name = self.__generate_parent_node_name(ctx)
         parent = self._element_cache[parent_name]
         res = list(self.__collect_joint_relations(ctx.joint_body(), parent))
         self.__factory.connect_tuple_nodes(parent, name, res)
         return self.visitChildren(ctx)
+
+    def visitInertia_body(self, ctx: CogniLangParser.Inertia_bodyContext):
+        parent_name = self.__generate_parent_name(ctx)
+        if ctx.inertia_vector() is not None:
+            v = self.__extract_vector_field_values(ctx.inertia_vector().field_float_vector())
+            print(v)
+        __inertia = self.__cognitive_element_factory.generate_semantic_element(
+            'inertiaelement', f"inertia_{parent_name}", self._element_cache[parent_name],
+            {'mass': float(ctx.mass.text)})
+        return self.visitChildren(ctx)
+
+
