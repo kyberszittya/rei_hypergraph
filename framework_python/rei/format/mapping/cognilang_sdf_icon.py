@@ -4,7 +4,8 @@ from lxml import etree
 
 from rei.arbiter.cognitive_icon import CognitiveIcon
 from rei.format.phys.inertia_context import encode_inertia_element
-from rei.format.phys.kinematics.kinematic_semantic_context import encode_link_element, joint_base_element
+from rei.format.phys.kinematics.kinematic_semantic_context import encode_link_element, joint_base_element, \
+    joint_base_element_endpoint
 from rei.format.semantics.CognitiveEntity import KinematicJoint, KinematicLink, CognitiveEntity, \
     KinematicGraphDefinition
 from rei.hypergraph.base_elements import HypergraphNode
@@ -97,7 +98,7 @@ class CognilangSdfIcon(CognitiveIcon):
                 joint_el = joint_base_element(j[0], j[1], prefix)
                 self.__add_model_element(joint_el)
             else:
-                joint_el = joint_base_element(j[0], j[1], prefix)
+                joint_el = joint_base_element_endpoint(j[0], j[1], f"{j[1].parent.id_name}.{j[1].endpoint.id_name}", prefix)
                 self.__add_model_element(joint_el)
                 await self.encode_sub_graph(j[1], prefix)
 

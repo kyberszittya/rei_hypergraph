@@ -37,6 +37,7 @@ def encode_typegeometry_element(e: GeometryNode) -> etree.Element:
                         el_size.text = f"{v} {v} {v}"
                     case 3:
                         el_size.text = f"{e['values'][0]} {e['values'][1]} {e['values'][2]}"
+                el_geom.append(el_size)
     return el_geom
 
 

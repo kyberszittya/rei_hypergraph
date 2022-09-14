@@ -81,6 +81,9 @@ def __encode_joint_type(joint_type: str):
 
 
 def joint_base_element(j0, j1, prefix=""):
+    return joint_base_element_endpoint(j0, j1, j1.endpoint.id_name, prefix)
+
+def joint_base_element_endpoint(j0, j1, child_endpoint_name, prefix=""):
     joint_el = etree.Element("joint")
     # Joint elements
     # Parent
@@ -88,10 +91,10 @@ def joint_base_element(j0, j1, prefix=""):
     # Child
     el_joint_child = etree.Element("child")
     if len(prefix) == 0:
-        el_joint_child.text = j1.endpoint.id_name
+        el_joint_child.text = child_endpoint_name
         el_joint_parent.text = j0.endpoint.id_name
     else:
-        el_joint_child.text = f"{prefix}.{j1.endpoint.id_name}"
+        el_joint_child.text = f"{prefix}.{child_endpoint_name}"
         el_joint_parent.text = f"{prefix}.{j0.endpoint.id_name}"
     # Add joint parent-childs
     joint_el.append(el_joint_parent)
