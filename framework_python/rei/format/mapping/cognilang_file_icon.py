@@ -234,7 +234,8 @@ class CognilangParserFileIcon(CogniLangVisitor):
 
     def visitKinematic(self, ctx: CogniLangParser.KinematicContext):
         name = extract_graphelement_signature(ctx.graphnode_signature())
-        _el = self.__factory.generate_node(name, self.__root_entity)
+        parent_name = self.__generate_parent_node_name(ctx)
+        _el = self.__factory.generate_node(name, self._element_cache[parent_name])
         self.__cognitive_element_factory.generate_semantic_element('kinematicgraph', name, _el, {'name': name})
         self._element_cache[_el.qualified_name] = _el
         return self.visitChildren(ctx)

@@ -1,6 +1,7 @@
 from lxml import etree
 
-from rei.format.semantics.CognitiveEntity import GeometryNode, CylinderGeometry, EllipsoidGeometry, VisualMaterial
+from rei.format.semantics.CognitiveEntity import GeometryNode, CylinderGeometry, EllipsoidGeometry, VisualMaterial, \
+    PolyhedronGeometry
 from rei.hypergraph.base_elements import HypergraphEdge, HypergraphPort, HypergraphNode, HypergraphElement
 
 
@@ -26,6 +27,16 @@ def encode_typegeometry_element(e: GeometryNode) -> etree.Element:
                 el_radii = etree.Element("radii")
                 el_radii.text = ' '.join([str(x) for x in  e["values"]])
                 el_geom.append(el_radii)
+        case PolyhedronGeometry():
+            if 1 <= len(e["values"]) <= 3:
+                el_geom = etree.Element("box")
+                el_size = etree.Element("size")
+                match len(e["values"]):
+                    case 1:
+                        v = e["values"][0]
+                        el_size.text = f"{v} {v} {v}"
+                    case 3:
+                        el_size.text = f"{e['values'][0]} {e['values'][1]} {e['values'][2]}"
     return el_geom
 
 
@@ -48,9 +59,12 @@ def extract_geometry_element(element):
                     yield el_top_geom
 
 
-def encode_visual_elements(element: HypergraphElement, material: VisualMaterial):
+def encode_visual_elements(element: HypergraphElement, material: VisualMaterial, prefix=""):
     el_visual = etree.Element("visual")
-    el_visual.attrib["name"] = element.id_name
+    if len(prefix) == 0:
+        el_visual.attrib["name"] = element.id_name
+    else:
+        el_visual.attrib["name"] = f"{prefix}.{element.id_name}"
     for __x in extract_geometry_element(element):
         el_visual.append(__x)
     # Material
@@ -68,15 +82,18 @@ def encode_visual_elements(element: HypergraphElement, material: VisualMaterial)
     yield el_visual
 
 
-def encode_collision_elements(element: HypergraphElement):
+def encode_collision_elements(element: HypergraphElement, prefix=""):
     el_coll = etree.Element("collision")
-    el_coll.attrib["name"] = element.id_name
+    if len(prefix) == 0:
+        el_coll.attrib["name"] = element.id_name
+    else:
+        el_coll.attrib["name"] = f"{prefix}.{element.id_name}"
     for __x in extract_geometry_element(element):
         el_coll.append(__x)
     yield el_coll
 
 
-def encode_geometry_element(cont_node):
+def encode_geometry_element(cont_node, prefix=""):
     # Visual & collision geometry setup
     sub_nodes = [x for x in cont_node.get_subelements(lambda x: isinstance(x, HypergraphNode))]
     __sem_collision = []
@@ -93,7 +110,7 @@ def encode_geometry_element(cont_node):
     # Visual geometry setup
     for __v in __sem_visual:
         # Yield visual element
-        yield from encode_visual_elements(__v, __sem_material[__v])
+        yield from encode_visual_elements(__v, __sem_material[__v], prefix)
     # Collision geometry setup
     for __c in __sem_collision:
-        yield from encode_collision_elements(__c)
+        yield from encode_collision_elements(__c, prefix)

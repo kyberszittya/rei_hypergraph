@@ -9,10 +9,19 @@ from rei.format.mapping.cognilang_file_icon import CognilangParserFileIcon
 from rei.format.mapping.cognilang_sdf_icon import CognilangSdfIcon
 from rei.format.semantics.CognitiveEntity import KinematicLink, KinematicJoint, CognitiveEntity
 from rei.foundations.clock import LocalClock, DummyClock
+from rei.hypergraph.base_elements import HypergraphNode
 from rei.query.query_engine import HierarchicalPrepositionQuery, HypergraphQueryEngine
 
 from lxml import etree
 import os
+
+
+def stmt_node_depth(el, depth=2):
+    if isinstance(el, HypergraphNode):
+        el: HypergraphNode
+        return el.depth <= depth
+    return True
+
 
 def main():
     parser = argparse.ArgumentParser(description="Convert Cognilang to OSRF SDF")
@@ -31,15 +40,18 @@ def main():
     visitor = CognilangParserFileIcon("cogni_lang_file", __clock)
     visitor.visit(tree)
     root_item = visitor.root_entity
-    link_query = HierarchicalPrepositionQuery(root_item, lambda x: isinstance(x, KinematicLink))
-    joint_query = HierarchicalPrepositionQuery(root_item, lambda x: isinstance(x, KinematicJoint))
-    cognitiveentity_query = HierarchicalPrepositionQuery(root_item, lambda x: isinstance(x, CognitiveEntity))
+    link_query = HierarchicalPrepositionQuery(root_item, lambda x: isinstance(x, KinematicLink),
+                                              lambda x: stmt_node_depth(x, depth=2))
+    joint_query = HierarchicalPrepositionQuery(root_item, lambda x: isinstance(x, KinematicJoint),
+                                               lambda x: stmt_node_depth(x, depth=1))
+    cognitiveentity_query = HierarchicalPrepositionQuery(root_item, lambda x: isinstance(x, CognitiveEntity),
+                                                         lambda x: True)
     engine = HypergraphQueryEngine("engine", b'00', "engine/engine", DummyClock(), None)
     engine.add_query('link_query', link_query)
     engine.add_query('joint_query', joint_query)
     engine.add_query('cognitive_query', cognitiveentity_query)
     res = engine.execute_all_queries()
-    sdf_icon = CognilangSdfIcon()
+    sdf_icon = CognilangSdfIcon(DummyClock())
     asyncio.run(sdf_icon.encode(res))
     with open(os.path.join(args.output, root_item.id_name+".sdf"), 'w') as f:
         f.write(etree.tostring(sdf_icon.root_xml, pretty_print=True).decode('utf-8'))

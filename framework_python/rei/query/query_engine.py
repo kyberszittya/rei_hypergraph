@@ -13,7 +13,8 @@ from rei.hypergraph.value_node import SemanticValueNode
 
 class HierarchicalPrepositionQuery(GraphMonad):
 
-    def __init__(self, context: HypergraphNode, prep: typing.Callable[[typing.Any], bool]):
+    def __init__(self, context: HypergraphNode, prep: typing.Callable[[typing.Any], bool],
+                 traversal_statement: typing.Callable[[typing.Any], bool]):
         super().__init__()
         self.__preposition = prep
         # Context
@@ -23,7 +24,7 @@ class HierarchicalPrepositionQuery(GraphMonad):
         self.__prefilter = []
         self.__bfs = BreadthFirstHierarchicalTraversal(lambda x: self.__prefilter.append(self.add_to_result(x)),
                                                        lambda x: isinstance(x, HypergraphNode | HypergraphRelation |
-                                                                            HypergraphEdge | SemanticValueNode))
+                                                                            HypergraphEdge | SemanticValueNode) and traversal_statement(x))
 
     async def prefilter(self):
         await self.__bfs.execute(self.__start)
@@ -54,6 +55,9 @@ class HypergraphQueryEngine(HypergraphNode):
 
     def add_query(self, name: str, query):
         self.__queries[name] = query
+
+    def clear(self):
+        self.__queries = dict()
 
     def prefilter_queries(self):
         task_list = []

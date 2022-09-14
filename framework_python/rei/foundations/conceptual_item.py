@@ -36,6 +36,8 @@ class HierarchicalElement(IdentifiableItem, InterfaceSetOperations, ABC):
     def __init__(self, uuid: bytes, id_name: str, progenitor_qualified_name: str, parent=None) -> None:
         super().__init__(uuid, id_name, progenitor_qualified_name)
         self._parent = None
+        # Depth
+        self._depth = 0
         # Context related attributes
         self._cid = 0
         #
@@ -65,6 +67,10 @@ class HierarchicalElement(IdentifiableItem, InterfaceSetOperations, ABC):
 
     def update(self):
         self._qualified_name = '/'.join(list(self.update_qualified_name())[::-1])
+
+    @property
+    def depth(self) -> int:
+        return self._depth
 
     @property
     def cid(self):
@@ -99,6 +105,7 @@ class HierarchicalElement(IdentifiableItem, InterfaceSetOperations, ABC):
                 for e in element.parent.remove_element(uuid=element.uuid):            # Update all sub elements
                     e.update()
             element.parent = self
+            element._depth = self._depth + 1
             # Subelement count increment
             self._cnt_subelements += 1
             # All-ever created subelement count

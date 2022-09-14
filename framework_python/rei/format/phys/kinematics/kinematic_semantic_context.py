@@ -4,7 +4,7 @@ from rei.format.phys.solid_geometry_context import encode_geometry_element
 from rei.format.semantics.CognitiveEntity import RigidTransformation, KinematicLink, KinematicJoint, InertiaElement
 from lxml import etree
 
-from rei.hypergraph.base_elements import HypergraphPort, HypergraphNode, HypergraphEdge, HypergraphElement
+from rei.hypergraph.base_elements import HypergraphPort, HypergraphNode, HypergraphEdge
 from rei.hypergraph.common_definitions import EnumRelationDirection
 
 
@@ -28,9 +28,12 @@ def __default_rigid_transformation_element():
     return el_pose
 
 
-def encode_link_element(element: KinematicLink):
+def encode_link_element(element: KinematicLink, prefix=""):
     link_el = etree.Element("link")
-    link_el.attrib["name"] = element.id_name
+    if len(prefix) > 0:
+        link_el.attrib["name"] = f"{prefix}.{element.id_name}"
+    else:
+        link_el.attrib["name"] = element.id_name
     #
     cont_node: HypergraphNode = element.parent
     # Check relative frame
@@ -62,7 +65,7 @@ def encode_link_element(element: KinematicLink):
         if relative_frame_name is not None:
             el_joint_pose.attrib["relative_to"] = relative_frame_name
         link_el.append(el_joint_pose)
-    for el in encode_geometry_element(cont_node):
+    for el in encode_geometry_element(cont_node, prefix):
         link_el.append(el)
     # Return link XML element
     return link_el
@@ -77,18 +80,28 @@ def __encode_joint_type(joint_type: str):
     return "fixed"
 
 
-def joint_base_element(j0, j1):
+def joint_base_element(j0, j1, prefix=""):
     joint_el = etree.Element("joint")
     # Joint elements
     # Parent
     el_joint_parent = etree.Element("parent")
-    el_joint_parent.text = j0.endpoint.id_name
     # Child
     el_joint_child = etree.Element("child")
-    el_joint_child.text = j1.endpoint.id_name
+    if len(prefix) == 0:
+        el_joint_child.text = j1.endpoint.id_name
+        el_joint_parent.text = j0.endpoint.id_name
+    else:
+        el_joint_child.text = f"{prefix}.{j1.endpoint.id_name}"
+        el_joint_parent.text = f"{prefix}.{j0.endpoint.id_name}"
+    # Add joint parent-childs
+    joint_el.append(el_joint_parent)
+    joint_el.append(el_joint_child)
     # Kinematic joint
     jrel = [x for x in j1.get_subelements(lambda x: isinstance(x, KinematicJoint))][0]
-    joint_el.attrib["name"] = jrel.id_name
+    if len(prefix) == 0:
+        joint_el.attrib["name"] = jrel.id_name
+    else:
+        joint_el.attrib["name"] = f"{prefix}.{jrel.id_name}"
     # Type
     joint_el.attrib["type"] = __encode_joint_type(jrel["joint_type"])
     # Axis
@@ -103,11 +116,11 @@ def joint_base_element(j0, j1):
     # Rigid transformation
     for x in jrel.get_subelements(lambda x: isinstance(x, RigidTransformation)):
         el_joint_pose = extract_rigid_transformation_element(x)
-        el_joint_pose.attrib['relative_to'] = j0.endpoint.id_name
+        if len(prefix) == 0:
+            el_joint_pose.attrib['relative_to'] = j0.endpoint.id_name
+        else:
+            el_joint_pose.attrib['relative_to'] = '.'.join([prefix, j0.endpoint.id_name])
         # Add pose to joint
         joint_el.append(el_joint_pose)
-    # Add joint
-    joint_el.append(el_joint_parent)
-    joint_el.append(el_joint_child)
     # Return joint element
     return joint_el
