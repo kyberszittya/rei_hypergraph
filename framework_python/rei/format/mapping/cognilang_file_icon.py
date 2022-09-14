@@ -6,6 +6,7 @@ from rei.format.cognilang.CogniLangParser import CogniLangParser
 from rei.format.cognilang.CogniLangVisitor import CogniLangVisitor
 from rei.format.mapping.cognilang_mapping_errors import ErrorParserNoFactorySet
 from rei.format.mapping.cognilang_map_utility import dir_enum_relation, extract_graphelement_signature
+from rei.format.phys.kinematics.kinematic_semantic_context import generate_joint_name
 from rei.format.semantics.cognitive_entity_semantic_factory import CognitiveEntitySemanticFactory
 from rei.foundations.clock import MetaClock
 from rei.hypergraph.base_elements import HypergraphNode, HypergraphElement
@@ -70,8 +71,9 @@ class CognilangParserFileIcon(CogniLangVisitor):
         __joint_type: str = str(ctx.type_.value_.text)
         __joint_edge_name = extract_graphelement_signature(ctx.parentCtx.parentCtx.graphedge_signature())
         # Semantic value setup
+        __joint_name = generate_joint_name(__joint_edge_name, reference_name)
         __semantic_value_node = self.__cognitive_element_factory.generate_semantic_element(
-            "kinematicjoint", f"joint_{__joint_edge_name}.{reference_name}", parent, {
+            "kinematicjoint", __joint_name, parent, {
                 "joint_type": __joint_type
             })
         # Extract rigid transformation
@@ -186,7 +188,11 @@ class CognilangParserFileIcon(CogniLangVisitor):
         translation = list(self.__extract_float_vector_values(ctx.float_vector()))
         if ctx.rotation() is not None:
             rotation = list(self.__extract_float_vector_values(ctx.rotation().float_vector()))
-            rotation_type = str(ctx.rotation().rot_type)
+            rotation_type = 'rad'
+            if ctx.rotation().rot_type is not None:
+                rotation_type = str(ctx.rotation().rot_type.text)
+                if 'd' == rotation_type[0]:
+                    rotation_type = 'deg'
             return translation, rotation, rotation_type
         else:
             rotation = [0.0, 0.0, 0.0]

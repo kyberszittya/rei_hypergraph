@@ -71,6 +71,18 @@ class HypergraphQueryEngine(HypergraphNode):
             task_list.append(e.get_list_results())
         return task_list
 
+    async def execute(self):
+        __tasks = []
+        prefilter = self.prefilter_queries()
+        for i in prefilter:
+            __tasks.extend(await i)
+        await asyncio.wait(__tasks)
+        res = []
+        __task_list = await self.task_result_queries_lists()
+        for t in __task_list:
+            res.extend(await t)
+        return res
+
     def execute_all_queries(self):
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
