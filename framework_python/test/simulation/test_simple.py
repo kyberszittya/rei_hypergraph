@@ -1,8 +1,3 @@
-from rei.cognitive.channels.channel_base_definitions import CognitiveArbiter, CognitiveChannel
-from rei.cognitive.channels.cognitive_dendrite import HypergraphTensorTransformation, HypergraphCoordinateObject
-from rei.cognitive.channels.cognitive_icons import TensorCognitiveIcon
-from rei.presentation.graphviz.graphviz_mapping import create_graph_view
-from rei.simulation.sdf.sdf_generator import load_from_description
 
 __OUTPUT_DIR: str = "output"
 

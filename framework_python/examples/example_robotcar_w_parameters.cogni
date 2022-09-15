@@ -1,15 +1,15 @@
-entity simplebot
+entity simplebot_parameterized
 {
     parameters {
         WHEEL_RADIUS = 0.085
-        MASS_WHEEL_BASE = 1.0
+        WHEEL_WIDTH = 0.03
     }
     kinematic basic_structure {
         kinematic wheel
         {
             root link wheel_base
             {
-                inertia { mass {MASS_WHEEL_BASE} }
+                inertia { mass 1.0 }
                 visual wheel_base_viz (material red){
                     cylinder [0.02, 0.05]
                 }
@@ -19,7 +19,7 @@ entity simplebot
             {
                 inertia { mass 2.5 }
                 visual wheel_viz (material black) {
-                    cylinder [{WHEEL_RADIUS} 0.03]
+                    cylinder [{WHEEL_RADIUS} {WHEEL_WIDTH}]
                 }
                 collision {{tire/wheel_viz}}
             }
