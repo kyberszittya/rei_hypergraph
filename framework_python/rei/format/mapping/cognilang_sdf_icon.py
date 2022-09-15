@@ -1,5 +1,3 @@
-import asyncio
-
 import typing
 from lxml import etree
 
@@ -9,7 +7,7 @@ from rei.format.phys.kinematics.kinematic_semantic_context import encode_link_el
     joint_base_element_endpoint
 from rei.format.semantics.CognitiveEntity import KinematicJoint, KinematicLink, CognitiveEntity, \
     KinematicGraphDefinition
-from rei.hypergraph.base_elements import HypergraphNode, HypergraphEdge, HypergraphPort, HypergraphRelation
+from rei.hypergraph.base_elements import HypergraphNode, HypergraphEdge, HypergraphRelation
 from rei.hypergraph.factorization_operations import RelationFactorization2SubsetOperation
 from rei.query.query_engine import HierarchicalPrepositionQuery, HypergraphQueryEngine
 from test.common.common_util import join_w_prefix_separator
@@ -72,10 +70,8 @@ class CognilangSdfIcon(CognitiveIcon):
         joints = filter(lambda x: isinstance(x, KinematicJoint), res)
         for j in joints:
             e: HypergraphEdge = j.parent.parent
-            #links = links.difference([x.endpoint for x in e.get_incoming_relations()])
             for x in e.get_outgoing_relations():
                 links = links.difference(set(x.endpoint.get_subelements(lambda x: isinstance(x, KinematicLink))))
-
         return links
 
 

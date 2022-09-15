@@ -1,8 +1,5 @@
 entity simplebot
 {
-    parameters {
-        WHEEL_RADIUS = 0.085
-    }
     kinematic basic_structure {
         kinematic wheel
         {

@@ -11,7 +11,7 @@ from rei.format.semantics.cognitive_entity_semantic_factory import CognitiveEnti
 from rei.foundations.clock import MetaClock
 from rei.hypergraph.base_elements import HypergraphNode, HypergraphElement
 from rei.hypergraph.common_definitions import EnumRelationDirection
-
+from rei.hypergraph.value_node import ValueNode
 
 __DEFAULT_ROTATION_LIST = [0.0, 0.0, 0.0]
 
@@ -30,6 +30,8 @@ class CognilangParserFileIcon(CogniLangVisitor):
         self._element_cache['world'] = self.__factory.generate_node("world", None)
         # Reference cache
         self._reference_cache: dict[str, HypergraphElement] = dict[str, HypergraphElement]()
+        # Create parameter hypergraph
+        self.__parameters = self.__factory.generate_node("parameters")
 
     @property
     def root_entity(self):
@@ -145,7 +147,11 @@ class CognilangParserFileIcon(CogniLangVisitor):
     def __extract_float_vector_values(self, ctx: CogniLangParser.Float_vectorContext, parent=None):
         for x in ctx.value():
             if x.ref_() is not None:
-                yield self.__factory.create_value(parent, '_'.join([parent.id_name, x.ref().ID()]))
+                __ref_name = str(x.ref_().ID())
+                p = next(self.__parameters.get_subelements(
+                    lambda x: isinstance(x, ValueNode) and x.id_name == __ref_name))
+                for _p in p.get_values():
+                    yield float(_p)
             else:
                 yield float(str(x.FLOAT()))
 
@@ -179,9 +185,13 @@ class CognilangParserFileIcon(CogniLangVisitor):
 
     def __collect_materials(self, ctx: CogniLangParser.MaterialContext, container_node: HypergraphNode):
         __material_name_id = f'material_{container_node.id_name}'
+        mat_name = 'white'
+        if ctx is not None:
+            if ctx.material_name is not None:
+                mat_name = ctx.material_name.text
         _sv = self.__cognitive_element_factory.generate_semantic_element(
             'material', __material_name_id, container_node,
-            {'name': __material_name_id, 'material_name': ctx.material_name.text})
+            {'name': __material_name_id, 'material_name': mat_name})
         self._element_cache[_sv.qualified_name] = _sv
 
     def __extract_rigid_transformation(self, ctx: CogniLangParser.Rigid_transformationContext):
@@ -221,6 +231,12 @@ class CognilangParserFileIcon(CogniLangVisitor):
     #
     # SECTION: visitor overrides
     #
+
+    def visitParameter(self, ctx:CogniLangParser.ParameterContext):
+        if self._element_cache[self.__generate_parent_node_name(ctx)] is self.__root_entity:
+            self.__factory.create_value(self.__parameters, ctx.name.text, [ctx.parameter_value.text])
+        return self.visitChildren(ctx)
+
 
     def visitRootnode(self, ctx: CogniLangParser.RootnodeContext):
         if self.__factory is None:
@@ -304,4 +320,30 @@ class CognilangParserFileIcon(CogniLangVisitor):
             {'mass': float(ctx.mass.text)})
         return self.visitChildren(ctx)
 
+    def visitAmbient(self, ctx: CogniLangParser.AmbientContext):
+        name = extract_graphelement_signature(ctx.graphnode_signature())
+        parent_name = self.__generate_parent_node_name(ctx)
+        parent_node = self._element_cache[parent_name]
+        _el = self.__factory.generate_node(name, parent_node)
+        self._element_cache[_el.qualified_name] = _el
+        return self.visitChildren(ctx)
+
+    def visitSensor(self, ctx: CogniLangParser.SensorContext):
+        parent_name = self.__generate_parent_name(ctx)
+        parent_node = self._element_cache[parent_name]
+        name = extract_graphelement_signature(ctx.ambient_element_signature())
+        _el = self.__factory.generate_node(name, parent_node)
+        self._element_cache[_el.qualified_name] = _el
+        return self.visitChildren(ctx)
+
+    def visitActuator(self, ctx: CogniLangParser.ActuatorContext):
+        parent_name = self.__generate_parent_name(ctx)
+        parent_node = self._element_cache[parent_name]
+        name = extract_graphelement_signature(ctx.ambient_element_signature())
+        _el = self.__factory.generate_node(name, parent_node)
+        self._element_cache[_el.qualified_name] = _el
+        return self.visitChildren(ctx)
+
+    def visitAmbience_edge(self, ctx:CogniLangParser.Ambience_edgeContext):
+        return self.visitChildren(ctx)
 
