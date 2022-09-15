@@ -90,3 +90,9 @@ class VisualMaterial(SemanticValueNode):
 
     def __init__(self, uuid: bytes, id_name: str, progenitor_qualified_name: str, parent, attr: dict):
         super().__init__(uuid, id_name, progenitor_qualified_name, parent, attr)
+
+
+class SensorElement(SemanticValueNode):
+
+    def __init__(self, uuid: bytes, id_name: str, progenitor_qualified_name: str, parent, attr: dict):
+        super().__init__(uuid, id_name, progenitor_qualified_name, parent, attr)

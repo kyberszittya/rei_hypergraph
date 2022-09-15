@@ -328,12 +328,27 @@ class CognilangParserFileIcon(CogniLangVisitor):
         self._element_cache[_el.qualified_name] = _el
         return self.visitChildren(ctx)
 
+    def __extract_exterior_sensor_type(self, ctx: CogniLangParser.Exteroceptive_sensorContext):
+        # TODO: finish sensor types
+        pass
+
+    def __extract_sensor_type(self, ctx: CogniLangParser.Sensor_typeContext):
+        sensor_type = None
+        if ctx.exteroceptive_sensor() is not None:
+            sensor_type = "exterior"
+            sensor_type += self.__extract_exterior_sensor_type(ctx.exteroceptive_sensor())
+        elif ctx.proprioceptive_sensor() is not None:
+            sensor_type = "interior"
+        return sensor_type
+
     def visitSensor(self, ctx: CogniLangParser.SensorContext):
         parent_name = self.__generate_parent_name(ctx)
         parent_node = self._element_cache[parent_name]
         name = extract_graphelement_signature(ctx.ambient_element_signature())
         _el = self.__factory.generate_node(name, parent_node)
         self._element_cache[_el.qualified_name] = _el
+        sensor_type = self.__extract_sensor_type(ctx.sensor_type())
+        _sv = self.__cognitive_element_factory.generate_semantic_element('sensorelement', name, {'type': sensor_type})
         return self.visitChildren(ctx)
 
     def visitActuator(self, ctx: CogniLangParser.ActuatorContext):
