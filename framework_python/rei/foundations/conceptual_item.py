@@ -164,6 +164,9 @@ class HierarchicalElement(IdentifiableItem, InterfaceSetOperations, ABC):
             for e in __next.get_subelements(lambda x: True):
                 __fringe.put(e)
 
+    def has_item(self, f: typing.Callable):
+        return next(self.get_subelements(f), None) is not None
+
 
 class InterfaceNamedSubelements(metaclass=abc.ABCMeta):
 

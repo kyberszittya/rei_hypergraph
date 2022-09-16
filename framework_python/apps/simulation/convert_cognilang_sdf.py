@@ -46,7 +46,7 @@ def main():
                                                lambda x: stmt_node_depth(x, depth=1))
     cognitiveentity_query = HierarchicalPrepositionQuery(root_item, lambda x: isinstance(x, CognitiveEntity),
                                                          lambda x: True)
-    engine = HypergraphQueryEngine("engine", b'00', "engine/engine", DummyClock(), None)
+    engine = HypergraphQueryEngine("engine", b'00', "engine/engine", __clock, None)
     engine.add_query('link_query', link_query)
     engine.add_query('joint_query', joint_query)
     engine.add_query('cognitive_query', cognitiveentity_query)

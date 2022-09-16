@@ -53,12 +53,13 @@ def __obtain_relative_frame_name(node: HypergraphNode):
         # Normal
         x: HypergraphPort
         __rel: HypergraphRelation = x.endpoint
-        sub_el = next(__rel.get_subelements(lambda y: isinstance(y, KinematicJoint)))
+        # Check for ports that contain
+        sub_el = next(__rel.get_subelements(lambda y: isinstance(y, KinematicJoint)), None)
         if sub_el is not None:
             if __rel.direction == EnumRelationDirection.OUTWARDS:
                 e: HypergraphEdge = x.endpoint.parent
-                incom = list(filter(lambda _r: _r.endpoint.id_name != "world", e.get_incoming_relations()))
-                if len(incom) > 0:
+                incom = next(filter(lambda _r: _r.endpoint.id_name != "world", e.get_incoming_relations()), None)
+                if incom is not None:
                     relative_frame_name = sub_el.id_name
                     return relative_frame_name
             else:

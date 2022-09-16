@@ -3,7 +3,8 @@ import typing
 from rei.factories.abstract_factory import AbstractElementFactory, ErrorInsufficientValues
 from rei.format.semantics.CognitiveEntity import CognitiveEntity, KinematicGraphDefinition, KinematicLink, \
     KinematicJoint, CylinderGeometry, PolyhedronGeometry, EllipsoidGeometry, VisualMaterial, RigidTransformation, \
-    InertiaElement, SensorElement
+    InertiaElement, SensorElement, SensorPlacement, AmbiencePort, AmbiencePortCommunication, AmbientGraphDefinition, \
+    AmbientNodeInterface
 from rei.foundations.clock import MetaClock
 
 
@@ -33,6 +34,8 @@ class CognitiveEntitySemanticFactory(AbstractElementFactory):
                 el = KinematicLink(uuid, id_name, self.get_stamped_qualified_name(id_name, parent), parent, attr)
             case 'kinematicjoint':
                 el = KinematicJoint(uuid, id_name, self.get_stamped_qualified_name(id_name, parent), parent, attr)
+            case 'sensorplacement':
+                el = SensorPlacement(uuid, id_name, self.get_stamped_qualified_name(id_name, parent), parent, attr)
             case 'cylindergeometry':
                 el = CylinderGeometry(uuid, id_name, self.get_stamped_qualified_name(id_name, parent),
                                         parent, attr, values)
@@ -48,8 +51,18 @@ class CognitiveEntitySemanticFactory(AbstractElementFactory):
                 el = RigidTransformation(uuid, id_name, self.get_stamped_qualified_name(id_name, parent), parent, attr)
             case 'inertiaelement':
                 el = InertiaElement(uuid, id_name, self.get_stamped_qualified_name(id_name, parent), parent, attr)
+            case 'ambientgraph':
+                el = AmbientGraphDefinition(
+                    uuid, id_name, self.get_stamped_qualified_name(id_name, parent), parent, attr)
             case 'sensorelement':
                 el = SensorElement(uuid, id_name, self.get_stamped_qualified_name(id_name, parent), parent, attr)
+            case 'ambienceport':
+                el = AmbiencePort(uuid, id_name, self.get_stamped_qualified_name(id_name, parent), parent, attr)
+            case 'ambienceportcommunication':
+                el = AmbiencePortCommunication(uuid, id_name,
+                                               self.get_stamped_qualified_name(id_name, parent), parent, attr)
+            case 'ambientnodeinterface':
+                el = AmbientNodeInterface(uuid, id_name, self.get_stamped_qualified_name(id_name, parent), parent, attr)
             case _:
                 raise InvalidSemanticType
         if el is not None:

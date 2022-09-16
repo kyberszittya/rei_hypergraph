@@ -75,7 +75,6 @@ class HypergraphFactory(AbstractElementFactory):
         return self.connect_2factor_edges(container, edge_name, in_dir_nodes, out_dir_nodes,
                                           (EnumRelationDirection.INWARDS, EnumRelationDirection.OUTWARDS))
 
-
     def connect_tuple_nodes(self, container: HypergraphNode, edge_name: str,
                       nodes: list[tuple[HypergraphNode, EnumRelationDirection, ValueNode | None, SemanticValueNode | None]]):
         """
@@ -86,13 +85,10 @@ class HypergraphFactory(AbstractElementFactory):
         :return:
         """
         uuid: bytes = self.unique_identifier.generate_uid(edge_name)
-        he = HypergraphEdge(edge_name, uuid, self.get_stamped_qualified_name(edge_name, container), container.clock, container)
+        he = HypergraphEdge(
+            edge_name, uuid, self.get_stamped_qualified_name(edge_name, container), container.clock, container)
         for n, dir, v, sv in nodes:
             he.unary_connect(n, v, dir, sv)
-            """
-            if sv.parent is not he:
-                he.add_element(sv)
-            """
         return he
 
     def create_value(self, parent: HypergraphNode | None, value_name: str, values: list[typing.Any] = None):

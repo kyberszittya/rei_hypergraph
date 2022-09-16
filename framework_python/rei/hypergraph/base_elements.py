@@ -152,7 +152,9 @@ class HypergraphEdge(HypergraphElement):
     def remove_element(self, id_name: str = "", uuid: bytes = None) -> typing.Generator:
         _el = super().remove_element(id_name, uuid)
         for v in _el:
-            yield from self._sub_relations.pop(v.cid)
+            match v:
+                case HypergraphRelation():
+                    yield from self._sub_relations.pop(v.cid)
 
     @property
     def sub_relations(self):
@@ -171,6 +173,7 @@ class HypergraphEdge(HypergraphElement):
         yield from filter(
             lambda x: x.direction == EnumRelationDirection.OUTWARDS or x.direction == EnumRelationDirection.BIDIRECTIONAL,
             self.sub_relations)
+
 
 
 class HypergraphNode(HypergraphElement):

@@ -110,7 +110,6 @@ class CognilangSdfIcon(CognitiveIcon):
                 self.__add_model_element(joint_el)
             else:
                 __canonical_link = (await self.get_canonical_link(j1.endpoint)).pop()
-                #print(__canonical_link.id_name)
                 __joint = next(j1.get_subelements(lambda x: isinstance(x, KinematicJoint)))
                 joint_el = joint_base_element_endpoint(
                     j0, j1, join_w_prefix_separator([j1.parent.id_name, "connect", __canonical_link.id_name], '.', prefix),

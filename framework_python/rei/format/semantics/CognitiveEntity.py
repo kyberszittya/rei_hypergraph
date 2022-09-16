@@ -16,6 +16,7 @@ class CognitiveEntity(SemanticValueNode):
 # Inertia
 #
 
+
 class InertiaElement(SemanticValueNode):
 
     def __init__(self, uuid: bytes, id_name: str, progenitor_qualified_name: str, parent, attr: dict):
@@ -24,6 +25,7 @@ class InertiaElement(SemanticValueNode):
 #
 # Transformations
 #
+
 
 class RigidTransformation(SemanticValueNode):
 
@@ -38,8 +40,6 @@ class KinematicGraphDefinition(SemanticValueNode):
 
     def __init__(self, uuid: bytes, id_name: str, progenitor_qualified_name: str, parent, attr: dict):
         super().__init__(uuid, id_name, progenitor_qualified_name, parent, attr)
-
-
 
 
 class KinematicLink(SemanticValueNode):
@@ -86,6 +86,7 @@ class PolyhedronGeometry(GeometryNode):
 # Material
 #
 
+
 class VisualMaterial(SemanticValueNode):
 
     def __init__(self, uuid: bytes, id_name: str, progenitor_qualified_name: str, parent, attr: dict):
@@ -96,3 +97,38 @@ class SensorElement(SemanticValueNode):
 
     def __init__(self, uuid: bytes, id_name: str, progenitor_qualified_name: str, parent, attr: dict):
         super().__init__(uuid, id_name, progenitor_qualified_name, parent, attr)
+
+
+class SensorPlacement(SemanticValueNode):
+
+    def __init__(self, uuid: bytes, id_name: str, progenitor_qualified_name: str, parent, attr: dict):
+        super().__init__(uuid, id_name, progenitor_qualified_name, parent, attr)
+
+#
+# Ambience elements
+#
+
+
+class AmbiencePort(SemanticValueNode):
+
+    def __init__(self, uuid: bytes, id_name: str, progenitor_qualified_name: str, parent, attr: dict):
+        super().__init__(uuid, id_name, progenitor_qualified_name, parent, attr)
+
+
+class AmbiencePortCommunication(SemanticValueNode):
+
+    def __init__(self, uuid: bytes, id_name: str, progenitor_qualified_name: str, parent, attr: dict):
+        super().__init__(uuid, id_name, progenitor_qualified_name, parent, attr)
+
+
+class AmbientGraphDefinition(SemanticValueNode):
+
+    def __init__(self, uuid: bytes, id_name: str, progenitor_qualified_name: str, parent, attr: dict):
+        super().__init__(uuid, id_name, progenitor_qualified_name, parent, attr)
+
+
+class AmbientNodeInterface(SemanticValueNode):
+
+    def __init__(self, uuid: bytes, id_name: str, progenitor_qualified_name: str, parent, attr: dict):
+        super().__init__(uuid, id_name, progenitor_qualified_name, parent, attr)
+
