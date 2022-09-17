@@ -75,8 +75,9 @@ class HypergraphFactory(AbstractElementFactory):
         return self.connect_2factor_edges(container, edge_name, in_dir_nodes, out_dir_nodes,
                                           (EnumRelationDirection.INWARDS, EnumRelationDirection.OUTWARDS))
 
-    def connect_tuple_nodes(self, container: HypergraphNode, edge_name: str,
-                      nodes: list[tuple[HypergraphNode, EnumRelationDirection, ValueNode | None, SemanticValueNode | None]]):
+    def connect_tuple_nodes(
+            self, container: HypergraphNode, edge_name: str,
+            nodes: list[tuple[HypergraphNode, EnumRelationDirection, ValueNode | None | dict, SemanticValueNode | None]]):
         """
 
         :param container:
@@ -99,4 +100,3 @@ class HypergraphFactory(AbstractElementFactory):
         else:
             val = ValueNode(uuid, value_name, '/'.join([value_name])+f".{self._clock.get_time_ns()}", values)
         return val
-

@@ -167,6 +167,12 @@ class HierarchicalElement(IdentifiableItem, InterfaceSetOperations, ABC):
     def has_item(self, f: typing.Callable):
         return next(self.get_subelements(f), None) is not None
 
+    def get_element_by_id_name(self, id_name: str) -> typing.Generator:
+        if id_name in self._index_elements_by_name:
+            yield list(self._index_elements_by_name[id_name].values())[0]
+        for v in self.get_subelements(lambda x: x.id_name==id_name):
+            yield v
+
 
 class InterfaceNamedSubelements(metaclass=abc.ABCMeta):
 

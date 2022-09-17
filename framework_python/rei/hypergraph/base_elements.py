@@ -62,6 +62,13 @@ class HypergraphElement(ConceptualItem):
             for el in self.parent.remove_element(uuid=self.uuid):
                 el.update()
 
+    def boundary_ports_out(self):
+        # TODO: boundary ports out for system-view applications
+        pass
+
+    def get_values(self):
+        return self.get_subelements(lambda x: isinstance())
+
     def register(self, parent: HierarchicalElement):
         parent.add_element(self)
 
@@ -72,7 +79,7 @@ class HypergraphRelation(HierarchicalElement):
     """
 
     def __init__(self, uuid: bytes, id_name: str, progenitor_qualified_name: str,
-                 endpoint: HypergraphElement, weight: ValueNode | None, parent=None,
+                 endpoint: HypergraphElement, weight: ValueNode | dict | None, parent=None,
                  direction: EnumRelationDirection = EnumRelationDirection.BIDIRECTIONAL,
                  semantic_value_node: SemanticValueNode = None):
         super().__init__(uuid, id_name, progenitor_qualified_name, parent)
@@ -87,6 +94,12 @@ class HypergraphRelation(HierarchicalElement):
                 self._relation_incidence_value = np.array([0.0, 1.0])
         # Weight
         self._weight = weight
+        if isinstance(weight, dict):
+            for v in weight:
+                self.add_element(weight[v])
+        elif isinstance(weight, list):
+            for v in weight:
+                self.add_element(v)
         # Semantic value node
         self.semantic_value_node = semantic_value_node
 
@@ -131,7 +144,7 @@ class HypergraphEdge(HypergraphElement):
         super().__init__(id_name, uuid, qualified_name, clock, parent)
         self._sub_relations = {}
 
-    def unary_connect(self, endpoint: HypergraphElement, weight: ValueNode,
+    def unary_connect(self, endpoint: HypergraphElement, weight: ValueNode | dict,
                       direction: EnumRelationDirection = EnumRelationDirection.BIDIRECTIONAL,
                       semantic_value_node: SemanticValueNode = None):
         id_name = "rel"+'.'.join([self.id_name, endpoint.id_name, str(self.clock.get_time_ns())])
