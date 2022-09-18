@@ -14,8 +14,8 @@ class SNorm(GraphMonad):
 
 class MaxNorm(SNorm):
 
-    async def execute(self, start) -> list[asyncio.Future]:
-        return np.max(start)
+    async def execute(self, start):
+        return np.max(start, axis=1)
 
 
 class TNorm(GraphMonad):
@@ -26,5 +26,5 @@ class TNorm(GraphMonad):
 
 class MinNorm(SNorm):
 
-    async def execute(self, start) -> list[asyncio.Future]:
-        return np.min(start)
+    async def execute(self, start):
+        return np.min(start, axis=0)

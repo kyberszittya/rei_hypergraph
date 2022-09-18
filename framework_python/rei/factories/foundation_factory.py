@@ -2,7 +2,7 @@ import typing
 
 from rei.factories.abstract_factory import AbstractElementFactory, ErrorInsufficientValues
 from rei.foundations.clock import MetaClock
-from rei.hypergraph.base_elements import HypergraphNode, HypergraphEdge
+from rei.hypergraph.base_elements import HypergraphNode, HypergraphEdge, HypergraphElement
 from rei.hypergraph.common_definitions import EnumRelationDirection
 from rei.hypergraph.value_node import ValueNode, SemanticValueNode
 
@@ -92,7 +92,7 @@ class HypergraphFactory(AbstractElementFactory):
             he.unary_connect(n, v, dir, sv)
         return he
 
-    def create_value(self, parent: HypergraphNode | None, value_name: str, values: list[typing.Any] = None):
+    def create_value(self, parent: HypergraphElement | None, value_name: str, values: list[typing.Any] = None):
         uuid: bytes = self.unique_identifier.generate_uid(value_name)
         if parent is not None:
             val = ValueNode(uuid, value_name, self.get_stamped_qualified_name(value_name, parent), values)
