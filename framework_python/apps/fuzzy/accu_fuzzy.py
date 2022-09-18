@@ -1,12 +1,8 @@
-import typing
-
 import numpy as np
 
-from rei.factories.abstract_factory import AbstractElementFactory
 from rei.factories.foundation_factory import HypergraphFactory
-from rei.foundations.clock import LocalClock, MetaClock
-from rei.fuzzy.norm_functions import SNorm
-from rei.hypergraph.base_elements import HypergraphNode, HypergraphEdge, HypergraphRelation
+from rei.foundations.clock import LocalClock
+from rei.fuzzy.fuzzy_element_factory import FuzzyElementFactory
 from rei.hypergraph.common_definitions import EnumRelationDirection
 
 import rei.fuzzy.membership_functions as mb
@@ -14,89 +10,9 @@ import rei.fuzzy.norm_functions as no
 
 import matplotlib.pyplot as plt
 
-from rei.hypergraph.value_node import ValueNode, SemanticValueNode
 
 
-class FuzzyEngine(HypergraphNode):
 
-    def get_fuzzy_infer_values(self, r: HypergraphRelation):
-        v: ValueNode = next(r.endpoint.get_element_by_id_name("values"))
-        m: ValueNode = next(r.get_element_by_id_name("membership")).get_values()
-        me = next(r.get_element_by_id_name("mbtype")).get_values()
-        s_res = []
-        # Vectorize input values
-        __val = np.array(v.get_values())
-        # Iterate over mebership values
-        for pi, mu in zip(m, me):
-            arg = [__val, *pi]
-            # Norm function on node-level
-            tau = np.array(mu(*arg))
-            s_res.append(tau)
-        return np.array(s_res), v
-
-    async def infer_edge(self, edge: HypergraphEdge):
-        # Implication
-        res = None
-        # Get s-norm
-        s_norm = next(edge.get_element_by_id_name("snorm")).get_values()[0]
-        # Get t-norm
-        t_norm = next(edge.get_element_by_id_name("tnorm")).get_values()[0]
-        for r in edge.get_incoming_relations():
-            s_res, _ = self.get_fuzzy_infer_values(r)
-            s_res = await s_norm.execute(s_res)
-            if res is None:
-                res = s_res
-            else:
-                res = np.vstack((res, s_res))
-        # Update outgoing
-        for r in edge.get_outgoing_relations():
-            t_res, v = self.get_fuzzy_infer_values(r)
-            # Update firing values (for defuzzification)
-            # Norm function on node-level
-            z = await t_norm.execute(res)
-            t_res = np.max(t_res, axis=0)
-            next(r.get_element_by_id_name("firevalues")).update_values([t_res])
-            v.update_values([z])
-
-    def defuzz(self, node: HypergraphNode):
-        for r in filter(lambda x: x.endpoint.direction == EnumRelationDirection.OUTWARDS
-                                  or x.endpoint == EnumRelationDirection.BIDIRECTIONAL, node.sub_ports):
-            __tau = next(r.endpoint.get_element_by_id_name("firevalues")).get_values()[0]
-            __v = next(node.get_element_by_id_name("values")).get_values()[0]
-            if __tau.shape==(0,):
-                continue
-            yield np.sum((__v * __tau)/np.sum(__tau))
-        return node.get_element_by_id_name("firevalues")
-
-
-class FuzzyElementFactory(HypergraphFactory):
-
-    def __init__(self, factory_name: str, clock: MetaClock) -> None:
-        super().__init__(factory_name, clock)
-
-    def create_fuzzy_engine(self, id_name: str, parent: HypergraphNode = None) -> FuzzyEngine:
-        if parent is not None:
-            uid = self.unique_identifier.generate_uid('/'.join([parent.qualified_name, id_name]))
-        else:
-            uid = self.unique_identifier.generate_uid(id_name)
-        node = FuzzyEngine(id_name, uid, '/'.join([self._factory_name, self.get_qualified_name(id_name)]),
-                           self._clock, parent)
-        return node
-
-    def create_fuzzy_computation_node(self, id_name: str,
-                                      values: list,
-                                      parent: HypergraphNode = None):
-        __node = self.generate_node(id_name, parent)
-        __values = self.create_value(__node, "values", values)
-        return __node, __values
-
-    def connect_fuzzy_nodes(
-            self, id_name: str, parent: HypergraphNode, tnorm, snorm,
-            connections: list[tuple[HypergraphNode, EnumRelationDirection, dict | list, SemanticValueNode | None]]):
-        __fhe: HypergraphEdge = self.connect_tuple_nodes(parent, id_name, connections)
-        self.create_value(__fhe, "snorm", [snorm])
-        self.create_value(__fhe, "tnorm", [tnorm])
-        return __fhe
 
 
 def main():
