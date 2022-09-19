@@ -1,3 +1,4 @@
+import abc
 import asyncio
 
 import numpy as np
@@ -6,25 +7,30 @@ from rei.foundations.graph_monad import GraphMonad
 from rei.hypergraph.base_elements import HypergraphNode
 
 
-class SNorm(GraphMonad):
+class FuzzyNorm(HypergraphNode):
 
-    async def execute(self, start) -> list[asyncio.Future]:
+    @abc.abstractmethod
+    def eval(self, x):
         raise NotImplementedError
+
+
+class SNorm(FuzzyNorm):
+    pass
 
 
 class MaxNorm(SNorm):
 
-    async def execute(self, start):
-        return np.max(start, axis=1)
+    def eval(self, x):
+        return np.max(x, axis=1)
 
 
-class TNorm(GraphMonad):
-
-    async def execute(self, start) -> list[asyncio.Future]:
-        raise NotImplementedError
+class TNorm(FuzzyNorm):
+    pass
 
 
-class MinNorm(SNorm):
+class MinNorm(TNorm):
 
-    async def execute(self, start):
-        return np.min(start, axis=0)
+    def eval(self, x):
+        return np.min(x, axis=1)
+
+

@@ -11,10 +11,6 @@ import rei.fuzzy.norm_functions as no
 import matplotlib.pyplot as plt
 
 
-
-
-
-
 def main():
     __time = LocalClock()
     __factory = HypergraphFactory("fuzzy_sys_factory", __time)
@@ -108,6 +104,8 @@ def main():
     plt.subplot(1,2,2)
     plt.plot(t, z)
     plt.plot(t, defuzz, linewidth=5)
+    # Decision space
+
     # Available energy
     plt.show()
 

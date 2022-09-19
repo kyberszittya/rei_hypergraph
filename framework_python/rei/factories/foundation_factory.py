@@ -12,13 +12,18 @@ class HypergraphFactory(AbstractElementFactory):
     def __init__(self, factory_name: str, clock: MetaClock) -> None:
         super().__init__(factory_name, clock)
 
-    def generate_node(self, id_name: str, parent: HypergraphNode = None) -> HypergraphNode:
+    def _generate_node_uid(self, id_name: str, parent: HypergraphNode) -> bytes:
         if parent is not None:
-            uid = self.unique_identifier.generate_uid('/'.join([parent.qualified_name, id_name]))
-        else:
-            uid = self.unique_identifier.generate_uid(id_name)
-        node = HypergraphNode(id_name, uid, '/'.join([self._factory_name, self.get_qualified_name(id_name)]),
-                              self._clock, parent)
+            return self.unique_identifier.generate_uid('/'.join([parent.qualified_name, id_name]))
+        return self.unique_identifier.generate_uid(id_name)
+
+    def _generate_node_qualified_name(self, id_name: str):
+        return '/'.join([self._factory_name, self.get_qualified_name(id_name)])
+
+    def generate_node(self, id_name: str, parent: HypergraphNode = None) -> HypergraphNode:
+        uid = self._generate_node_uid(id_name, parent)
+        qname = self._generate_node_qualified_name(id_name)
+        node = HypergraphNode(id_name, uid, qname, self._clock, parent)
         return node
 
     def generate_list_nodes(self, id_name: list[str], parent: HypergraphNode = None) -> list[HypergraphNode]:
@@ -75,9 +80,16 @@ class HypergraphFactory(AbstractElementFactory):
         return self.connect_2factor_edges(container, edge_name, in_dir_nodes, out_dir_nodes,
                                           (EnumRelationDirection.INWARDS, EnumRelationDirection.OUTWARDS))
 
+    def _create_edge(self, edge_name: str, container: HypergraphNode):
+        uuid: bytes = self.unique_identifier.generate_uid(edge_name)
+        qname = self.get_stamped_qualified_name(edge_name, container)
+        return HypergraphEdge(edge_name, uuid, qname, container.clock, container)
+
     def connect_tuple_nodes(
             self, container: HypergraphNode, edge_name: str,
-            nodes: list[tuple[HypergraphNode, EnumRelationDirection, ValueNode | None | dict, SemanticValueNode | None]]):
+            nodes: list[tuple[HypergraphNode, EnumRelationDirection, ValueNode | None | dict, SemanticValueNode | None]],
+            edge: HypergraphEdge = None
+    ):
         """
 
         :param container:
@@ -85,9 +97,11 @@ class HypergraphFactory(AbstractElementFactory):
         :param nodes: endpoint, direction, value node, semantiv calue node
         :return:
         """
-        uuid: bytes = self.unique_identifier.generate_uid(edge_name)
-        he = HypergraphEdge(
-            edge_name, uuid, self.get_stamped_qualified_name(edge_name, container), container.clock, container)
+        if edge is None:
+            he = self._create_edge(edge_name, container)
+        else:
+            he = edge
+        # Connect elements
         for n, dir, v, sv in nodes:
             he.unary_connect(n, v, dir, sv)
         return he

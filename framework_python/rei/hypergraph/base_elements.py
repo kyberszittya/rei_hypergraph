@@ -66,8 +66,10 @@ class HypergraphElement(ConceptualItem):
         # TODO: boundary ports out for system-view applications
         pass
 
-    def get_values(self):
-        return self.get_subelements(lambda x: isinstance())
+    def get_values(self, name):
+        if len(name) == 0:
+            return self.get_subelements(lambda x: isinstance(x, ValueNode))
+        return self.get_subelements(lambda x: isinstance(x, ValueNode) and x.id_name == name)
 
     def register(self, parent: HierarchicalElement):
         parent.add_element(self)

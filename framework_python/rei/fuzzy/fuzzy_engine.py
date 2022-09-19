@@ -52,6 +52,7 @@ class FuzzyEngine(HypergraphNode):
             __tau = next(r.endpoint.get_element_by_id_name("firevalues")).get_values()[0]
             __v = next(node.get_element_by_id_name("values")).get_values()[0]
             if __tau.shape==(0,):
+                yield None
                 continue
             yield np.sum((__v * __tau)/np.sum(__tau))
         return node.get_element_by_id_name("firevalues")
