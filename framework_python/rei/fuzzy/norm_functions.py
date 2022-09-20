@@ -1,9 +1,7 @@
 import abc
-import asyncio
 
 import numpy as np
 
-from rei.foundations.graph_monad import GraphMonad
 from rei.hypergraph.base_elements import HypergraphNode
 
 
@@ -20,8 +18,8 @@ class SNorm(FuzzyNorm):
 
 class MaxNorm(SNorm):
 
-    def eval(self, x):
-        return np.max(x, axis=1)
+    def eval(self, x, axis=1):
+        return np.max(x, axis=axis)
 
 
 class TNorm(FuzzyNorm):
@@ -30,7 +28,7 @@ class TNorm(FuzzyNorm):
 
 class MinNorm(TNorm):
 
-    def eval(self, x):
-        return np.min(x, axis=1)
+    def eval(self, x, axis=1):
+        return np.min(x, axis=axis)
 
 

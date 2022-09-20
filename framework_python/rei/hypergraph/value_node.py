@@ -1,5 +1,7 @@
 import typing
 
+import numpy as np
+
 from rei.foundations.conceptual_item import HierarchicalElement
 
 
@@ -38,7 +40,10 @@ class ValueNode(HierarchicalElement):
         return (self[i] for i in range(self.dim))
 
     def get_values(self):
-        return [v for v in self._values]
+        if isinstance(self._values, list):
+            return [v for v in self._values]
+        else:
+            return np.copy(self._values)
 
     @property
     def val(self):

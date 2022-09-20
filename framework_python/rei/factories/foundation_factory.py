@@ -88,8 +88,7 @@ class HypergraphFactory(AbstractElementFactory):
     def connect_tuple_nodes(
             self, container: HypergraphNode, edge_name: str,
             nodes: list[tuple[HypergraphNode, EnumRelationDirection, ValueNode | None | dict, SemanticValueNode | None]],
-            edge: HypergraphEdge = None
-    ):
+            edge: HypergraphEdge = None):
         """
 
         :param container:

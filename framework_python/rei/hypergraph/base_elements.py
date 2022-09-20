@@ -189,6 +189,9 @@ class HypergraphEdge(HypergraphElement):
             lambda x: x.direction == EnumRelationDirection.OUTWARDS or x.direction == EnumRelationDirection.BIDIRECTIONAL,
             self.sub_relations)
 
+    def get_subrelations(self, filter_func: typing.Callable[[typing.Any], bool]):
+        yield from filter(lambda x: filter_func(x), self.sub_relations)
+
 
 
 class HypergraphNode(HypergraphElement):

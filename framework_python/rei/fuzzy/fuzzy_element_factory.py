@@ -6,9 +6,8 @@ from rei.fuzzy.fuzzy_engine import FuzzyEngine
 from rei.fuzzy.fuzzy_nodes import FuzzifierNode, FuzzyLinguisticNode, FuzzyRuleNode, FuzzyRuleTerminalNode, \
     FuzzyComputationEdge
 from rei.fuzzy.norm_functions import MaxNorm, MinNorm, SNorm
-from rei.hypergraph.base_elements import HypergraphNode, HypergraphEdge
+from rei.hypergraph.base_elements import HypergraphNode
 from rei.hypergraph.common_definitions import EnumRelationDirection
-from rei.hypergraph.value_node import SemanticValueNode
 
 
 class FuzzyElementFactory(HypergraphFactory):
@@ -34,16 +33,18 @@ class FuzzyElementFactory(HypergraphFactory):
 
     def create_computation_edge(
             self, id_name: str, parent: HypergraphNode, fuzzy_inputs: list[FuzzifierNode],
-            fuzzy_outputs: list[FuzzifierNode], fuzzy_ling):
+            fuzzy_outputs: list[FuzzifierNode], fuzzy_ling_name: list):
         connections: list = []
         for v in fuzzy_inputs:
             connections.append((v, EnumRelationDirection.INWARDS, None, None))
         for v in fuzzy_outputs:
             connections.append((v, EnumRelationDirection.OUTWARDS, None, None))
-        for v in fuzzy_ling:
+        for v in fuzzy_ling_name:
             connections.append((v, EnumRelationDirection.INWARDS, None, None))
         __fhe: FuzzyComputationEdge = self.__create_fuzzy_computational_edge(id_name, parent)
         self.connect_tuple_nodes(parent, id_name, connections, __fhe)
+        # Create value node for generated values
+        self.create_value(__fhe, "input_value_labels", [x.id_name for x in fuzzy_ling_name])
         return __fhe
 
     def __create_fuzzy_computational_edge(self, edge_name, container):
@@ -82,12 +83,12 @@ class FuzzyElementFactory(HypergraphFactory):
         __snorm = self.__generate_s_norm(".".join([rule_name, "snorm"]), __rule)
         for p in precedent:
             indices = [value_label_mappings[p[0]].homology_label_to_index[v] for v in p[1]]
-            _vn = self.__create_rule_terminal_node(__tnorm, '.'.join(['rule', p[0]]), value_node_mappings[p[0]],
-                                                   indices, __snorm)
+            self.__create_rule_terminal_node(__tnorm, '.'.join(['rule', p[0]]), value_node_mappings[p[0]],
+                                             indices, __snorm)
         for a in antecedent:
-            pass
-            #indices = [value_mappings[a[0]].homology_label_to_index[v] for v in a[1]]
-            #_vn = self.__create_rule_terminal_node(__norm, '.'.join(['rule', a[0]]), indices)
+            indices = [value_label_mappings[a[0]].homology_label_to_index[v] for v in a[1]]
+            self.__create_rule_terminal_node(__rule, '.'.join(['rule_result', a[0]]), value_node_mappings[a[0]],
+                                             indices, __snorm)
         return __rule
 
     def __generate_linguistic_node(self, id_name: str, parent: HypergraphNode):
@@ -111,14 +112,24 @@ class FuzzyElementFactory(HypergraphFactory):
         __linguistic_node.update()
         return __linguistic_node
 
-    def connect_fuzzifier_node(self, parent: HypergraphNode, ling: FuzzyLinguisticNode, fuzzifiernode: HypergraphNode,
-                               valuenode: HypergraphNode, input_values: list[str], bounds: list[float]):
-        id_name = '_'.join(["fuzz", valuenode.id_name, fuzzifiernode.id_name, *input_values])
-        __he = self.connect_tuple_nodes(parent, id_name,
-                                        [(valuenode, EnumRelationDirection.INWARDS, None, None),
-                                         (ling, EnumRelationDirection.INWARDS, None, None),
-                                         (fuzzifiernode, EnumRelationDirection.OUTWARDS, None, None)])
-        self.create_value(__he, "input_values", input_values)
+    def connect_fuzzifier_node(self, parent: HypergraphNode, ling: FuzzyLinguisticNode,
+                               fuzzifiernode: HypergraphNode, direction: EnumRelationDirection,
+                               valuenode: HypergraphNode, input_value_labels: list[str], bounds: list[float]):
+        id_name = '_'.join(["fuzz", valuenode.id_name, fuzzifiernode.id_name, *input_value_labels])
+        match direction:
+            case EnumRelationDirection.INWARDS:
+                __he = self.connect_tuple_nodes(parent, id_name,
+                                                [(valuenode, EnumRelationDirection.INWARDS, None, None),
+                                                 (ling, EnumRelationDirection.INWARDS, None, None),
+                                                 (fuzzifiernode, EnumRelationDirection.OUTWARDS, None, None)])
+            case EnumRelationDirection.OUTWARDS:
+                __he = self.connect_tuple_nodes(parent, id_name,
+                                                [(valuenode, EnumRelationDirection.OUTWARDS, None, None),
+                                                 (ling, EnumRelationDirection.INWARDS, None, None),
+                                                 (fuzzifiernode, EnumRelationDirection.INWARDS, None, None)])
+            case _:
+                raise RuntimeError
+        self.create_value(__he, "input_value_labels", input_value_labels)
         self.create_value(__he, "bounds", bounds)
         fuzzifiernode.update()
         return __he

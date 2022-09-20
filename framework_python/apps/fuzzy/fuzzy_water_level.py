@@ -5,9 +5,10 @@ from rei.foundations.clock import LocalClock
 from rei.fuzzy.fuzzy_element_factory import FuzzyElementFactory
 
 import rei.fuzzy.membership_functions as mb
-import rei.fuzzy.norm_functions as no
 
-import matplotlib.pyplot as plt
+
+from rei.hypergraph.common_definitions import EnumRelationDirection
+
 
 def main():
     __time = LocalClock()
@@ -21,9 +22,10 @@ def main():
     __water_sensor = __factory.generate_node("water_sensor", ambient_sys)
     __wl = __factory.create_value(__water_sensor, "water_level", [2.0])
     __wr = __factory.create_value(__water_sensor, "water_rate", [0.1])
+
     # Fuzzy value
-    ling_water_level = __fuzzy_factory.create_linguistic_node("water_level", cogni_sys, ["LOW","MID","HI"])
-    ling_water_rate = __fuzzy_factory.create_linguistic_node("water_rate", cogni_sys, ["LOW","MID","HI"])
+    ling_water_level = __fuzzy_factory.create_linguistic_node("water_level", cogni_sys, ["LOW", "MID", "HI"])
+    ling_water_rate = __fuzzy_factory.create_linguistic_node("water_rate", cogni_sys, ["LOW", "MID", "HI"])
     # Fuzzy cmd
     ling_water_cmd = __fuzzy_factory.create_linguistic_node(
         "water_cmd", cogni_sys, ["CLOSEFAST", "CLOSESLOW", "STANDBY", "OPENSLOW", "OPENFAST"])
@@ -34,19 +36,29 @@ def main():
     fuzz_water_rate = __fuzzy_factory.create_fuzzifier_node(
         "water_rate_fuzzy", cogni_sys, [mb.lamma_v, mb.tri_v, mb.gamma_v],
         [[-0.7, -0.4], [-0.5, 0.0, 0.5], [0.4, 0.7]])
-    __fuzzy_factory.connect_fuzzifier_node(cogni_sys, ling_water_level, fuzz_water_level, __water_sensor,
-                                           ["water_level"], [0.0, 20.0])
-    __fuzzy_factory.connect_fuzzifier_node(cogni_sys, ling_water_rate, fuzz_water_rate, __water_sensor,
-                                           ["water_rate"], [-2.0, 2.0])
+    __fuzzy_factory.connect_fuzzifier_node(cogni_sys, ling_water_level, fuzz_water_level, EnumRelationDirection.INWARDS,
+                                           __water_sensor, ["water_level"], [0.0, 20.0])
+    __fuzzy_factory.connect_fuzzifier_node(cogni_sys, ling_water_rate, fuzz_water_rate, EnumRelationDirection.INWARDS,
+                                           __water_sensor, ["water_rate"], [-2.0, 2.0])
     # Control
     fuzz_water_cmd = __fuzzy_factory.create_fuzzifier_node(
         "water_cmd_fuzzy", cogni_sys, [mb.tri_v, mb.tri_v, mb.tri_v, mb.tri_v, mb.tri_v],
         [[-1.0, -0.7, -0.3], [-0.45, -0.2, 0.0], [-0.5, 0.0, 0.5], [0.0, 0.2, 0.45], [0.4, 0.7, 1.0]])
+    # Command values
+    __wcmd = __factory.create_value(ling_water_cmd, "water_cmd", [0.0])
+    __wcmd_raw = __factory.create_value(ling_water_cmd, "raw_water_cmd", [0.0])
+    # Connect linguistic node with command output
+    __fuzzy_factory.connect_fuzzifier_node(cogni_sys, ling_water_cmd, fuzz_water_cmd, EnumRelationDirection.OUTWARDS,
+                                           cogni_sys, ["water_cmd"], [-1.0, 1.0])
+    # Computation edge
     __he = __fuzzy_factory.create_computation_edge("water_control", cogni_sys,
                                                    [fuzz_water_level, fuzz_water_rate],
                                                    [fuzz_water_cmd], [ling_water_cmd])
-    _r = __fuzzy_factory.create_rule(
-        "R01", __he, [fuzz_water_level], [('water_level', ["LOW"])], [("water_cmd", ["CLOSEFAST"])])
+
+    _r1 = __fuzzy_factory.create_rule(
+        "R01", __he, [fuzz_water_level, fuzz_water_cmd], [('water_level', ["LOW"])], [("water_cmd", ["CLOSEFAST"])])
+    _r2 = __fuzzy_factory.create_rule(
+        "R02", __he, [fuzz_water_level, fuzz_water_cmd], [('water_level', ["HI"])], [("water_cmd", ["OPENFAST"])])
     # Endpoints
     import matplotlib.pyplot as plt
     wf = np.linspace(0, 20, 100)
@@ -56,8 +68,8 @@ def main():
     # Water
     fuzz_water_level.fuzzify()
     fuzz_water_rate.fuzzify()
-    __he.eval()
     # Plot results
+    plt.figure()
     plt.subplot(2,1,1)
     for _v in next(fuzz_water_level.get_values("values")).get_values():
         plt.plot(wf, _v)
@@ -65,6 +77,22 @@ def main():
     plt.subplot(2,1,2)
     for _v in next(fuzz_water_rate.get_values("values")).get_values():
         plt.plot(wr, _v)
+    plt.show()
+    __he.eval()
+    plt.figure()
+    plt.subplot(3,1,1)
+    _y = next(ling_water_cmd.get_values("water_cmd")).get_values()
+    _y_raw = next(ling_water_cmd.get_values("water_cmd")).get_values()
+    plt.plot(_y)
+    fuzz_water_cmd.fuzzify()
+    plt.subplot(3,1,2)
+    __tau = next(fuzz_water_cmd.get_values("values")).get_values()
+    for _v in __tau:
+        plt.plot(_v)
+    # Summarizing
+    plt.subplot(3,1,3)
+    plt.plot(np.sum(__tau, axis=0) * _y/ (
+            (np.sum(__tau)/np.count_nonzero(__tau))*(np.sum(_y)/np.count_nonzero(__tau))))
     plt.show()
 
 
