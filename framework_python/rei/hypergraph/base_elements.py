@@ -99,9 +99,7 @@ class HypergraphRelation(HierarchicalElement):
         if isinstance(weight, dict):
             for v in weight:
                 self.add_element(weight[v])
-        elif isinstance(weight, list):
-            for v in weight:
-                self.add_element(v)
+
         # Semantic value node
         self.semantic_value_node = semantic_value_node
 
