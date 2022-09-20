@@ -55,9 +55,6 @@ class SemanticValueNode(HierarchicalElement):
     def __init__(self, uuid: bytes, id_name: str, progenitor_qualified_name: str, parent, attr: dict):
         super().__init__(uuid, id_name, progenitor_qualified_name, parent)
         self.__attribute_dictionary = {x: attr[x] for x in attr}
-        #if 'name' in attr:
-        #    self.add_named_attribute('name', attr['name'])
-
 
     def add_named_attribute(self, name: str, arg):
         self.__attribute_dictionary[name] = arg
@@ -65,6 +62,9 @@ class SemanticValueNode(HierarchicalElement):
     def remove_named_attribute(self, name: str):
         if name in self.__attribute_dictionary:
             self.__attribute_dictionary.pop(name)
+
+    def get_id_name_from_attribute(self, name: str):
+        return self.__attribute_dictionary[name]
 
 
 

@@ -1,0 +1,31 @@
+#ifndef {{file_name}}
+#define {{file_name}}
+
+#include <rclcpp/rclcpp.hpp>
+
+
+class Interface{{class_name}}
+{
+protected:
+    // Publisher objects
+    {% if pub_ambience_ports|length > 0 %}{% for ambience_port in pub_ambience_ports
+    %}// {{ambience_port[0]}} publisher object
+    rclcpp::Publisher pub{{ambience_port[0]}};{%
+    endfor %}{% endif %}{% if sub_ambience_ports|length > 0 %}// Subscriber objects
+    {% for ambience_port in sub_ambience_ports %}// {{ambience_port[0]}} subscriber object
+    rclcpp::Subscriber pub{{ambience_port[0]}};{% endfor %}{% endif %}
+    // Initialize ambience interface
+    void init_ambience_interface();
+public:
+    virtual ~Interface{{class_name}} = 0;
+    void init();
+    {% if pub_ambience_ports|length > 0 %}// Ambience publishers
+    {% for ambience_port in
+    pub_ambience_ports %}virtual void publish{{ambience_port[0]}}(const {{ambience_port[1]}}& msg) = 0; {%
+    endfor %}{% endif %}{% if sub_ambience_ports|length > 0 %}  // Ambience subscribers
+    {% for ambience_port in
+    sub_ambience_ports %}virtual void subscriber{{ambience_port[0]}}(const {{ambience_port[1]}}& msg) = 0; {%
+    endfor %}{% endif %}
+};
+
+#endif
