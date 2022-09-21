@@ -57,6 +57,15 @@ class FuzzyElementFactory(HypergraphFactory):
         self.create_value(__fhe, "input_value_labels", [x.id_name for x in fuzzy_ling_name])
         return __fhe
 
+    def generate_fuzzy_ruleset_edge(self, ruleset_name: str, parent: HypergraphNode,
+                                    input_variables: list[FuzzifierNode],
+                                    output_variables: list[FuzzifierNode], output_ling: list[FuzzyLinguisticNode],
+                                    rules: list):
+        __he = self.create_computation_edge(ruleset_name, parent,  input_variables, output_variables, output_ling)
+        for r in rules:
+            __r = self.create_rule(r[0], __he, [*input_variables, *output_variables], r[1], r[2])
+        return __he
+
     def __create_fuzzy_computational_edge(self, edge_name, container):
         uuid: bytes = self.unique_identifier.generate_uid(edge_name)
         qname = self.get_stamped_qualified_name(edge_name, container)
