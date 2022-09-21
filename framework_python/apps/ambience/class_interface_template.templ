@@ -21,8 +21,8 @@ public:
     void init();
     {% if pub_ambience_ports|length > 0 %}// Ambience publishers
     {% for ambience_port in
-    pub_ambience_ports %}virtual void publish{{ambience_port[0]}}(const {{ambience_port[1]}}& msg) = 0; {%
-    endfor %}{% endif %}{% if sub_ambience_ports|length > 0 %}  // Ambience subscribers
+    pub_ambience_ports %}virtual void publish{{ambience_port[0]}}(const {{ambience_port[1]}}& msg) = 0;
+    {%endfor %}{% endif %}{% if sub_ambience_ports|length > 0 %}  // Ambience subscribers
     {% for ambience_port in
     sub_ambience_ports %}virtual void subscriber{{ambience_port[0]}}(const {{ambience_port[1]}}& msg) = 0; {%
     endfor %}{% endif %}

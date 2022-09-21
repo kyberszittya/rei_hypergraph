@@ -23,7 +23,7 @@ ambience_edge_body: (communication_connections)+;
 sensor_placement: 'placement' graphedge_signature '{' (ambience_placement_element)* '}';
 ambience_placement_element: ambience_base_reference|element_placement_relation|ambience_placement_reference_port;
 ambience_placement_reference_port: 'port' direction=('->'|'--'|'<-') port_ref_=ref_;
-ambience_base_reference: 'ambience' direction_='->' ambience_base_=ref_;
+ambience_base_reference: 'ambience' direction_=('->'|'--'|'<-') ambience_base_=ref_;
 
 sensor_basic_definition: sensor_type (sensor_basic_definition_parameters)*;
 sensor_basic_definition_parameters: precision_parameter|accuracy_parameter|variance_parameter;
