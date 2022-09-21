@@ -8,7 +8,7 @@ ambient_element_signature: ID;
 // Ambient body
 ambient_graph_body: '{' (ambient_element)* '}';
 // Ambient elements
-ambient_element: actuator | sensor | ambient | ambience_edge | kinematic | port;
+ambient_element: actuator | sensor | ambient | ambience_edge | kinematic | port | sensor_placement;
 // Derived ambient elements
 // Actuators
 actuator: 'actuator' ambient_element_signature '{'
@@ -19,7 +19,11 @@ sensor: 'sensor' ambient_element_signature sensor_type '{'
     (parameters_=parameters)*
 '}';
 ambience_edge: 'ambience' graphedge_signature ambience_edge_body (',' ambience_edge_body)*;
-ambience_edge_body: (communication_connections|element_placement_relation)+;
+ambience_edge_body: (communication_connections)+;
+sensor_placement: 'placement' graphedge_signature '{' (ambience_placement_element)* '}';
+ambience_placement_element: ambience_base_reference|element_placement_relation|ambience_placement_reference_port;
+ambience_placement_reference_port: 'port' direction=('->'|'--'|'<-') port_ref_=ref_;
+ambience_base_reference: 'ambience' direction_='->' ambience_base_=ref_;
 
 sensor_basic_definition: sensor_type (sensor_basic_definition_parameters)*;
 sensor_basic_definition_parameters: precision_parameter|accuracy_parameter|variance_parameter;
@@ -33,11 +37,11 @@ geom_relation: 'at' direction=('->'|'<-'|'--') referenced_element_=ref_ (transfo
 
 // Proprioceptive sensor can be assigned to a specific ambience relation of the system
 proprioceptive_sensor: prop_sensor_type;
-prop_sensor_type: 'imu'|'encoder'|'force';
+prop_sensor_type: 'imu'|'encoder'|'force'|STRING;
 // Exteroceptive sensor obtains data outside the context of the system
 exteroceptive_sensor: ext_sensor_type;
-ext_sensor_type: 'gnss'|matrix_sensor;
-matrix_sensor: 'visual'|'laserarray';
+ext_sensor_type: 'gnss'|matrix_sensor|STRING;
+matrix_sensor: 'visual'|'laserarray'|'mat' matrix_sensor_type_=STRING;
 // Communication port elements
 communication_connections: (optype=graphedge_relation_optype)? 'comm' direction=('->'|'<-'|'--') comm_type=communication_type ref_;
 communication_type: ambient_signal | ambient_stream;

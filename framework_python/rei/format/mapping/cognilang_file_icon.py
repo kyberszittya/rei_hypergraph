@@ -168,13 +168,14 @@ class CognilangParserFileIcon(KinematicGraphContextMapper, CogniLangVisitor):
         )
         return self.visitChildren(ctx)
 
-
-    def visitAmbience_edge(self, ctx: CogniLangParser.Ambience_edgeContext):
+    def visitSensor_placement(self, ctx: CogniLangParser.Sensor_placementContext):
         parent_name, parent_node, name = self._get_basic_edge_parameters(ctx)
         he = self._factory.create_hyperedge(parent_node, name)
-        for __ae in ctx.ambience_edge_body():
-            for pl in __ae.element_placement_relation():
-                __geom_relation: CogniLangParser.Geom_relationContext = pl.geom_relation()
+        # Iterate sensor placements
+        for pl in ctx.ambience_placement_element():
+            if pl.element_placement_relation() is not None:
+                __rel_placement = pl.element_placement_relation()
+                __geom_relation: CogniLangParser.Geom_relationContext = __rel_placement.geom_relation()
                 __dir: EnumRelationDirection = dir_enum_relation(__geom_relation.direction.text)
                 __referenced_element_name: str = str(__geom_relation.referenced_element_.ID())
                 __r = '/'.join([self.__root_entity.id_name, __referenced_element_name])
@@ -189,6 +190,12 @@ class CognilangParserFileIcon(KinematicGraphContextMapper, CogniLangVisitor):
                     __placement.add_named_attribute('rigidtransformation', __sv_trans)
                 #
                 he.unary_connect(__referenced_element, 1.0, __dir, __placement)
+
+    def visitAmbience_edge(self, ctx: CogniLangParser.Ambience_edgeContext):
+        parent_name, parent_node, name = self._get_basic_edge_parameters(ctx)
+        he = self._factory.create_hyperedge(parent_node, name)
+        for __ae in ctx.ambience_edge_body():
+
             for comm in __ae.communication_connections():
                 comm: CogniLangParser.Communication_connectionsContext
                 __referenced_element = str(comm.ref_().ID())

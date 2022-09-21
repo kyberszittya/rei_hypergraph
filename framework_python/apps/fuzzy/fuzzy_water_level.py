@@ -48,14 +48,6 @@ def main():
     __fuzzy_factory.connect_fuzzifier_node(cogni_sys, ling_water_cmd, fuzz_water_cmd, EnumRelationDirection.OUTWARDS,
                                            cogni_sys, ["water_cmd"], [-1.0, 1.0])
     # Computation edge
-    #__he = __fuzzy_factory.create_computation_edge("water_control", cogni_sys,
-    #                                               [fuzz_water_level, fuzz_water_rate],
-    #                                               [fuzz_water_cmd], [ling_water_cmd])
-    # Rules
-    #_r1 = __fuzzy_factory.create_rule(
-    #    "R01", __he, [fuzz_water_level, fuzz_water_cmd], [('water_level', ["LOW"])], [("water_cmd", ["CLOSEFAST"])])
-    #_r2 = __fuzzy_factory.create_rule(
-    #    "R02", __he, [fuzz_water_level, fuzz_water_cmd], [('water_level', ["HI"])], [("water_cmd", ["OPENFAST"])])
     __he = __fuzzy_factory.generate_fuzzy_ruleset_edge(
         "water_control", cogni_sys, [fuzz_water_level, fuzz_water_rate], [fuzz_water_cmd], [ling_water_cmd],
         [
