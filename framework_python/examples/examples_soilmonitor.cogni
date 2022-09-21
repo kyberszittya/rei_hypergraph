@@ -24,18 +24,34 @@ entity soilmonitor
             double max_torque = 1.5
             double max_current = 1.2
          }
-         sensor gnss_coarse gnss {
+         sensor gnss_rtk gnss {
 
+         }
+         sensor soil_ec_sensor "soilec" {
          }
          port gnss_output : "/gnss" ("sensor_msgs/PoseStamped") {
          }
          port soil_value: "/soilvalue" ("danuba_msgs/SoilMessageStamped") {
          }
+         placement base_gnss_sensor: {
+             ambience <- {gnss_rtk}
+             at -> {basic_structure/base_link}
+             port -> {gnss_output}
+         }
+         placement base_encoder_wheel: {
+             ambience -- {rotator_motor}
+             at -> {basic_structure/base_link}
+             port <- {joint_cmd}
+             port -> {joint_state}
+         }
+         placement soilmonitor_placement: {
+             ambience -- {soil_ec_sensor}
+             at -> {basic_structure/soilmonitor_sensor}
+             port -> {soil_value}
+         }
          ambience soil_sensor_interface:
-            at -> {basic_structure/rotator},
             comm -> stream {soil_value}
-         ambience gnss_interface:
-            at -> {basic_structure/base_link},
+         ambience gnss_rtk_interface:
             comm -> stream {gnss_output}
     }
 }
