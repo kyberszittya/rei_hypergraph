@@ -6,17 +6,15 @@ from rei.format.ambience.ambience_generators import extract_ambient_data_from_no
 from rei.format.cognilang.CogniLangLexer import CogniLangLexer
 from rei.format.cognilang.CogniLangParser import CogniLangParser
 from rei.format.mapping.cognilang_file_icon import CognilangParserFileIcon
-from rei.format.semantics.CognitiveEntity import AmbientNodeInterface, AmbiencePortCommunication, AmbiencePort
+from rei.format.semantics.CognitiveEntity import AmbientNodeInterface
 from rei.foundations.clock import LocalClock
-from rei.hypergraph.base_elements import HypergraphEdge, HypergraphNode
-from rei.hypergraph.common_definitions import EnumRelationDirection
 from rei.query.query_engine import HierarchicalPrepositionQuery, HypergraphQueryEngine
 
 from jinja2 import Template
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Convert Cognilang to OSRF SDF")
+    parser = argparse.ArgumentParser(description="Convert Cognilang to ROS2 C++ Code")
     parser.add_argument('--input', type=str, help="Input Cognilang file")
     parser.add_argument('--output', type=str, help="Output SDF file")
     args = parser.parse_args()

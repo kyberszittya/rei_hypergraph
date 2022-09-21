@@ -37,6 +37,7 @@ def main():
         ("water_cmd_fuzzy", [mb.tri_v, mb.tri_v, mb.tri_v, mb.tri_v, mb.tri_v],
          [[-1.0, -0.7, -0.3], [-0.45, -0.2, 0.0], [-0.5, 0.0, 0.5], [0.0, 0.2, 0.45], [0.4, 0.7, 1.0]])
     ])
+    # Fuzzy membership node
     __fuzzy_factory.connect_fuzzifier_node(cogni_sys, ling_water_level, fuzz_water_level, EnumRelationDirection.INWARDS,
                                            __water_sensor, ["water_level"], [0.0, 20.0])
     __fuzzy_factory.connect_fuzzifier_node(cogni_sys, ling_water_rate, fuzz_water_rate, EnumRelationDirection.INWARDS,
