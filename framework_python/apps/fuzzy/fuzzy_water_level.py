@@ -24,26 +24,23 @@ def main():
     __wr = __factory.create_value(__water_sensor, "water_rate", [0.1])
 
     # Fuzzy value
-    ling_water_level = __fuzzy_factory.create_linguistic_node("water_level", cogni_sys, ["LOW", "MID", "HI"])
-    ling_water_rate = __fuzzy_factory.create_linguistic_node("water_rate", cogni_sys, ["LOW", "MID", "HI"])
+    __li = __fuzzy_factory.generate_fuzzy_linguistic_nodes(cogni_sys, [
+        ("water_level", ["LOW", "MID", "HI"]),
+        ("water_rate", ["LOW", "MID", "HI"]),
+        ("water_cmd", ["CLOSEFAST", "CLOSESLOW", "STANDBY", "OPENSLOW", "OPENFAST"])
+    ])
+    ling_water_level, ling_water_rate, ling_water_cmd = __li
     # Fuzzy cmd
-    ling_water_cmd = __fuzzy_factory.create_linguistic_node(
-        "water_cmd", cogni_sys, ["CLOSEFAST", "CLOSESLOW", "STANDBY", "OPENSLOW", "OPENFAST"])
-    #
-    fuzz_water_level = __fuzzy_factory.create_fuzzifier_node(
-        "water_level_fuzzy", cogni_sys, [mb.lamma_v, mb.tri_v, mb.gamma_v],
-        [[-0.7, -0.4], [-0.5, 0.0, 0.5], [0.4, 0.7]])
-    fuzz_water_rate = __fuzzy_factory.create_fuzzifier_node(
-        "water_rate_fuzzy", cogni_sys, [mb.lamma_v, mb.tri_v, mb.gamma_v],
-        [[-0.7, -0.4], [-0.5, 0.0, 0.5], [0.4, 0.7]])
+    fuzz_water_level, fuzz_water_rate, fuzz_water_cmd = __fuzzy_factory.generate_fuzzifier_nodes(cogni_sys, [
+        ("water_level_fuzzy", [mb.lamma_v, mb.tri_v, mb.gamma_v], [[-0.7, -0.4], [-0.5, 0.0, 0.5], [0.4, 0.7]]),
+        ("water_rate_fuzzy", [mb.lamma_v, mb.tri_v, mb.gamma_v], [[-0.7, -0.4], [-0.5, 0.0, 0.5], [0.4, 0.7]]),
+        ("water_cmd_fuzzy", [mb.tri_v, mb.tri_v, mb.tri_v, mb.tri_v, mb.tri_v],
+         [[-1.0, -0.7, -0.3], [-0.45, -0.2, 0.0], [-0.5, 0.0, 0.5], [0.0, 0.2, 0.45], [0.4, 0.7, 1.0]])
+    ])
     __fuzzy_factory.connect_fuzzifier_node(cogni_sys, ling_water_level, fuzz_water_level, EnumRelationDirection.INWARDS,
                                            __water_sensor, ["water_level"], [0.0, 20.0])
     __fuzzy_factory.connect_fuzzifier_node(cogni_sys, ling_water_rate, fuzz_water_rate, EnumRelationDirection.INWARDS,
                                            __water_sensor, ["water_rate"], [-2.0, 2.0])
-    # Control
-    fuzz_water_cmd = __fuzzy_factory.create_fuzzifier_node(
-        "water_cmd_fuzzy", cogni_sys, [mb.tri_v, mb.tri_v, mb.tri_v, mb.tri_v, mb.tri_v],
-        [[-1.0, -0.7, -0.3], [-0.45, -0.2, 0.0], [-0.5, 0.0, 0.5], [0.0, 0.2, 0.45], [0.4, 0.7, 1.0]])
     # Command values
     __wcmd = __factory.create_value(ling_water_cmd, "water_cmd", [0.0])
     __wcmd_raw = __factory.create_value(ling_water_cmd, "raw_water_cmd", [0.0])
@@ -54,7 +51,7 @@ def main():
     __he = __fuzzy_factory.create_computation_edge("water_control", cogni_sys,
                                                    [fuzz_water_level, fuzz_water_rate],
                                                    [fuzz_water_cmd], [ling_water_cmd])
-
+    # Rules
     _r1 = __fuzzy_factory.create_rule(
         "R01", __he, [fuzz_water_level, fuzz_water_cmd], [('water_level', ["LOW"])], [("water_cmd", ["CLOSEFAST"])])
     _r2 = __fuzzy_factory.create_rule(
@@ -69,6 +66,7 @@ def main():
     fuzz_water_level.fuzzify()
     fuzz_water_rate.fuzzify()
     # Plot results
+    plt.gcf().canvas.get_renderer()
     plt.figure()
     plt.subplot(2,1,1)
     for _v in next(fuzz_water_level.get_values("values")).get_values():

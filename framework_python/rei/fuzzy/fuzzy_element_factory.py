@@ -24,6 +24,16 @@ class FuzzyElementFactory(HypergraphFactory):
                            self._clock, parent)
         return node
 
+    def generate_fuzzy_linguistic_nodes(self, parent: HypergraphNode, language_set: list[tuple[str, list[str]]]):
+        for l in language_set:
+            yield self.create_linguistic_node(l[0], parent, l[1])
+
+    def generate_fuzzifier_nodes(self, parent: HypergraphNode,
+                                 fuzzifier_set: list[tuple[str, list[typing.Callable], list[list[float]]]]):
+        for f in fuzzifier_set:
+            yield self.create_fuzzifier_node(f[0], parent, f[1], f[2])
+
+
     def create_fuzzy_computation_node(self, id_name: str,
                                       values: list,
                                       parent: HypergraphNode = None):
