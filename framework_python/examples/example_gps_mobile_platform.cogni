@@ -1,0 +1,65 @@
+entity simple_gps_mobile_platform
+{
+    kinematic basic_structure {
+        root link base_link @ [[0.0 0.0 0.1]]
+        {
+            inertia { mass 5.0 }
+            visual base_link_viz (material white){
+                polyhedron [0.3 0.2 0.1]
+            }
+            collision {{base_link/base_link_viz}}
+        }
+        link rotator @ [[0.0 0.0 0.15]]
+        {
+            inertia {mass 0.25}
+            visual viz (material red){
+                cylinder [0.02, 0.05]
+            }
+            collision {{rotator/viz}}
+        }
+    }
+    ambient simplebot_ambience {
+         actuator rotator_motor {
+            double power = 40.0
+            double max_torque = 1.5
+            double max_current = 1.2
+         }
+         sensor gnss_coarse gnss {
+
+         }
+         sensor water_temperature_sensor "temperature" {
+         }
+         sensor water_pH_sensor "ph" {
+         }
+         port gnss_output : "/gnss" ("sensor_msgs/PoseStamped") {
+         }
+         port joint_cmd : "/joint_cmd" ("sensor_msgs/JointCmd") {
+         }
+         port water_temperature: "/temperature" ("sensor_msgs/Temperature") {
+         }
+         port water_pH: "/water_ph" ("sensor_msgs/WaterPh") {
+         }
+         placement base_gnss_sensor: {
+            ambience <- {gnss_coarse}
+            at -> {basic_structure/base_link}
+            port -> {gnss_output}
+         }
+         placement base_temperature_sensor: {
+            ambience <- {water_temperature_sensor}
+            at -> {basic_structure/base_link}
+            port -> {water_temperature}
+         }
+         placement base_water_ph: {
+            ambience <- {water_pH_sensor}
+            at -> {basic_structure/base_link}
+            port -> {water_pH_sensor}
+         }
+         ambience platform_controller:
+            union comm -> stream {encoder_wheel},
+            union comm <- stream {joint_cmd}
+            comm -> stream {water_temperature}
+            comm -> stream {water_pH}
+         ambience gnss_interface:
+            comm -> stream {gnss_output}
+    }
+}

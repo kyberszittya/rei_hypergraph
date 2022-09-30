@@ -57,15 +57,23 @@ entity simplebot_with_ambient
          }
          port joint_cmd : "/joint_cmd" ("sensor_msgs/JointCmd") {
          }
+         placement base_gnss_sensor: {
+            ambience <- {gnss_coarse}
+            at -> {basic_structure/base_link}
+            port -> {gnss_output}
+         }
+         placement wheel_placement: {
+            ambience <- {wheel_motor}
+            at -> {basic_structure/wheel_left_front}
+            at -> {basic_structure/wheel_right_front}
+            at -> {basic_structure/wheel_right_rear}
+            at -> {basic_structure/wheel_left_rear}
+            port -> {encoder_wheel}
+         }
          ambience wheel_connection:
-            at -> {basic_structure/wheel_left_front},
-            at -> {basic_structure/wheel_right_front},
-            at -> {basic_structure/wheel_right_rear},
-            at -> {basic_structure/wheel_left_rear},
             union comm -> stream {encoder_wheel},
             union comm <- stream {joint_cmd}
          ambience gnss_connection:
-            at -> {basic_structure/base_link}
             comm -> stream {gnss_output}
     }
 }

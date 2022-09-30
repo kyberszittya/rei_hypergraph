@@ -1,0 +1,49 @@
+entity lego_ev3_gripp3r
+{
+    kinematic basic_structure {
+        kinematic wheel
+        {
+            root link wheel_base
+            {
+                inertia { mass 1.0 }
+                visual wheel_base_viz (material red){
+                    cylinder [0.02, 0.015]
+                }
+                collision {{wheel_base/wheel_base_viz}}
+            }
+            link tire @ [[0.0 0.0 0.02]]
+            {
+                inertia { mass 2.5 }
+                visual wheel_viz (material black) {
+                    cylinder [0.085 0.03]
+                }
+                collision {{tire/wheel_viz}}
+            }
+            joint wheel_joint: fix <- {wheel_base} rev -> {tire} [[0.0 0.0 0.0] [0.0 0.0 0.0]] | [0.0 0.0 1.0]
+        }
+        root link base_link @ [[0.0 0.0 0.03]]
+        {
+            inertia { mass 0.5 }
+            visual base_link_viz (material white) {
+                polyhedron [0.2 0.1 0.05]
+            }
+            collision {{base_link/base_link_viz}}
+        }
+        joint wheel_left_front: fix <- {base_link} fix -> {wheel} [[0.1 0.06 0.0]d[-90.0 0.0 0.0]] | [0.0 0.0 1.0]
+        joint wheel_right_front: fix <- {base_link} fix -> {wheel} [[0.1 -0.06 0.0]d[90.0 0.0 0.0]]| [0.0 0.0 -1.0]
+        joint wheel_right_rear: fix <- {base_link} fix -> {wheel} [[-0.1 -0.06 0.0]d[90.0 0.0 0.0]]| [0.0 0.0 -1.0]
+        joint wheel_left_rear: fix <- {base_link} fix -> {wheel} [[-0.1 0.06 0.0]d[-90.0 0.0 0.0]]| [0.0 0.0 1.0]
+
+        ambient gripp3r_ambience {
+            port encode_wheel : "/joint_state" ("sensor_msgs/JointState") {
+
+            }
+            port joint_cmd : "/joint_cmd" ("sensor_msgs/JointCmd") {
+
+            }
+            ambience wheel_connection:
+            at -> {basic_structure/wheel_left_front}
+
+        }
+    }
+}

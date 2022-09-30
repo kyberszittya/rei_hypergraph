@@ -42,65 +42,33 @@ def main():
     ])
     # Fuzzy membership nodes
     __fuzzy_factory.connect_fuzzifier_node(cogni_sys, ling_battery_voltage, fuzz_water_level, EnumRelationDirection.INWARDS,
-                                           battery, ["water_level"], [0.0, 20.0])
+                                           battery, ["battery_voltage"], [0.0, 20.0])
     __fuzzy_factory.connect_fuzzifier_node(cogni_sys, ling_battery_capacity, fuzz_water_rate, EnumRelationDirection.INWARDS,
-                                           battery, ["water_rate"], [-2.0, 2.0])
+                                           battery, ["battery_capacity"], [-2.0, 2.0])
     # Command values
-    __wcmd = __factory.create_value(ling_battery_cmd, "water_cmd", [0.0])
-    __wcmd_raw = __factory.create_value(ling_battery_cmd, "raw_water_cmd", [0.0])
+    __wcmd = __factory.create_value(ling_battery_cmd, "battery_cmd", [0.0])
+    __wcmd_raw = __factory.create_value(ling_battery_cmd, "raw_battery_cmd", [0.0])
     # Connect linguistic node with command output
     __fuzzy_factory.connect_fuzzifier_node(cogni_sys, ling_battery_cmd, fuzz_water_cmd, EnumRelationDirection.OUTWARDS,
-                                           cogni_sys, ["water_cmd"], [-1.0, 1.0])
+                                           cogni_sys, ["battery_cmd"], [-1.0, 1.0])
     # Computation edge
     __he = __fuzzy_factory.generate_fuzzy_ruleset_edge(
-        "water_control", cogni_sys, [fuzz_water_level, fuzz_water_rate], [fuzz_water_cmd], [ling_battery_cmd],
+        "battery_computation_edge", cogni_sys, [fuzz_water_level, fuzz_water_rate], [fuzz_water_cmd], [ling_battery_cmd],
         [
-            ("R0", [('water_level', ["LOW"])], [("water_cmd", ["CLOSEFAST"])]),
-            ("R1", [('water_level', ["HI"])], [("water_cmd", ["OPENFAST"])]),
-            ("R2", [('water_level', ["MID"])], [("water_cmd", ["STANDBY"])])
+            ("R0", [('battery_voltage', ["LOW"])], [("battery_cmd", ["CLOSEFAST"])]),
+            ("R1", [('battery_voltage', ["HI"])], [("battery_cmd", ["OPENFAST"])]),
+            ("R2", [('battery_voltage', ["MID"])], [("battery_cmd", ["STANDBY"])])
         ]
     )
     # Battery dynamic values
-    """
-    __battery_dynamic_node, __battery_dynamic_values = __fuzzy_factory.create_fuzzy_computation_node(
-        "battery_dynamic_node", [0.0, 0.0, 0.0], battery)
-    # Battery static values
-    __battery_static_node, __battery_static_values = __fuzzy_factory.create_fuzzy_computation_node(
-        "battery_static_node", [0.0, 0.0, 0.0], battery)
-    # Battery
-    __battery_result_node, __battery_result_value = __fuzzy_factory.create_fuzzy_computation_node(
-        "battery_result_node", [], battery)
-    """
-    #
-    """
-    __battery_infer = __fuzzy_factory.connect_fuzzy_nodes(
-        "battery_infer", fuzzy_cogni_sys, no.MinNorm(), no.MaxNorm(), [
-            (__battery_dynamic_node, EnumRelationDirection.INWARDS,
-                [__fuzzy_factory.create_value(None, "membership", [
-                    [0.0, 1.5], [0.0, 1.0, 3.0], [1.0, 4.0, 5.0], [4.0, 6.0, 8.0], [6.0, 12.0]]),
-                 __fuzzy_factory.create_value(None, "mbtype", [mb.lamma_v, mb.tri_v, mb.tri_v, mb.tri_v, mb.gamma_v]),
-                 ], None),
-            (__battery_static_node, EnumRelationDirection.INWARDS,
-                 [__fuzzy_factory.create_value(None, "membership", [
-                     [0.0, 5.0], [2.0, 10.0, 15.0], [10, 15, 20], [15, 17.5, 22.5], [20, 30]]),
-                  __fuzzy_factory.create_value(None, "mbtype", [mb.lamma_v, mb.tri_v, mb.tri_v, mb.tri_v, mb.gamma_v]),
-                  ], None),
-            (__battery_result_node, EnumRelationDirection.OUTWARDS,
-             [__fuzzy_factory.create_value(None, "membership", [
-                     [0.0, 0.3], [0.2, 0.5, 0.7], [0.4, 0.6, 0.8], [0.6, 0.85, 0.95], [0.9, 1.0]]),
-                 __fuzzy_factory.create_value(None, "mbtype", [mb.lamma_v, mb.tri_v, mb.tri_v, mb.tri_v, mb.gamma_v]),
-                 __fuzzy_factory.create_value(None, "firevalues", np.array([0.0, 0.0, 0.0, 0.0, 0.0]))
-             ], None)
-        ]
-    )
-    """
+
     # Computation edge
     __he = __fuzzy_factory.generate_fuzzy_ruleset_edge(
         "water_control", cogni_sys, [fuzz_water_level, fuzz_water_rate], [fuzz_water_cmd], [ling_battery_cmd],
         [
-            ("R0", [('water_level', ["LOW"])], [("water_cmd", ["CLOSEFAST"])]),
-            ("R1", [('water_level', ["HI"])], [("water_cmd", ["OPENFAST"])]),
-            ("R2", [('water_level', ["MID"])], [("water_cmd", ["STANDBY"])])
+            ("R0", [('battery_voltage', ["LOW"])], [("battery_cmd", ["CLOSEFAST"])]),
+            ("R1", [('battery_voltage', ["HI"])], [("battery_cmd", ["OPENFAST"])]),
+            ("R2", [('battery_voltage', ["MID"])], [("battery_cmd", ["STANDBY"])])
         ]
     )
     #
